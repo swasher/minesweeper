@@ -30,35 +30,35 @@ Libraries
 opencv
 -------------
 
-real-time computer vision
+Real-time computer vision.
 
 pywinauto
 --------------
 
-pywinauto is a set of python modules to automate the Microsoft Windows GUI. At its simplest it allows you to send mouse and keyboard actions to windows dialogs and controls, but it has support for more complex actions like getting text data.
-https://github.com/pywinauto/pywinauto
+[not used] pywinauto is a set of python modules to automate the Microsoft Windows GUI. At its simplest it allows you to send mouse and keyboard actions to windows dialogs and controls, but it has support for more complex actions like getting text data.
+ [github](https://github.com/pywinauto/pywinauto)
 
 pyautogui
 -----------------
 
 PyAutoGUI is a cross-platform GUI automation Python module for human beings. Used to programmatically control the mouse & keyboard.
-https://github.com/asweigart/
+ [github](https://github.com/asweigart/)
 
 python-imagesearch
 -------------------
 
-search the screen for a specific element
-https://github.com/drov0/python-imagesearch
+[not used] search the screen for a specific element
+ [github](https://github.com/drov0/python-imagesearch)
 
 Articles
 ==================
 
 Automate gaming with python
-https://towardsdatascience.com/you-never-get-bored-playing-with-computer-vision-cb93cbd3274a
+ [You never get bored playing with Computer Vision](https://towardsdatascience.com/you-never-get-bored-playing-with-computer-vision-cb93cbd3274a)
 
 Search the screen for a specific element
-https://medium.com/@martin.lees/image-recognition-for-automation-with-python-711ac617b4e5
-https://brokencode.io/how-to-easily-image-search-with-python/
+ [Easy Image recognition for automation with python](https://medium.com/@martin.lees/image-recognition-for-automation-with-python-711ac617b4e5)
+ [How to easily image search with python](https://brokencode.io/how-to-easily-image-search-with-python/)
 
 Алгоритмы
 ====================
