@@ -53,16 +53,14 @@ python-imagesearch
 Articles
 ==================
 
-Automate gaming with python
+Automate gaming with python  
  [You never get bored playing with Computer Vision](https://towardsdatascience.com/you-never-get-bored-playing-with-computer-vision-cb93cbd3274a)
 
-Search the screen for a specific element
- [Easy Image recognition for automation with python](https://medium.com/@martin.lees/image-recognition-for-automation-with-python-711ac617b4e5)
- [How to easily image search with python](https://brokencode.io/how-to-easily-image-search-with-python/)
+Search the screen for a specific element  
+ [Easy Image recognition for automation with python](https://medium.com/@martin.lees/image-recognition-for-automation-with-python-711ac617b4e5)  
+ [How to easily image search with python](https://brokencode.io/how-to-easily-image-search-with-python/)  
 
 Алгоритмы
-====================
-
-[Reddit - how_to_write_your_own_minesweeper_ai_very](https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/)
-
-[How to Write your own Minesweeper AI](https://luckytoilet.wordpress.com/2012/12/23/2125/)
+====================  
+[Reddit - how_to_write_your_own_minesweeper_ai_very](https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/)  
+[How to Write your own Minesweeper AI](https://luckytoilet.wordpress.com/2012/12/23/2125/)  
