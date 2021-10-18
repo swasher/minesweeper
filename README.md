@@ -1,4 +1,4 @@
-Very alpha demo (only 1 solve strategy):
+Very early alpha demo (only 1 solve strategy):  
 ----------------------------------------
 
 [![ANIMATIY.gif](https://s1.gifyu.com/images/ANIMATIY.gif)](https://gifyu.com/image/eNik)
