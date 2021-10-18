@@ -1,5 +1,7 @@
 Very alpha demo (only 1 solve strategy):
-![solver](https://media.giphy.com/media/dzLxHG1cFaLPH765Ap/giphy.gif)
+----------------------------------------
+
+[![ANIMATIY.gif](https://s1.gifyu.com/images/ANIMATIY.gif)](https://gifyu.com/image/eNik)
 
 
 Installation
