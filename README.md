@@ -19,9 +19,8 @@ Opencv
 
 аналогично
 
-для установки opencv нужно установить это
- Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019
-https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-160
+для установки opencv нужно установить это:  
+[Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-160)
 
 
 Libraries
@@ -35,19 +34,19 @@ Real-time computer vision.
 pywinauto
 --------------
 
-[not used] pywinauto is a set of python modules to automate the Microsoft Windows GUI. At its simplest it allows you to send mouse and keyboard actions to windows dialogs and controls, but it has support for more complex actions like getting text data.
+**[not used]** pywinauto is a set of python modules to automate the Microsoft Windows GUI. At its simplest it allows you to send mouse and keyboard actions to windows dialogs and controls, but it has support for more complex actions like getting text data.  
  [github](https://github.com/pywinauto/pywinauto)
 
 pyautogui
 -----------------
 
-PyAutoGUI is a cross-platform GUI automation Python module for human beings. Used to programmatically control the mouse & keyboard.
+PyAutoGUI is a cross-platform GUI automation Python module for human beings. Used to programmatically control the mouse & keyboard.  
  [github](https://github.com/asweigart/)
 
 python-imagesearch
 -------------------
 
-[not used] search the screen for a specific element
+**[not used]** search the screen for a specific element  
  [github](https://github.com/drov0/python-imagesearch)
 
 Articles
