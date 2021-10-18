@@ -5,3 +5,5 @@ imagesearch.py
 examples.py
 .idea/
 __pycache__/
+private/
+*.whl
