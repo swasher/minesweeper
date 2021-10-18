@@ -1,3 +1,7 @@
+Very alpha demo (only 1 solve strategy):
+![solver](https://media.giphy.com/media/dzLxHG1cFaLPH765Ap/giphy.gif)
+
+
 Installation
 =====================
 
@@ -20,6 +24,11 @@ https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msv
 
 Libraries
 ========================
+
+opencv
+-------------
+
+real-time computer vision
 
 pywinauto
 --------------
@@ -52,5 +61,6 @@ https://brokencode.io/how-to-easily-image-search-with-python/
 Алгоритмы
 ====================
 
-https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/
-https://luckytoilet.wordpress.com/2012/12/23/2125/
+[Reddit - how_to_write_your_own_minesweeper_ai_very](https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/)
+
+[How to Write your own Minesweeper AI](https://luckytoilet.wordpress.com/2012/12/23/2125/)
