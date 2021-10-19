@@ -12,13 +12,53 @@ icecream.install()
 from classes import Cell, Matrix
 from solve import solve
 
+"""
+RULES FOR COORDINATES
+Board matrix represented by array of arrays, ie
+[[· · · · · · · · ·], [· · · 1 · · · · ·], [· · · · · · · · ·], [· · · · · · · · ·], [· · 3 4 2 2 · · ·], [· · · 1 ⨯ 1 · · ·], [· 2 1 1 ⨯ 1 · · ·], [· 1 ⨯ ⨯ ⨯ 1 · · ·], [· 1 ⨯ ⨯ ⨯ 1 · · ·]]
+
+or
+
+[[· · · · · · · · ·], 
+ [· · · 1 · · · · ·], 
+ [· · · · · · · · ·], 
+ [· · · · · · · · ·], 
+ [· · 3 4 2 2 · · ·], 
+ [· · · 1 ⨯ 1 · · ·], 
+ [· 2 1 1 ⨯ 1 · · ·], 
+ [· 1 ⨯ ⨯ ⨯ 1 · · ·], 
+ [· 1 ⨯ ⨯ ⨯ 1 · · ·]]
+
+First number - its OUTER list, 
+second number - INNER list
+
+So first numer - it'a apply to line number or ROW
+and second number - it is COLUMN 
+
+For example, [1, 2] - it's second row and third column.
+
+In terms of X:Y coordinates, axis X is vertically, and Y is horizontally.
+Alse X - its ROWS
+and  Y - its COLUMNS
+
+So [1, 2] in xy coord will be (x, y) = (1, 2):
+
+   y0  y1  y2
+x0
+x1
+x2 
+
+
+"""
+
+
+
 def scan_region(region):
     """
     :param region
     Возвращает два списка row_values и col_values. Начало координат - верх лево.
-    row_values - список координаты по оси X для каждого столбца
-    row_values - список координаты по оси Y для каждой строки
-    :return:
+    :return: cells_coord_x - список координаты по оси X для каждого столбца (в пикселях относительно верха лева экрана)
+    :return: cells_coord_y - анал. по оси Y
     """
     with mss.mss() as sct:
         # for prod
@@ -57,19 +97,19 @@ def scan_region(region):
                 cells.append(cellule)
                 # cv.putText(image, str(x), (max_loc[0]+3, max_loc[1]+10), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
 
-        row_values = []
-        col_values = []
+        cells_coord_y = []
+        cells_coord_x = []
         for i in cells:
-            col_values.append(i[0])
-            row_values.append(i[1])
+            cells_coord_x.append(i[0])
+            cells_coord_y.append(i[1])
 
         # Эти два списка - искомые координаты ячеек
-        row_values = sorted(list(set(row_values)))  # кол-во соотв. кол-ву строк; координаты строк сверху вниз - Y
-        col_values = sorted(list(set(col_values)))  # кол-во соотв. кол-ву столбцов; координаты столбцов слева направо - X
+        cells_coord_y = sorted(list(set(cells_coord_y)))  # кол-во соотв. кол-ву строк; координаты строк сверху вниз по Y
+        cells_coord_x = sorted(list(set(cells_coord_x)))  # кол-во соотв. кол-ву столбцов; координаты столбцов слева направо по X
 
-        num_rows = len(row_values)
-        num_cols = len(col_values)
-        total_cells = len(row_values) * len(col_values)
+        num_rows = len(cells_coord_y)
+        num_cols = len(cells_coord_x)
+        total_cells = len(cells_coord_y) * len(cells_coord_x)
 
         ic(num_rows)
         ic(num_cols)
@@ -92,43 +132,46 @@ def scan_region(region):
         # cv.imshow("Display window", image)
         # k = cv.waitKey(0)
         #######
-    return row_values, col_values
+    return cells_coord_y, cells_coord_x
 
 
-def init_scan():
-    ic('INIT SCAN')
+def find_board():
+    """
+    Находит поле сапера
+    :return: row, cols - кол-во столбцов и строк в поле; region - координаты сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол
+    """
+    ic('FINDING BOARD')
     ic('  first scan...')
     # FIRST SCAN - entire screen, coordinates tied to screen
     region = mss.mss().monitors[0]
-    row_values, col_values = scan_region(region)
-    if not len(row_values+col_values):
+    cells_coord_x, cells_coord_y = scan_region(region)
+    if not len(cells_coord_x+cells_coord_y):
         print('Minesweeper not found, exit')
         exit()
     ic('  finish')
 
-    # add pixels to cell size for get entire game field:
-    # left - 14, top - 77, right - 18, boottom - 45
-
     template = cv.imread('pic/closed.png', cv.IMREAD_COLOR)
     h, w = template.shape[:2]
 
+    # add pixels to cells size for get entire game board:
+    # left - 18, top - 81, right - 18, boottom - 17
     left = 18
     right = 18
     top = 81
     bottom = 17
 
-    region_x1 = col_values[0] - left
-    region_x2 = col_values[-1] + right + w
-    region_y1 = row_values[0] - top
-    region_y2 = row_values[-1] + bottom + h
+    region_x1 = cells_coord_y[0] - left
+    region_x2 = cells_coord_y[-1] + right + w
+    region_y1 = cells_coord_x[0] - top
+    region_y2 = cells_coord_x[-1] + bottom + h
 
     # SECOND RUN - ONLY WITH REGION OF MINESWEEPER
+    # coordinates cells_coord_x, cells_coord_y tied to minesweeper board
     ic('  second scan...')
     region = (region_x1, region_y1, region_x2, region_y2)
-    ic(region)
-    row_values, col_values = scan_region(region)
+    cells_coord_y, cells_coord_x = scan_region(region)
     ic('  finish')
-    return row_values, col_values, region
+    return cells_coord_x, cells_coord_y, region
 
 
 def create_matrix(row_values, col_values, region):
@@ -156,10 +199,11 @@ def create_matrix(row_values, col_values, region):
     #     k = cv.waitKey(0)
     #### end test
 
-    for x, coordx in enumerate(col_values):         # cell[столбец][строка]
+    for x, coordx in enumerate(col_values):         # cell[строка][столбец]
         for y, coordy in enumerate(row_values):
             c = Cell(x, y, coordx, coordy, w, h)
             table[x][y] = c
+
 
     ic('Matrix created.')
     return matrix
@@ -167,15 +211,15 @@ def create_matrix(row_values, col_values, region):
 
 if __name__ == '__main__':
     # image = "pic/closed.png"
-    row_values, col_values, region = init_scan()
-    matrix = create_matrix(row_values, col_values, region)
+    rows, cols, region = find_board()
+    matrix = create_matrix(rows, cols, region)
     # print(matr.table)
 
     # matrix.table[0][0].click()
 
     x = random.randrange(matrix.len_x)
     y = random.randrange(matrix.len_y)
-    matrix.table[x][y].click('left')
+    # matrix.table[x][y].click('left')
     matrix.update()
 
     while not matrix.face_is_fail():
