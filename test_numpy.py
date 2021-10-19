@@ -4,6 +4,8 @@ import icecream as ic
 class Cell(object):
     x = 0
     y = 0
+    status = ''  # may be open, closed or flag
+    number = 0   # number of bomb around
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -25,3 +27,8 @@ for y in range(row):
 print(a)
 print(a[0][0])
 print(a[1][1])
+
+class Matrix(np.ndarray):
+    pass
+
+matrix = Matrix([2, 3, 4], dtype = np.uint32)

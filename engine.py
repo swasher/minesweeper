@@ -144,8 +144,7 @@ def create_matrix(row_values, col_values, region):
 
     # Здесь мы специально меняем Класс, а не экземпляр, чтобы у объектов Cell был доступ к этим свойствам
     Matrix.region_x1, Matrix.region_y1, Matrix.region_x2, Matrix.region_y2 = region
-    Matrix.count_x = num_cols
-    Matrix.count_y = num_rows
+
 
     ##### test
     # with mss.mss() as sct:
@@ -174,8 +173,8 @@ if __name__ == '__main__':
 
     # matrix.table[0][0].click()
 
-    x = random.randrange(matrix.count_x)
-    y = random.randrange(matrix.count_y)
+    x = random.randrange(matrix.len_x)
+    y = random.randrange(matrix.len_y)
     matrix.table[x][y].click('left')
     matrix.update()
 
@@ -193,34 +192,3 @@ if __name__ == '__main__':
 
         if not bombs and not clears:
             break
-
-
-
-        # for cell in array:
-        #     matrix.table[cell[0]][cell[1]].click(click)  # click may be right or left
-
-
-
-
-
-
-    """
-    # try open one cell
-    xx = 2
-    yy = 2
-    matrix.table[xx][yy].click()
-    with mss.mss() as sct:
-        screenshot = sct.grab(region)
-        raw = np.array(screenshot)
-        # image = cv.cvtColor(raw, cv.COLOR_RGB2BGR)
-        image = cv.cvtColor(raw, cv.COLOR_RGB2GRAY)
-
-        matrix.table[xx][yy].update_cell(image)
-        # matrix.reset()
-    """
-
-
-    # imagesearch_count(image)
-    # imagesearch_numLoop(image, 1, 10)
-
-

@@ -1,4 +1,4 @@
-tst.py
+test/proper_slice.py
 whl
 matrix_of_objects.py
 imagesearch.py
@@ -7,3 +7,4 @@ examples.py
 __pycache__/
 private/
 *.whl
+test/
