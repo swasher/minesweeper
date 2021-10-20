@@ -14,18 +14,39 @@ class Matrix(object):
     region_y1 = 0
     region_x2 = 0
     region_y2 = 0
-    len_x = 0
-    len_y = 0
+    matrix_width = 0
+    matrix_height = 0
 
-    def __init__(self, num_rows, num_cols):
+    def matrix_tester(self):
+        print('MATRIX TESTER')
+        row0 = self.table[0]
+        row1 = self.table[1]
+        for col in row0:
+            print(f'row0col{col} ', end='')
+        for col in row1:
+            print(f'row1col{col} ', end='')
+
+    def __init__(self, row_values, col_values, region):
         """
         Заполняет Matrix пустыми объектами Cell
         :param num_rows:
         :param num_cols:
         """
-        self.table = numpy.full((num_rows, num_cols), Cell)
-        self.len_x = num_cols
-        self.len_y = num_rows
+        self.matrix_height = len(col_values)
+        self.matrix_width = len(row_values)
+
+        self.table = numpy.full((self.matrix_width, self.matrix_height), Cell)
+
+        # TODO это нужно брать из класса Cell_pattern
+        template = cv.imread('pic/closed.png', cv.IMREAD_COLOR)
+        h, w = template.shape[:2]
+
+        self.region_x1, self.region_y1, self.region_x2, self.region_y2 = region
+
+        for row, coordy in enumerate(row_values):  # cell[строка][столбец]
+            for col, coordx in enumerate(col_values):
+                c = Cell(row, col, coordx, coordy, w, h)
+                self.table[row, col] = c
 
     def display(self):
         """
@@ -34,9 +55,9 @@ class Matrix(object):
         """
         print('---DISPLAY---')
         m = []
-        for y in range(self.len_y):
+        for y in range(self.matrix_height):
             row = ''
-            for x in range(self.len_x):
+            for x in range(self.matrix_width):
                 row += str(self.table[x][y])
             m.append(row)
         print('\n'.join(row for row in m))
@@ -74,8 +95,8 @@ class Matrix(object):
         ic('Start update matrix...')
         image = self.get_image()
         image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
-        for y in range(self.len_y):
-            for x in range(self.len_x):
+        for y in range(self.matrix_height):
+            for x in range(self.matrix_width):
                 self.table[x][y].update_cell(image)
         ic('  finish')
 
@@ -172,21 +193,23 @@ class Matrix(object):
         for cell in cells:
             if cell.is_closed:
                 count += 1
-        return count
+        return count, cells
 
 
 class Cell(Matrix):
     col = 0
-    y = 0
+    row = 0
     coordx = 0
     coordy = 0
     h = 0
     w = 0
     status = ''       # False - закрытая ячейка, True - открытая ячейка
-    number = 0        # для открытой ячейки показывает число на ней
+
+    # TODO number is possible depricated
+    # number = 0        # для открытой ячейки показывает число на ней
     # deprecated flag = False    # если True, то ячейка помечена как потенциально с бомбой
 
-    def __init__(self, col, row, coordx, coordy, w, h):
+    def __init__(self, row, col, coordx, coordy, w, h):
         """
         :param x: номер ячейки в строке, начиная с 0. Т.е. это СТОЛБЕЦ. Левая ячейка - номер 0    cell[столбец][строка]
         :param y: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
@@ -212,17 +235,21 @@ class Cell(Matrix):
         self.status = 'closed'
 
     def __repr__(self):
+        # TODO Сделать еще одно поле - TYPE с типом Pattern, и здесь
+        # TODO возвращать просто self.type.represent
         if self.status == 'closed':
-            return '·'  # ·ᐧ    # more bad ․⋅
+            slot = '·'  # ·ᐧ    # more bad ․⋅
         elif self.status == 'flag':
-            return '⚑'
+            slot = '⚑'
         elif self.status == 'bomb':
-            return '⚹'
+            slot = '⚹'
         elif self.status.isnumeric():
             if self.status == '0':
-                return '⨯'  # ⨯·
+                slot = '⨯'  # ⨯·
             else:
-                return self.status
+                slot = self.status
+        return slot
+        # return self.row+':'+self.col
 
     @property
     def is_closed(self):
@@ -274,6 +301,17 @@ class Cell(Matrix):
         y += Matrix.region_y1
         util.click(x, y, button)
 
+    @property
+    def number(self):
+        """
+        Возвращает цифру ячейки в виде int. Иначе возвращает -1
+        :return: int
+        """
+        if self.status.isnumeric():
+            return int(self.status.isnumeric())
+        else:
+            return -1
+
     def update_cell(self, image):
         """
         Обновляет содержимое ячейки в соответствии с полем Minesweeper
@@ -296,7 +334,7 @@ class Cell(Matrix):
             template = cv.imread(pattern.filename, cv.IMREAD_COLOR)
             res = cv.matchTemplate(image_cell, template, cv.TM_CCOEFF_NORMED)
             min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-            # print(f'Cell {self.x}:{self.y} compared with {v} with result {max_val}')
+            # print(f'Cell {self.row}:{self.col} compared with {pattern} with result {max_val}')
             pattern.similarity = max_val
 
         best_match = sorted(patterns, key=lambda x: x.similarity, reverse=True)[0]
@@ -304,5 +342,5 @@ class Cell(Matrix):
         if best_match.similarity > precision:
             self.status = best_match.name
         else:
-            print(f'Cell {self.x}x{self.y} do not match anything. Exit')
+            print(f'Cell {self.row}x{self.col} do not match anything. Exit')
             exit()

@@ -79,8 +79,6 @@ def scan_region(region):
 
         threshold = 0.90
 
-        start_time = time.time()
-
         res = cv.matchTemplate(image, template, method)
 
         # fake out max_val for first run through loop
@@ -99,9 +97,9 @@ def scan_region(region):
 
         cells_coord_y = []
         cells_coord_x = []
-        for i in cells:
-            cells_coord_x.append(i[0])
-            cells_coord_y.append(i[1])
+        for cell in cells:
+            cells_coord_x.append(cell[0])
+            cells_coord_y.append(cell[1])
 
         # Эти два списка - искомые координаты ячеек
         cells_coord_y = sorted(list(set(cells_coord_y)))  # кол-во соотв. кол-ву строк; координаты строк сверху вниз по Y
@@ -116,22 +114,17 @@ def scan_region(region):
         ic(total_cells)
 
         """
-        ##### for test purpose;
-        ##### draw at each cell it's row and column number
-        cx, cy = 0, 0
-        for x in col_values:
-            cx += 1
-            for y in row_values:
-                cy += 1
-                cv.putText(image, str(cx), (x + 5, y + 11), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-                cv.putText(image, str(cy), (x + 5, y + 19), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+        # for test purpose; YOU CAN SEE WHAT GRABBING
+        # draw at each cell it's row and column number
+        for col, x in enumerate(cells_coord_x):
+            for row, y in enumerate(cells_coord_y):
+                cv.putText(image, str(row), (x + 5, y + 11), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+                cv.putText(image, str(col), (x + 5, y + 19), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+        # cv.imwrite('output.png', image)
+        cv.imshow("Display window", image)
+        k = cv.waitKey(0)
         """
 
-        # cv.imwrite('output.png', image)
-        ####### YOU CAN SEE WHAT GRABBING
-        # cv.imshow("Display window", image)
-        # k = cv.waitKey(0)
-        #######
     return cells_coord_y, cells_coord_x
 
 
@@ -169,24 +162,18 @@ def find_board():
     # coordinates cells_coord_x, cells_coord_y tied to minesweeper board
     ic('  second scan...')
     region = (region_x1, region_y1, region_x2, region_y2)
-    cells_coord_y, cells_coord_x = scan_region(region)
+    cells_coord_x, cells_coord_y = scan_region(region)
     ic('  finish')
     return cells_coord_x, cells_coord_y, region
 
 
 def create_matrix(row_values, col_values, region):
     ic('Start create matrix...')
-    num_rows = len(row_values)
-    num_cols = len(col_values)
 
-    template = cv.imread('pic/closed.png', cv.IMREAD_COLOR)
-    h, w = template.shape[:2]
 
-    matrix = Matrix(num_cols, num_rows)
+
+    matrix = Matrix(row_values, col_values, region)
     table = matrix.table
-
-    # Здесь мы специально меняем Класс, а не экземпляр, чтобы у объектов Cell был доступ к этим свойствам
-    Matrix.region_x1, Matrix.region_y1, Matrix.region_x2, Matrix.region_y2 = region
 
 
     ##### test
@@ -198,11 +185,6 @@ def create_matrix(row_values, col_values, region):
     #     cv.imshow("Display window", image)
     #     k = cv.waitKey(0)
     #### end test
-
-    for x, coordx in enumerate(col_values):         # cell[строка][столбец]
-        for y, coordy in enumerate(row_values):
-            c = Cell(x, y, coordx, coordy, w, h)
-            table[x][y] = c
 
 
     ic('Matrix created.')
@@ -217,10 +199,11 @@ if __name__ == '__main__':
 
     # matrix.table[0][0].click()
 
-    x = random.randrange(matrix.len_x)
-    y = random.randrange(matrix.len_y)
-    # matrix.table[x][y].click('left')
+    x = random.randrange(matrix.matrix_width)
+    y = random.randrange(matrix.matrix_height)
+    matrix.table[x][y].click('left')
     matrix.update()
+    matrix.display()
 
     while not matrix.face_is_fail():
         bombs, clears = solve(matrix)

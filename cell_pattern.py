@@ -7,6 +7,9 @@ class Cell_pattern():
         self.name = name
         self.filename = filename
 
+    def __repr__(self):
+        return '<'+self.name+'>'
+
 
 patterns = [Cell_pattern(f'{i}', f'pic/{i}.png') for i in range(7)]
 patterns.append(Cell_pattern('closed', 'pic/closed.png'))

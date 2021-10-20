@@ -1,7 +1,3 @@
-test/proper_slice.py
-whl
-matrix_of_objects.py
-imagesearch.py
 examples.py
 .idea/
 __pycache__/

@@ -14,8 +14,8 @@ def solve(matrix):
 #     cells = []
 #     for row in [x-1, x, x+1]:
 #         for col in [y-1, y, y+1]:
-#             if (row not in range(matrix.len_x)) \
-#                     or (col not in range(matrix.len_y)) \
+#             if (row not in range(matrix.matrix_width)) \
+#                     or (col not in range(matrix.matrix_height)) \
 #                     or (row == x and col == y):
 #                 continue
 #             if matrix.table[row][col].status in ['closed', 'flag']:  # в подсчете принимают участие
@@ -29,12 +29,13 @@ def solve(matrix):
 
 def solver_B1(matrix):
     bomb_cells = []
-    for y in range(matrix.len_y):
-        for x in range(matrix.len_x):
-            cell = matrix.table[x][y]
+    for row in range(matrix.matrix_height):
+        for col in range(matrix.matrix_width):
+            cell = matrix.table[row, col]
             if cell.is_open and cell.is_not_zero and cell.is_not_flag:
-                around, cells = matrix.count_closed(x, y)
-                if matrix.table[x][y].status == around:
+                cell = matrix.table[row, col]
+                around, cells = matrix.count_closed(row, col)
+                if cell.number == around:
                     # значит во всех клетках cells есть бомбы
                     bomb_cells += cells
     bomb_cells = remove_dup(bomb_cells)
