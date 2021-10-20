@@ -8,14 +8,8 @@ import util
 from pprint import pprint
 from cell_pattern import patterns
 
+
 class Matrix(object):
-    table = None
-    region_x1 = 0
-    region_y1 = 0
-    region_x2 = 0
-    region_y2 = 0
-    matrix_width = 0
-    matrix_height = 0
 
     def matrix_tester(self):
         print('MATRIX TESTER')
@@ -32,16 +26,18 @@ class Matrix(object):
         :param num_rows:
         :param num_cols:
         """
-        self.matrix_height = len(col_values)
-        self.matrix_width = len(row_values)
+        self.matrix_height = len(row_values)
+        self.matrix_width = len(col_values)
 
-        self.table = numpy.full((self.matrix_width, self.matrix_height), Cell)
+        self.table = numpy.full((self.matrix_height, self.matrix_width), Cell)
 
         # TODO это нужно брать из класса Cell_pattern
         template = cv.imread('pic/closed.png', cv.IMREAD_COLOR)
         h, w = template.shape[:2]
 
         self.region_x1, self.region_y1, self.region_x2, self.region_y2 = region
+        Cell.ident_right = self.region_x1
+        Cell.ident_top = self.region_y1
 
         for row, coordy in enumerate(row_values):  # cell[строка][столбец]
             for col, coordx in enumerate(col_values):
@@ -54,14 +50,14 @@ class Matrix(object):
         :return: Возвращает матрицу типа array of strings
         """
         print('---DISPLAY---')
-        m = []
-        for y in range(self.matrix_height):
-            row = ''
-            for x in range(self.matrix_width):
-                row += str(self.table[x][y])
-            m.append(row)
-        print('\n'.join(row for row in m))
-        return m
+        matrix_view = []
+        for row in range(self.matrix_height):
+            row_view = ''
+            for col in range(self.matrix_width):
+                row_view += self.table[row, col].__repr__()
+            matrix_view.append(row_view)
+        print('\n'.join(row for row in matrix_view))
+        return matrix_view
 
     def get_image(self):
         """
@@ -73,13 +69,14 @@ class Matrix(object):
             # image = cv.imread('pic/test_big.png', cv.IMREAD_COLOR)
 
             # from screen
-            screenshot = sct.grab(self.region())
+            screenshot = sct.grab(self.region)
             raw = np.array(screenshot)
             image = cv.cvtColor(raw, cv.COLOR_RGB2BGR)
             # cv.imshow("Display window", raw)
             # k = cv.waitKey(0)
         return image
 
+    @property
     def region(self):
         """
         Возвращает объект типа PIL bbox всего поля игры, включая рамки.
@@ -95,9 +92,10 @@ class Matrix(object):
         ic('Start update matrix...')
         image = self.get_image()
         image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
-        for y in range(self.matrix_height):
-            for x in range(self.matrix_width):
-                self.table[x][y].update_cell(image)
+        for row in range(self.matrix_height):
+            for col in range(self.matrix_width):
+                self.table[row, col].update_cell(image)
+
         ic('  finish')
 
     def face_is_fail(self):
@@ -167,7 +165,7 @@ class Matrix(object):
         else:
             return v - 1, v + 2
 
-    def get_around_cells(self, col, row):
+    def get_around_cells(self, row, col):
         """
         see test/around_cell.py for explain
         :param col:
@@ -187,27 +185,18 @@ class Matrix(object):
                     cells.append(arr[y, x])
         return cells
 
-    def count_closed(self, col, row):
-        cells = self.get_around_cells(col, row)
+    def count_closed(self, row, col):
+        cells = self.get_around_cells(row, col)
         count = 0
+        closed_cells = []
         for cell in cells:
             if cell.is_closed:
                 count += 1
-        return count, cells
+                closed_cells.append(cell)
+        return count, closed_cells
 
 
 class Cell(Matrix):
-    col = 0
-    row = 0
-    coordx = 0
-    coordy = 0
-    h = 0
-    w = 0
-    status = ''       # False - закрытая ячейка, True - открытая ячейка
-
-    # TODO number is possible depricated
-    # number = 0        # для открытой ячейки показывает число на ней
-    # deprecated flag = False    # если True, то ячейка помечена как потенциально с бомбой
 
     def __init__(self, row, col, coordx, coordy, w, h):
         """
@@ -248,7 +237,9 @@ class Cell(Matrix):
                 slot = '⨯'  # ⨯·
             else:
                 slot = self.status
-        return slot
+        else:
+            return 'e'  # error
+        return slot+f'{self.row}:{self.col}'
         # return self.row+':'+self.col
 
     @property
@@ -297,8 +288,8 @@ class Cell(Matrix):
         :return:
         """
         x, y = self.cell_random_coordinates()
-        x += Matrix.region_x1
-        y += Matrix.region_y1
+        x += Cell.ident_right
+        y += Cell.ident_top
         util.click(x, y, button)
 
     @property

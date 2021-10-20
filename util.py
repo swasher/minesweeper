@@ -24,10 +24,10 @@ def click(x, y, button):
 
 def remove_dup(arr):
     """
-    Remove dublicates from array of arrays.
-    Found there https://stackoverflow.com/a/69283440/1334825
-    :return:
+    Remove dublicates from array of object.
+    :return: array of Cellc
     """
-    k = list(map(tuple, arr))
-    unique = list(dict.fromkeys(k))
+    unique = list(set(arr))
     return unique
+
+

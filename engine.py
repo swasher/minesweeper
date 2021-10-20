@@ -41,13 +41,17 @@ In terms of X:Y coordinates, axis X is vertically, and Y is horizontally.
 Alse X - its ROWS
 and  Y - its COLUMNS
 
-So [1, 2] in xy coord will be (x, y) = (1, 2):
+"Первая" ось 0 это по строкам, "вторая" - по столбцам
+table[строка, столбец]
+table[row, col]
 
-   y0  y1  y2
-x0
-x1
-x2 
-
+        axis 1
+       col0  col1  col2
+a row0
+x row1
+i row2 
+s
+0
 
 """
 
@@ -167,41 +171,32 @@ def find_board():
     return cells_coord_x, cells_coord_y, region
 
 
-def create_matrix(row_values, col_values, region):
-    ic('Start create matrix...')
+def draw():
+    """
+    ДОПИЛИТЬ ФУНКЦИЮ, ЧТОБЫ ДЕЛАТЬ ДЕБАГ-КАРТИНКИ
+    :return: 
+    """
+    with mss.mss() as sct:
+        screenshot = sct.grab(sct.monitors[0])
+        raw = np.array(screenshot)
+        image = cv.cvtColor(raw, cv.COLOR_RGB2BGR)
+        image = cv.rectangle(image, (matrix.region_x1, matrix.region_y1), (matrix.region_x2, matrix.region_y2), (0, 255, 0))
+        cv.imshow("Display window", image)
+        k = cv.waitKey(0)
 
-
-
-    matrix = Matrix(row_values, col_values, region)
-    table = matrix.table
-
-
-    ##### test
-    # with mss.mss() as sct:
-    #     screenshot = sct.grab(sct.monitors[0])
-    #     raw = np.array(screenshot)
-    #     image = cv.cvtColor(raw, cv.COLOR_RGB2BGR)
-    #     image = cv.rectangle(image, (matrix.region_x1, matrix.region_y1), (matrix.region_x2, matrix.region_y2), (0, 255, 0))
-    #     cv.imshow("Display window", image)
-    #     k = cv.waitKey(0)
-    #### end test
-
-
-    ic('Matrix created.')
-    return matrix
 
 
 if __name__ == '__main__':
     # image = "pic/closed.png"
-    rows, cols, region = find_board()
-    matrix = create_matrix(rows, cols, region)
+    row_values, col_values, region = find_board()
+    matrix = Matrix(row_values, col_values, region)
     # print(matr.table)
 
     # matrix.table[0][0].click()
 
-    x = random.randrange(matrix.matrix_width)
-    y = random.randrange(matrix.matrix_height)
-    matrix.table[x][y].click('left')
+    col = random.randrange(matrix.matrix_width)
+    row = random.randrange(matrix.matrix_height)
+    matrix.table[row, col].click('left')
     matrix.update()
     matrix.display()
 
@@ -210,7 +205,7 @@ if __name__ == '__main__':
         ic(bombs)
 
         for bomb in bombs:
-            matrix.table[bomb[0]][bomb[1]].click('right')
+            bomb.click('right')
         for clear in clears:
             matrix.table[clear[0]][clear[1]].click('left')
 
