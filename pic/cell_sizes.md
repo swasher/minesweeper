@@ -5,5 +5,6 @@ WORK 2560х1440
 10      11x11 px (min size)
 20      22х23 px
 *22     25х25 px
+24      27х27 px
 28      32х32 px
 60      67x67 px (max size)

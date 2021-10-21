@@ -56,7 +56,7 @@ s
 
 
 
-def scan_region(region):
+def scan_region(region, asset):
     """
     :param region
     Возвращает два списка row_values и col_values. Начало координат - верх лево.
@@ -68,11 +68,12 @@ def scan_region(region):
         screenshot = sct.grab(region)
         raw = np.array(screenshot)
         image = cv.cvtColor(raw, cv.COLOR_RGB2BGR)
+        closed_cell_file = f'{asset}/closed.png'
 
         # for dev
         # image = cv.imread('pic/test_big.png', cv.IMREAD_COLOR)
 
-        template = cv.imread('pic/closed.png', cv.IMREAD_COLOR)
+        template = cv.imread(closed_cell_file, cv.IMREAD_COLOR)
         if template is None:
             raise FileNotFoundError('Image file not found: {}'.format(image))
 
@@ -80,7 +81,7 @@ def scan_region(region):
 
         method = cv.TM_CCOEFF_NORMED
 
-        threshold = 0.90
+        threshold = 0.60
 
         res = cv.matchTemplate(image, template, method)
 
@@ -128,10 +129,11 @@ def scan_region(region):
         k = cv.waitKey(0)
         """
 
+    # TODO тут опять непонятные x y
     return cells_coord_y, cells_coord_x
 
 
-def find_board():
+def find_board(asset):
     """
     Находит поле сапера
     :return: row, cols - кол-во столбцов и строк в поле; region - координаты сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол
@@ -140,17 +142,18 @@ def find_board():
     ic('  first scan...')
     # FIRST SCAN - entire screen, coordinates tied to screen
     region = mss.mss().monitors[0]
-    cells_coord_x, cells_coord_y = scan_region(region)
+    cells_coord_x, cells_coord_y = scan_region(region, asset)
     if not len(cells_coord_x+cells_coord_y):
         print('Minesweeper not found, exit')
         exit()
     ic('  finish')
 
-    template = cv.imread('pic/closed.png', cv.IMREAD_COLOR)
+    template = cv.imread(f'{asset}/closed.png', cv.IMREAD_COLOR)
     h, w = template.shape[:2]
 
     # add pixels to cells size for get entire game board:
     # left - 18, top - 81, right - 18, boottom - 17
+    # TODO эти параметры должны быть привязаны к ассету
     left = 18
     right = 18
     top = 81
@@ -165,7 +168,7 @@ def find_board():
     # coordinates cells_coord_x, cells_coord_y tied to minesweeper board
     ic('  second scan...')
     region = (region_x1, region_y1, region_x2, region_y2)
-    cells_coord_x, cells_coord_y = scan_region(region)
+    cells_coord_x, cells_coord_y = scan_region(region, asset)
     ic('  finish')
     return cells_coord_x, cells_coord_y, region
 
@@ -187,7 +190,8 @@ def draw():
 
 if __name__ == '__main__':
     # image = "pic/closed.png"
-    row_values, col_values, region = find_board()
+    asset = 'asset_22_2560x1440'
+    row_values, col_values, region = find_board(asset)
     matrix = Matrix(row_values, col_values, region)
     # print(matr.table)
 
