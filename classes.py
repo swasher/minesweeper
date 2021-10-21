@@ -7,18 +7,10 @@ import cv2 as cv
 import util
 from pprint import pprint
 from cell_pattern import patterns
+from icecream import ic
 
 
 class Matrix(object):
-
-    def matrix_tester(self):
-        print('MATRIX TESTER')
-        row0 = self.table[0]
-        row1 = self.table[1]
-        for col in row0:
-            print(f'row0col{col} ', end='')
-        for col in row1:
-            print(f'row1col{col} ', end='')
 
     def __init__(self, row_values, col_values, region):
         """
@@ -75,6 +67,25 @@ class Matrix(object):
             # cv.imshow("Display window", raw)
             # k = cv.waitKey(0)
         return image
+
+    def closed_cells(self):
+        cells = []
+        for row in range(self.matrix_height):
+            for col in range(self.matrix_width):
+                cell = self.table[row, col]
+                if cell.is_closed:
+                    cells.append(cell)
+        return cells
+
+    def number_cells(self):
+        cells = []
+        for row in range(self.matrix_height):
+            for col in range(self.matrix_width):
+                cell = self.table[row, col]
+                if cell.is_open and cell.is_not_zero:
+                    cells.append(cell)
+        return cells
+
 
     @property
     def region(self):
@@ -165,47 +176,55 @@ class Matrix(object):
         else:
             return v - 1, v + 2
 
-    def get_around_cells(self, row, col):
+    def get_around_cells(self, cell):
         """
         see test/around_cell.py for explain
         :param col:
         :param row:
         :return: array of cells around (x,y)
         """
-        arr = self.table
+        # arr = self.table
         cells = []
-        x1, x2 = self.get_slice(col, arr.shape[1])
-        y1, y2 = self.get_slice(row, arr.shape[0])
+        rows, cols = self.table.shape
 
-        for y in range(y1, y2):
-            for x in range(x1, x2):
-                if x == col and y == row:
+        # TODO переделать, чтобы не передавать номера строк/стобов, а ячейку
+        # TODO сделать типа def get_X_neighbours(cell)
+
+        c1, c2 = self.get_slice(cell.col, cols)
+        r1, r2 = self.get_slice(cell.row, rows)
+
+        for row in range(r1, r2):
+            for col in range(c1, c2):
+                if col == cell.col and row == cell.row:
                     continue
                 else:
-                    cells.append(arr[y, x])
+                    cells.append(self.table[row, col])
         return cells
 
-    def count_closed(self, row, col):
-        cells = self.get_around_cells(row, col)
-        count = 0
+    def around_closed_cells(self, cell):
+        """
+        Возвращает число закрытых ячеек вокруг ячейки cell
+        :param cell: instance of Cell class
+        :return: closed_cells - array of Cell instances
+        """
+        cells = self.get_around_cells(cell)
         closed_cells = []
         for cell in cells:
             if cell.is_closed:
-                count += 1
                 closed_cells.append(cell)
-        return count, closed_cells
+        return closed_cells
 
 
-class Cell(Matrix):
+class Cell(Matrix):  # TODO Разобраться, нужно ли тут наследование
 
     def __init__(self, row, col, coordx, coordy, w, h):
         """
-        :param x: номер ячейки в строке, начиная с 0. Т.е. это СТОЛБЕЦ. Левая ячейка - номер 0    cell[столбец][строка]
-        :param y: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
-        :param coordx: коор. X от левого верхнего угла
-        :param coordy: коор. Y от левого верхнего угла
-        :param w: ширина ячейки
-        :param h: высота ячейки
+        :param col: номер ячейки в строке, начиная с 0. Т.е. это СТОЛБЕЦ. Левая ячейка - номер 0 - cell[строка][столбец]
+        :param row: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
+        :param coordx: коор. на экране X от левого верхнего угла ДОСКИ в пикселях
+        :param coordy: коор. на экране Y от левого верхнего угла ДОСКИ в пикселях
+        :param w: ширина ячейки в пикселях
+        :param h: высота ячейки в пикселях
         :param status: (str) 'closed' закрыто / 'opened' открыто / 'flag' флаг / number(str)
 
         POSSIBLE STATUS:
@@ -239,8 +258,8 @@ class Cell(Matrix):
                 slot = self.status
         else:
             return 'e'  # error
-        return slot+f'{self.row}:{self.col}'
-        # return self.row+':'+self.col
+        return slot
+        # return slot+f'{self.row}:{self.col}'
 
     @property
     def is_closed(self):
@@ -291,6 +310,9 @@ class Cell(Matrix):
         x += Cell.ident_right
         y += Cell.ident_top
         util.click(x, y, button)
+
+    def setflag(self):
+        self.click('right')
 
     @property
     def number(self):

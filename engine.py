@@ -7,7 +7,6 @@ import numpy as np
 import pyautogui
 import time
 from icecream import ic
-icecream.install()
 
 from classes import Cell, Matrix
 from solve import solve
@@ -205,7 +204,7 @@ if __name__ == '__main__':
         ic(bombs)
 
         for bomb in bombs:
-            bomb.click('right')
+            bomb.setflag()
         for clear in clears:
             matrix.table[clear[0]][clear[1]].click('left')
 

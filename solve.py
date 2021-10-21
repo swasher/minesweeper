@@ -29,15 +29,11 @@ def solve(matrix):
 
 def solver_B1(matrix):
     bomb_cells = []
-    for row in range(matrix.matrix_height):
-        for col in range(matrix.matrix_width):
-            cell = matrix.table[row, col]
-            if cell.is_open and cell.is_not_zero and cell.is_not_flag:
-                cell = matrix.table[row, col]
-                around, cells = matrix.count_closed(row, col)
-                if cell.number == around:
-                    # значит во всех клетках cells есть бомбы
-                    bomb_cells += cells
+    for cell in matrix.number_cells():
+        cells = matrix.around_closed_cells(cell)
+        if cell.number == len(cells):
+            # значит во всех клетках cells есть бомбы
+            bomb_cells += cells
     bomb_cells = remove_dup(bomb_cells)
     return bomb_cells
 
