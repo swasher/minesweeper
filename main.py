@@ -1,15 +1,17 @@
 import random
 
 import cv2 as cv
-import icecream
 import mss
 import numpy as np
-import pyautogui
-import time
 from icecream import ic
 
-from classes import Cell, Matrix
-from solve import solve
+import solve
+from patterns import patterns
+from cell import Cell
+from matrix import Matrix
+
+from solve import solver_B1
+from solve import solver_E1
 
 """
 RULES FOR COORDINATES
@@ -55,25 +57,28 @@ s
 """
 
 
-
-def scan_region(region, asset):
+def scan_region(region, samplefile):
     """
-    :param region
+    Сканирует экран или область region в поисках шаблона samplefile
     Возвращает два списка row_values и col_values. Начало координат - верх лево.
+
+    :param region - tuple of [left, top, width, height]
+    :param samplefile
+
     :return: cells_coord_x - список координаты по оси X для каждого столбца (в пикселях относительно верха лева экрана)
     :return: cells_coord_y - анал. по оси Y
+    :rtype:
     """
     with mss.mss() as sct:
         # for prod
         screenshot = sct.grab(region)
         raw = np.array(screenshot)
         image = cv.cvtColor(raw, cv.COLOR_RGB2BGR)
-        closed_cell_file = f'{asset}/closed.png'
 
         # for dev
         # image = cv.imread('pic/test_big.png', cv.IMREAD_COLOR)
 
-        template = cv.imread(closed_cell_file, cv.IMREAD_COLOR)
+        template = cv.imread(samplefile, cv.IMREAD_COLOR)
         if template is None:
             raise FileNotFoundError('Image file not found: {}'.format(image))
 
@@ -81,7 +86,7 @@ def scan_region(region, asset):
 
         method = cv.TM_CCOEFF_NORMED
 
-        threshold = 0.60
+        threshold = 0.90
 
         res = cv.matchTemplate(image, template, method)
 
@@ -142,13 +147,13 @@ def find_board(asset):
     ic('  first scan...')
     # FIRST SCAN - entire screen, coordinates tied to screen
     region = mss.mss().monitors[0]
-    cells_coord_x, cells_coord_y = scan_region(region, asset)
+    cells_coord_x, cells_coord_y = scan_region(region, asset.closed.filename)
     if not len(cells_coord_x+cells_coord_y):
         print('Minesweeper not found, exit')
         exit()
     ic('  finish')
 
-    template = cv.imread(f'{asset}/closed.png', cv.IMREAD_COLOR)
+    template = cv.imread(asset.closed.filename, cv.IMREAD_COLOR)
     h, w = template.shape[:2]
 
     # add pixels to cells size for get entire game board:
@@ -168,7 +173,7 @@ def find_board(asset):
     # coordinates cells_coord_x, cells_coord_y tied to minesweeper board
     ic('  second scan...')
     region = (region_x1, region_y1, region_x2, region_y2)
-    cells_coord_x, cells_coord_y = scan_region(region, asset)
+    cells_coord_x, cells_coord_y = scan_region(region, asset.closed.filename)
     ic('  finish')
     return cells_coord_x, cells_coord_y, region
 
@@ -186,34 +191,56 @@ def draw():
         cv.imshow("Display window", image)
         k = cv.waitKey(0)
 
-
+# TODO move it!
+def mark_cells(bombs, empties):
+    for cell in bombs:
+        ic(bombs)
+        cell.setflag()
+    for cell in empties:
+        cell.setclear()
 
 if __name__ == '__main__':
-    # image = "pic/closed.png"
-    asset = 'asset_22_2560x1440'
-    row_values, col_values, region = find_board(asset)
-    matrix = Matrix(row_values, col_values, region)
-    # print(matr.table)
 
-    # matrix.table[0][0].click()
+    row_values, col_values, region = find_board(patterns)
+    matrix = Matrix(row_values, col_values, region, patterns)
 
-    col = random.randrange(matrix.matrix_width)
-    row = random.randrange(matrix.matrix_height)
-    matrix.table[row, col].click('left')
-    matrix.update()
-    matrix.display()
 
-    while not matrix.face_is_fail():
-        bombs, clears = solve(matrix)
-        ic(bombs)
+    have_a_move_B1 = True
+    have_a_move_E1 = True
+    do_random = True
 
-        for bomb in bombs:
-            bomb.setflag()
-        for clear in clears:
-            matrix.table[clear[0]][clear[1]].click('left')
+    while not matrix.face_is_fail:
+        do_random = True
+        while have_a_move_E1:
 
-        matrix.update()
-        matrix.display()
+            while have_a_move_B1:
 
-        if not bombs and not clears:
+                while do_random:
+
+                    bombs, empties = solve.solver_R1(matrix)
+                    mark_cells(bombs, empties)
+                    matrix.update()
+                    matrix.display()
+                    do_random = False
+
+                bombs, empties = solver_B1(matrix)
+                have_a_move_B1 = len(bombs+empties)
+                mark_cells(bombs, empties)
+                print('Bombs:', bombs)
+                matrix.update()
+                matrix.display()
+
+            bombs, empties = solver_B1(matrix)
+            have_a_move_E1 = len(bombs+empties)
+            mark_cells(bombs, empties)
+            print('Clear', empties)
+            matrix.update()
+            matrix.display()
+
+
+
+
+        input("Press Enter to continue...")
+
+        if not bombs and not empties:
             break
