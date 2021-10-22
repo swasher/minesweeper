@@ -1,11 +1,11 @@
 """
-WORK 2560х1440
+WORK 2560х1440 [Scaling: 1(96dpi), Raw Dpi: 93 (Ratio:1.03)]
 ---------------
 
 масштаб клетка
 10      11x11 px (min size)
 20      22х23 px
-*22     25х25 px
+*22     25х25 px (can be 25x24 or even 24x24)
 24      27х27 px
 28      32х32 px
 60      67x67 px (max size)
@@ -19,7 +19,8 @@ HOUSE
 from types import SimpleNamespace
 
 # set_pict = 'asset_22_2560x1440'
-set_pict = 'asset_24_1920x1080'
+# set_pict = 'asset_24_1920x1080'
+set_pict = 'asset_28_2560x1440'
 
 # TODO Choose asset by scrren size
 # TODO asset должен сам определять, какой взять, а если не получится определять на лету - прибить там гвоздями

@@ -24,23 +24,17 @@ def solver_B1(matrix):
 
     Алгоритм:
     Проверяем все ячейки с цифрами.
-    Если цифра в ячейке равно кол-ву соседних закрытых клеток,
-    ТО все эти клетки - бомбы
-    """
-
-    """
-    оно не считает уже отмеченные бомбы,
-    и получается, что если вокруг "1" две закрытые клетки, и одна из
-    них уже бомба, то оставшуюся единственной клеткой вокруг "1", 
-    и соотв. тоже помечает ее бомбой.
+    Если цифра в ячейке равно кол-ву соседних закрытых клеток (включая клетки с флагами),
+    ТО все оставшиеся неоткрытые клетки - бомбы
     """
 
     bomb_cells = []
     for cell in matrix.number_cells():
-        cells = matrix.around_closed_cells(cell)
-        if cell.number == len(cells):
+        closed = matrix.around_closed_cells(cell)
+        flags = matrix.around_flagged_cells(cell)
+        if cell.number == len(closed + flags):
             # значит во всех клетках cells есть бомбы
-            bomb_cells += cells
+            bomb_cells += closed
     bomb_cells = remove_dup(bomb_cells)
     return bomb_cells, []
 
