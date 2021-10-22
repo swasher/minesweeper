@@ -121,11 +121,7 @@ def scan_region(region, samplefile):
             # input list [1, 10, 10, 10, 20, 30, 40, 50, 50, 50]
 
             # set убирает дубликаты
-            sorted(list(set(cells_coord_y)))
-
-
-
-
+            collapsed = sorted(list(set(cells_coord_y)))
             return collapsed
 
         # Эти два списка - искомые координаты ячеек. Убираем из них дубликаты при помощи set()
@@ -217,6 +213,23 @@ def mark_cells(bombs, empties):
     for cell in empties:
         cell.setclear()
 
+
+def do_strategy(strategy):
+    name = strategy.__name__
+    print(f'Calc {name} strategy')
+    bombs, empties = strategy(matrix)
+    have_a_move = len(bombs + empties)
+    if have_a_move:
+        print(f'- do strategy')
+        print('- Bombs:', bombs, 'Empty:', empties)
+        mark_cells(bombs, empties)
+        matrix.update()
+        matrix.display()
+    else:
+        print('- pass')
+    return have_a_move
+
+
 if __name__ == '__main__':
 
     row_values, col_values, region = find_board(patterns)
@@ -228,37 +241,28 @@ if __name__ == '__main__':
     do_random = True
 
     while not matrix.face_is_fail:
-        do_random = True
+
+        have_a_move_E1 = True
         while have_a_move_E1:
 
+            have_a_move_B1 = True
             while have_a_move_B1:
 
+                do_random = True
                 while do_random:
 
+                    print('do R1 strategy')
                     bombs, empties = solve.solver_R1(matrix)
                     mark_cells(bombs, empties)
                     matrix.update()
                     matrix.display()
                     do_random = False
 
-                bombs, empties = solver_B1(matrix)
-                have_a_move_B1 = len(bombs+empties)
-                mark_cells(bombs, empties)
-                print('Bombs:', bombs)
-                matrix.update()
-                matrix.display()
+                have_a_move_B1 = do_strategy(solver_B1)
 
-            bombs, empties = solver_B1(matrix)
-            have_a_move_E1 = len(bombs+empties)
-            mark_cells(bombs, empties)
-            print('Clear', empties)
-            matrix.update()
-            matrix.display()
+            have_a_move_E1 = do_strategy(solver_E1)
 
+    # input("Press Enter to continue...")
 
-
-
-        input("Press Enter to continue...")
-
-        if not bombs and not empties:
-            break
+        # if not bombs and not empties:
+        #     break

@@ -33,7 +33,7 @@ class Cell(Matrix):  # TODO Разобраться, нужно ли тут на�
         self.h = h
         self.status = 'closed'
 
-    def __repr__(self):
+    def cell_pict(self):
         # TODO Сделать еще одно поле - TYPE с типом Pattern, и здесь
         # TODO возвращать просто self.type.represent
         if self.status == 'closed':
@@ -49,8 +49,11 @@ class Cell(Matrix):  # TODO Разобраться, нужно ли тут на�
                 slot = self.status
         else:
             return 'e'  # error
-        # return slot
-        return slot+f'{self.row}:{self.col}'
+        return slot
+        # return slot+f'{self.row}:{self.col}'
+
+    def __repr__(self):
+        return f'{self.row}:{self.col}'
 
     @property
     def is_closed(self):

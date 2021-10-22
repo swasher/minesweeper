@@ -45,7 +45,7 @@ class Matrix(object):
         for row in range(self.matrix_height):
             row_view = ''
             for col in range(self.matrix_width):
-                row_view += self.table[row, col].__repr__() + ' '
+                row_view += self.table[row, col].cell_pict() + ' '
             matrix_view.append(row_view)
         print('\n'.join(row for row in matrix_view))
         return matrix_view
@@ -103,14 +103,13 @@ class Matrix(object):
         Запускает обновление всех ячеек в соответствии с полем Minesweeper
         :return:
         """
-        ic('Start update matrix...')
+        ic('update matrix...')
         image = self.get_image()
         image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
         for row in range(self.matrix_height):
             for col in range(self.matrix_width):
                 self.table[row, col].update_cell(image)
 
-        ic('  finish')
         if self.face_is_fail:
             exit()
 
