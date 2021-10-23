@@ -78,17 +78,26 @@ class Matrix(object):
                 cell = self.table[row, col]
                 if cell.is_closed:
                     cells.append(cell)
+
+            # TODO проще наверное так in cell in matrix.flat
+            # TODO переделать!
         return cells
 
-    def number_cells(self):
+    def get_bomb_cells(self):
         cells = []
-        for row in range(self.matrix_height):
-            for col in range(self.matrix_width):
-                cell = self.table[row, col]
-                if cell.is_open and cell.is_not_zero:
-                    cells.append(cell)
+        for cell in self.table.flat:
+            if cell.is_bomb:
+                cells.append(cell)
+        # TODO функции get_какая_то_ячейка похожи, их надо объеденить в одну
+        # TODO c передаваемам параметром типа get_cells(bomb)
         return cells
 
+    def digit_cells(self):
+        cells = []
+        for cell in self.table.flat:
+            if cell.is_open and cell.is_not_zero:
+                cells.append(cell)
+        return cells
 
     @property
     def region(self):
@@ -103,21 +112,19 @@ class Matrix(object):
         Запускает обновление всех ячеек в соответствии с полем Minesweeper
         :return:
         """
-        ic('update matrix...')
         image = self.get_image()
         image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
         for row in range(self.matrix_height):
             for col in range(self.matrix_width):
                 self.table[row, col].update_cell(image)
 
-        if self.face_is_fail:
-            exit()
-
-
-    @property
-    def face_is_fail(self):
+    def check_game_over(self):
         """
-        :return: True если рожица грустая, иначе False
+        Вызывыет exit(), если игра окончена.
+        Проверяет смайлик - грустый или веселый,
+        а так же поле на наличие бомб - при маленьком размере поля смайлик не виден.
+        :return:
+
         """
         precision = 0.53
         image = self.get_image()
@@ -125,11 +132,10 @@ class Matrix(object):
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
         # fail.png - совпадение со smile - 0.48, с fail - 0.57
-        if max_val < precision:
-            return False
-        else:
+        bombs = self.get_bomb_cells()
+        if max_val > precision or len(bombs):
             print('Game Over!')
-            return True
+            exit()
 
     def reset(self):
         """
@@ -217,7 +223,7 @@ class Matrix(object):
         cells = self.get_around_cells(cell)
         closed_cells = []
         for cell in cells:
-            if cell.is_closed:
+            if cell.is_closed and cell.is_not_flag:
                 closed_cells.append(cell)
         return closed_cells
 
@@ -232,4 +238,5 @@ class Matrix(object):
         for cell in cells:
             if cell.is_flag:
                 flagged_cells.append(cell)
+
         return flagged_cells

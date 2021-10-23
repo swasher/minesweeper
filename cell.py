@@ -1,12 +1,24 @@
 import random
 import cv2 as cv
 import util
+import win32gui
+import win32api
 
 from matrix import Matrix
 from patterns import patterns
 
 
 class Cell(Matrix):  # TODO Разобраться, нужно ли тут наследование
+
+    ident_right = 0  # class property
+    ident_top = 0    # class property
+    col = 0
+    row = 0
+    coordx = 0
+    coordy = 0
+    w = 0
+    h = 0
+    status = ''
 
     def __init__(self, row, col, coordx, coordy, w, h):
         """
@@ -16,13 +28,13 @@ class Cell(Matrix):  # TODO Разобраться, нужно ли тут на�
         :param coordy: коор. на экране Y от левого верхнего угла ДОСКИ в пикселях
         :param w: ширина ячейки в пикселях
         :param h: высота ячейки в пикселях
-        :param status: (str) 'closed' закрыто / 'opened' открыто / 'flag' флаг / number(str)
+        :param status: (str) 'closed' закрыто / 'opened' открыто / 'flag' флаг / digit(str)
 
         POSSIBLE STATUS:
         str - closed (default)
         str - flag
         str - bomb (for reflect endgame)
-        str - number, represent number of around bomb
+        str - digit, represent digit of around bomb
 
         """
         self.col = col
@@ -53,11 +65,26 @@ class Cell(Matrix):  # TODO Разобраться, нужно ли тут на�
         # return slot+f'{self.row}:{self.col}'
 
     def __repr__(self):
-        return f'{self.row}:{self.col}'
+        return f'{self.row}:{self.col} {self.status}'
+
+    @property
+    def abscoordx(self):
+        return self.coordx + self.ident_right
+
+    @property
+    def abscoordy(self):
+        return self.coordy + self.ident_top
 
     @property
     def is_closed(self):
-        if self.status == 'closed':
+        if self.status == 'closed' or self.status == 'flag':
+            return True
+        else:
+            return False
+
+    @property
+    def is_bomb(self):
+        if self.status == 'bomb':
             return True
         else:
             return False
@@ -106,20 +133,23 @@ class Cell(Matrix):  # TODO Разобраться, нужно ли тут на�
         y += Cell.ident_top
         util.click(x, y, button)
 
+    """
+    possible depricated
     def setflag(self):
         self.click('right')
 
     def setclear(self):
         self.click('left')
+    """
 
     @property
-    def number(self):
+    def digit(self):
         """
         Возвращает цифру ячейки в виде int. Иначе возвращает -1
         :return: int
         """
         if self.status.isnumeric():
-            return int(self.status.isnumeric())
+            return int(self.status)
         else:
             return -1
 
@@ -161,3 +191,16 @@ class Cell(Matrix):  # TODO Разобраться, нужно ли тут на�
         else:
             print(f'Cell {self.row}x{self.col} do not match anything. Exit')
             exit()
+
+    def mark_cell_debug(self):
+        dc = win32gui.GetDC(0)
+        red = win32api.RGB(255, 0, 0)
+        # win32gui.SetPixel(dc, 0, 0, red)  # draw red at 0,0
+        win32gui.Rectangle(dc, self.abscoordx+6, self.abscoordy+6,
+                           self.abscoordx+18, self.abscoordy+18)
+
+        win32gui.MoveToEx(dc, self.abscoordx+9, self.abscoordy+9)
+        win32gui.LineTo(dc, self.abscoordx+9, self.abscoordy+9)
+        # win32gui.ReleaseDC(dc)
+        # dc.Clear()
+        # dc.Refresh()

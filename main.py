@@ -12,6 +12,7 @@ from matrix import Matrix
 
 from solve import solver_B1
 from solve import solver_E1
+from solve import solver_R1
 
 """
 RULES FOR COORDINATES
@@ -205,64 +206,71 @@ def draw():
         cv.imshow("Display window", image)
         k = cv.waitKey(0)
 
-# TODO move it!
-def mark_cells(bombs, empties):
-    for cell in bombs:
-        ic(bombs)
-        cell.setflag()
-    for cell in empties:
-        cell.setclear()
+
+# TODO вспомогательная функция - возможнос стоит перенести в утиль
+def mark_cells(cells, button):
+    for cell in cells:
+        ic(button, cell)
+        cell.click(button)
 
 
 def do_strategy(strategy):
+    """
+    Обертка для выполнения "стратегии" - после того как алгоритм найдет, что нажимать, эта функция нажимает
+    нужные клетки, обновляет matrix, пишет лог и так далее.
+
+    Результат работы любой стратегии - список клеток, которые нужно нажать правой или левой кнопкой.
+
+    :param strategy: Одна из функий из модуля solve, напр. можно передать сюда стратегию solver_E1 или solver_R1
+    :return:
+    """
     name = strategy.__name__
-    print(f'Calc {name} strategy')
-    bombs, empties = strategy(matrix)
-    have_a_move = len(bombs + empties)
+    print(f'\nCalc {name} strategy')
+
+    cells, button = strategy(matrix)
+    have_a_move = bool(len(cells))
     if have_a_move:
         print(f'- do strategy')
-        print('- Bombs:', bombs, 'Empty:', empties)
-        mark_cells(bombs, empties)
+        print(f'- click {button} on cells:', cells)
+        # input("Press Enter to mouse moving")
+        mark_cells(cells, button)
         matrix.update()
         matrix.display()
+        # TODO получается так, что мы нажимаем ячейка по нескольку штук, и между нажатиями не проверяем, закончилась ли
+        # TODO игра... нужно подумать, как этого избежать.. возможно, нужно делать update() после каждого клика
+        matrix.check_game_over()
     else:
-        print('- pass')
+        print('- pass strategy')
     return have_a_move
 
 
 if __name__ == '__main__':
 
+    # TODO я хочу, чтобы можно было так делать:
+    # TODO if bomb in matrix:
+    # TODO или, если у нас есть array of cells
+    # TODO if bomb in array
+
+    # TODO можно делать движения мыши более "человеческими"
+    # TODO https://pyautogui.readthedocs.io/en/latest/mouse.html#tween-easing-functions
+
     row_values, col_values, region = find_board(patterns)
     matrix = Matrix(row_values, col_values, region, patterns)
-
 
     have_a_move_B1 = True
     have_a_move_E1 = True
     do_random = True
 
-    while not matrix.face_is_fail:
+    # matrix.update()
+    # matrix.check_game_over()
 
-        have_a_move_E1 = True
-        while have_a_move_E1:
+    while do_random:
+        do_strategy(solver_R1)
 
-            have_a_move_B1 = True
-            while have_a_move_B1:
+        have_a_move_B1 = True
+        while have_a_move_B1:
+            have_a_move_B1 = do_strategy(solver_B1)
 
-                do_random = True
-                while do_random:
-
-                    print('do R1 strategy')
-                    bombs, empties = solve.solver_R1(matrix)
-                    mark_cells(bombs, empties)
-                    matrix.update()
-                    matrix.display()
-                    do_random = False
-
-                have_a_move_B1 = do_strategy(solver_B1)
-
-            have_a_move_E1 = do_strategy(solver_E1)
-
-    # input("Press Enter to continue...")
-
-        # if not bombs and not empties:
-        #     break
+            have_a_move_E1 = True
+            while have_a_move_E1:
+                have_a_move_E1 = do_strategy(solver_E1)
