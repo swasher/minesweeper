@@ -1,13 +1,13 @@
 Very early alpha demo (only 1 solve strategy):  
 ----------------------------------------
 
-[![ANIMATIY.gif](https://s1.gifyu.com/images/ANIMATIY.gif)](https://gifyu.com/image/eNik)
+![demo1.gif](.github/demo1.gif)
 
 
 Demo 2 (3 solve strategy):  
 ----------------------------------------
 
-[![ANIMATIY1.gif](https://s1.gifyu.com/images/ANIMATIY1.gif)](https://gifyu.com/image/el36)
+![demo2.gif](.github/demo2.gif)
 
 Installation
 =====================
