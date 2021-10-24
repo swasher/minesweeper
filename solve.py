@@ -47,7 +47,7 @@ def solver_B1(matrix):
         ic(cell.digit, len(closed), len(flags))
         result = (cell.digit == len(closed) + len(flags)) and len(closed)>0
         ic(result)
-        cell.mark_cell_debug()
+        # cell.mark_cell_debug()
         if (cell.digit == len(closed) + len(flags)) and len(closed)>0:
             # значит во всех closed клетках есть бомбы
             return closed, 'right'
@@ -71,7 +71,7 @@ def solver_E1(matrix):
         flags = matrix.around_flagged_cells(cell)
         closed = matrix.around_closed_cells(cell)
         if cell.digit == len(flags) and len(closed):
-            cell.mark_cell_debug()
+            # cell.mark_cell_debug()
             # не возвращаем ячейки, потому что достаточно кликнуть на саму цифру, чтобы они открылись
             return [cell], 'left'
 

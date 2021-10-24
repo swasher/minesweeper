@@ -23,7 +23,7 @@ class Matrix(object):
         self.table = numpy.full((self.matrix_height, self.matrix_width), cell.Cell)
 
         # TODO это нужно брать из класса Cell_pattern
-        template = cv.imread(patterns.closed.filename, cv.IMREAD_COLOR)
+        template = patterns.closed.raster
         h, w = template.shape[:2]
 
         self.region_x1, self.region_y1, self.region_x2, self.region_y2 = region
@@ -56,13 +56,19 @@ class Matrix(object):
         :return: opencv image
         """
         with mss.mss() as sct:
-            # from file (for test)
-            # image = cv.imread('pic/test_big.png', cv.IMREAD_COLOR)
+            """
+            Чтобы уже раз и на всегда решить вопрос:
+            sct.grab отдает в формате BGRA.
+            Мы его конвертим просто в BGR. Никаких RGB не нужно!
+            Планин pycharm'а показывает нормально когда BGR !!!
+            А RGB он показывает инвертно!
+            Можно убедиться наведя пипетку на красный цвет и посмотрев, где R - 255
+            """
 
             # from screen
             screenshot = sct.grab(self.region)
             raw = np.array(screenshot)
-            image = cv.cvtColor(raw, cv.COLOR_RGB2BGR)
+            image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
             # cv.imshow("Display window", raw)
             # k = cv.waitKey(0)
         return image
@@ -113,7 +119,7 @@ class Matrix(object):
         :return:
         """
         image = self.get_image()
-        image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
+        # DEPRECATED image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
         for row in range(self.matrix_height):
             for col in range(self.matrix_width):
                 self.table[row, col].update_cell(image)
@@ -124,17 +130,31 @@ class Matrix(object):
         Проверяет смайлик - грустый или веселый,
         а так же поле на наличие бомб - при маленьком размере поля смайлик не виден.
         :return:
-
         """
-        precision = 0.53
+
+        #TODO Сделать это по человечески через функции в утиле
+
+        precision = 0.9
         image = self.get_image()
-        template = cv.imread(patterns.fail.filename, cv.IMREAD_COLOR)
+        template = patterns.fail.raster
+
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-        # fail.png - совпадение со smile - 0.48, с fail - 0.57
+
         bombs = self.get_bomb_cells()
         if max_val > precision or len(bombs):
             print('Game Over!')
+            exit()
+
+        precision = 0.9
+        image = self.get_image()
+        template = patterns.win.raster
+
+        res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+
+        if max_val > precision:
+            print('You WIN!')
             exit()
 
     def reset(self):

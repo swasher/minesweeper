@@ -178,7 +178,7 @@ class Cell(Matrix):  # TODO Разобраться, нужно ли тут на�
             list_patterns.append(obj)
 
         for patt in list_patterns:  # patterns imported from cell_pattern
-            template = cv.imread(patt.filename, cv.IMREAD_COLOR)
+            template = patt.raster
             res = cv.matchTemplate(image_cell, template, cv.TM_CCOEFF_NORMED)
             min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
             # print(f'Cell {self.row}:{self.col} compared with {pattern} with result {max_val}')

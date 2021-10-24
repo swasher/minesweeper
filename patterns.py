@@ -16,6 +16,7 @@ HOUSE
 
 """
 
+import cv2 as cv
 from types import SimpleNamespace
 
 set_pict = 'asset_24_1920x1080'
@@ -25,16 +26,20 @@ set_pict = 'asset_24_1920x1080'
 # TODO Choose asset by scrren size
 # TODO asset должен сам определять, какой взять, а если не получится определять на лету - прибить там гвоздями
 
+#TODO Сделать проверку, чтобы при загрузке ассетов они были нужного размера в px
+
 
 class Asset():
     name = ''
     filename = ''
     similarity = 0
     set_pict = ''
+    raster = ''
 
     def __init__(self, name, filename):
         self.name = name
         self.filename = filename
+        self.raster = cv.imread(filename, cv.IMREAD_COLOR)
 
     def __repr__(self):
         return '<'+self.name+'>'
@@ -55,3 +60,4 @@ patterns.red_bomb = Asset('red_bomb', f'{Asset.set_pict}/red_bomb.png')
 patterns.flag = Asset('flag', f'{Asset.set_pict}/flag.png')
 patterns.fail = Asset('fail', f'{Asset.set_pict}/fail.png')
 patterns.win = Asset('win', f'{Asset.set_pict}/win.png')
+patterns.smile = Asset('win', f'{Asset.set_pict}/smile.png')
