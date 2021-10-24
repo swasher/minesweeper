@@ -5,8 +5,7 @@ import pyautogui
 import winsound
 import mss
 from itertools import groupby
-import icecream as ic
-
+from icecream import ic
 
 def r(num, rand):
     return num + rand * random.random()
@@ -18,7 +17,7 @@ def click(x, y, button):
     if DEBUG:
         oldx, oldy = pyautogui.position()
 
-    timestamp = 0.1
+    timestamp = 0.6
     pyautogui.moveTo(x, y, timestamp)
     pyautogui.click(button=button)
     frequency = 2000  # Set Frequency To 2500 Hertz
@@ -64,7 +63,7 @@ def compress_array(arr):
             return start
         return inner
 
-    newarr = [next(g) for k, g in groupby(arr, runs())]
+    newarr = [next(g) for k, g in groupby(sorted(arr), runs())]
     return newarr
 
 

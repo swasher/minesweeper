@@ -41,12 +41,12 @@ def solver_B1(matrix):
     for cell in matrix.digit_cells():
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
-        ic('------')
-        ic(cell)
-        ic(closed, flags)
-        ic(cell.digit, len(closed), len(flags))
-        result = (cell.digit == len(closed) + len(flags)) and len(closed)>0
-        ic(result)
+        # ic('------')
+        # ic(cell)
+        # ic(closed, flags)
+        # ic(cell.digit, len(closed), len(flags))
+        # result = (cell.digit == len(closed) + len(flags)) and len(closed)>0
+        # ic(result)
         # cell.mark_cell_debug()
         if (cell.digit == len(closed) + len(flags)) and len(closed)>0:
             # значит во всех closed клетках есть бомбы

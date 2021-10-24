@@ -68,13 +68,13 @@ def find_board(pattern):
     ic('  first scan...')
     # FIRST SCAN - entire screen, coordinates tied to screen
     region = mss.mss().monitors[0]
-    cells_coord_x, cells_coord_y = scan_region(region, pattern.closed)
+    cells_coord_x, cells_coord_y = scan_region(region, pattern.closed.raster)
     if not len(cells_coord_x+cells_coord_y):
         print('Minesweeper not found, exit')
         exit()
     ic('  finish')
 
-    template = asset.closed.raster
+    template = pattern.closed.raster
     h, w = template.shape[:2]
 
     # add pixels to cells size for get entire game board:
@@ -94,7 +94,7 @@ def find_board(pattern):
     # coordinates cells_coord_x, cells_coord_y tied to minesweeper board
     ic('  second scan...')
     region = (region_x1, region_y1, region_x2, region_y2)
-    cells_coord_x, cells_coord_y = scan_region(region, pattern.closed)
+    cells_coord_x, cells_coord_y = scan_region(region, pattern.closed.raster)
     ic('  finish')
     return cells_coord_x, cells_coord_y, region
 

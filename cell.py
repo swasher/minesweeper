@@ -4,11 +4,11 @@ import util
 import win32gui
 import win32api
 
-from matrix import Matrix
+# from matrix import Matrix
 from patterns import patterns
 
 
-class Cell(Matrix):  # TODO Разобраться, нужно ли тут наследование
+class Cell():  # TODO Разобраться, нужно ли тут наследование
 
     ident_right = 0  # class property
     ident_top = 0    # class property
