@@ -77,10 +77,23 @@ class Cell():  # TODO Разобраться, нужно ли тут насле�
 
     @property
     def is_closed(self):
-        if self.status == 'closed' or self.status == 'flag':
-            return True
-        else:
-            return False
+        """
+        True, если ячейка закрыта (даже если она с флагом)
+        :return:
+        """
+        # if self.status == 'closed' or self.status == 'flag':
+        #     return True
+        # else:
+        #     return False
+        return True if self.status == 'closed' or self.status == 'flag' else False
+
+    @property
+    def is_closed_noflag(self):
+        """
+        True если закрыта и не помечена флагом
+        :return:
+        """
+        return True if self.status == 'closed' else False
 
     @property
     def is_bomb(self):

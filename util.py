@@ -17,7 +17,7 @@ def click(x, y, button):
     if DEBUG:
         oldx, oldy = pyautogui.position()
 
-    timestamp = 0.6
+    timestamp = 0.1
     pyautogui.moveTo(x, y, timestamp)
     pyautogui.click(button=button)
     frequency = 2000  # Set Frequency To 2500 Hertz

@@ -75,19 +75,13 @@ class Matrix(object):
 
     def get_closed_cells(self):
         """
-        Возвращает все закрытые ячейки
+        Возвращает все закрытые ячейки, даже те, которые с флагами
         :return:
         """
-        cells = []
-        for row in range(self.matrix_height):
-            for col in range(self.matrix_width):
-                cell = self.table[row, col]
-                if cell.is_closed:
-                    cells.append(cell)
+        return list(filter(lambda x: x.is_closed, self.table.flat))
 
-            # TODO проще наверное так in cell in matrix.flat
-            # TODO переделать!
-        return cells
+
+
 
     def get_bomb_cells(self):
         cells = []
