@@ -4,11 +4,10 @@ import util
 import win32gui
 import win32api
 
-# from matrix import Matrix
 from patterns import patterns
 
 
-class Cell():  # TODO Разобраться, нужно ли тут наследование
+class Cell(object):
 
     ident_right = 0  # class property
     ident_top = 0    # class property
@@ -19,6 +18,7 @@ class Cell():  # TODO Разобраться, нужно ли тут насле�
     w = 0
     h = 0
     status = ''
+    type = None  # Pattern instance
 
     def __init__(self, row, col, coordx, coordy, w, h):
         """
@@ -44,10 +44,14 @@ class Cell():  # TODO Разобраться, нужно ли тут насле�
         self.w = w
         self.h = h
         self.status = 'closed'
+        self.type = patterns.closed
+
 
     def cell_pict(self):
         # TODO Сделать еще одно поле - TYPE с типом Pattern, и здесь
         # TODO возвращать просто self.type.represent
+        # TODO в общем, нужно ВСЕ проверки self.status как строки заменить на проверки
+        # TODO self.type как объекта
         if self.status == 'closed':
             slot = '·'  # ·ᐧ    # more bad ․⋅
         elif self.status == 'flag':
@@ -78,7 +82,8 @@ class Cell():  # TODO Разобраться, нужно ли тут насле�
     @property
     def is_closed(self):
         """
-        ТУТ ГЛОБАЛЬНО ПЕРЕДЕЛАНА ЛОГИКА, МОЖЕТ ГЛЮЧИТЬ!
+        True - если ячейка закрыта. Ячейка с флагом, хоть фактически и закрыта,
+        возращаем False для более ясной логики solver-ов
         :return:
         """
         # if self.status == 'closed' or self.status == 'flag':
@@ -88,19 +93,17 @@ class Cell():  # TODO Разобраться, нужно ли тут насле�
         return True if self.status == 'closed' else False
 
     @property
-    def is_bomb(self):
-        if self.status == 'bomb':
-            return True
-        else:
-            return False
-
-    @property
     def is_flag(self):
         return True if self.status == 'flag' else False
 
     @property
     def is_not_flag(self):
         return not self.is_flag
+
+
+    @property
+    def is_bomb(self):
+        return True if self.status == 'bomb' else False
 
     @property
     def is_digit(self):
@@ -160,11 +163,7 @@ class Cell():  # TODO Разобраться, нужно ли тут насле�
         :return:
         """
 
-        # TODO нет смысла проверять уже открытые ячейки - можно скипать
 
-        # ТУТ НАМ НУЖНО СРАВНИВАТЬ НЕ ТОЛЬКО С ЦИФРАМИ, НО И С "ЗАКРЫТЫМ" ПОЛЕМ
-        # ПРОБЛЕМА ЕЩЕ В ТОМ, ЧТО ОТКРЫТОЕ И ЗАКРЫТОЕ ПОЛЯ ОЧЕНЬ ПОХОЖИ,
-        # ОТЛИЧАЮТСЯ КРАЯМИ, А МЫ КРАЯ ОБРЕЗАЕМ
 
         # image_cell содержит пиксельную матрицы соотв. ячейки
         image_cell = image[self.coordy:self.coordy+self.h, self.coordx:self.coordx+self.w]

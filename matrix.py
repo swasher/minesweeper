@@ -141,7 +141,7 @@ class Matrix(object):
         """
         cells = []
         for cell in self.table.flat:
-            if cell.is_bomb:
+            if cell.is_flag:
                 cells.append(cell)
         # TODO функции get_какая_то_ячейка похожи, их надо объеденить в одну
         # TODO c передаваемам параметром типа get_cells(bomb)
@@ -156,6 +156,19 @@ class Matrix(object):
         for cell in self.table.flat:
             if cell.is_digit:
                 cells.append(cell)
+        return cells
+
+    def get_bomb_cells(self):
+        """
+        Возвращает список бомб. Используется в game_over
+        :return: array of Cell objects
+        """
+        # cells = []
+        # for cell in self.table.flat:
+        #     if cell.is_bomb:
+        #         cells.append(cell)
+        #
+        cells = list([x for x in self.table.flat if x.is_bomb])
         return cells
 
     def around_closed_cells(self, cell):
@@ -200,10 +213,9 @@ class Matrix(object):
         :return:
         """
         image = self.get_image()
-        # DEPRECATED image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
-        for row in range(self.matrix_height):
-            for col in range(self.matrix_width):
-                self.table[row, col].update_cell(image)
+        for cell in self.table.flat:
+            if cell.is_closed:
+                cell.update_cell(image)
 
     def check_game_over(self):
         """
@@ -219,11 +231,14 @@ class Matrix(object):
         image = self.get_image()
         template = patterns.fail.raster
 
+        # TODO возможно, имеет смысл отказаться от проверки рожицы и проверять только бомбы,
+        # TODO этого должго быть достаточно
+
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
-        bombs = self.get_flag_cells()
-        if max_val > precision or len(bombs):
+        bombs = self.get_bomb_cells()
+        if (max_val > precision) or bool(len(bombs)):
             print('Game Over!')
             exit()
 
@@ -241,7 +256,7 @@ class Matrix(object):
     def reset(self):
         """
         Нажимает на рожицу, чтобы перезапустить поле
-        TODO BUG Рожицы нет на маленьких полях
+        TODO BUG Рожицы нет в играх на маленьких полях
         :return:
         """
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1

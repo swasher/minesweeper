@@ -21,6 +21,8 @@ def solver_R1(matrix):
     :param matrix:
     :return:
     """
+    ####### START алгоритм оценки вероятности бомбы в закрытой клетке
+    ##
     risktable = matrix.table
 
     for cell in risktable.flat:
@@ -34,7 +36,8 @@ def solver_R1(matrix):
     for r in risktable.flat:
         if r.risk:
             r.risk = np.mean(r.risk)
-
+    ##
+    ####### END
 
 
 
@@ -43,10 +46,10 @@ def solver_R1(matrix):
     random_cell = cells[randrange(qty)]
 
     ### debug
-    ic('------ R1')
-    ic(random_cell)
-    random_cell.mark_cell_debug()
-    input("Press Enter to mouse moving")
+    # ic('------ R1')
+    # ic(random_cell)
+    # random_cell.mark_cell_debug()
+    # input("Press Enter to mouse moving")
     ### end debug
 
     return [random_cell], 'left'

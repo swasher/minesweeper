@@ -113,10 +113,8 @@ def draw():
         k = cv.waitKey(0)
 
 
-# TODO вспомогательная функция - возможнос стоит перенести в утиль
 def clicking_cells(cells, button):
     for cell in cells:
-        ic(button, cell)
         cell.click(button)
 
 
@@ -157,9 +155,6 @@ if __name__ == '__main__':
     # TODO if bomb in matrix:
     # TODO или, если у нас есть array of cells
     # TODO if bomb in array
-
-    # TODO можно делать движения мыши более "человеческими"
-    # TODO https://pyautogui.readthedocs.io/en/latest/mouse.html#tween-easing-functions
 
     row_values, col_values, region = find_board(patterns)
     matrix = Matrix(row_values, col_values, region, patterns)

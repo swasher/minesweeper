@@ -1,3 +1,7 @@
+"""
+No import high level objects in UTIL! (like classes)
+"""
+
 import cv2 as cv
 import numpy as np
 import random
@@ -18,12 +22,12 @@ def click(x, y, button):
     if DEBUG:
         oldx, oldy = pyautogui.position()
 
-    timestamp = 0.2
-    pyautogui.moveTo(x, y, timestamp)
+    timestamp = 00
+    pyautogui.moveTo(x, y, timestamp, pyautogui.easeInBounce)
     pyautogui.click(button=button)
     frequency = 2000  # Set Frequency To 2500 Hertz
     duration = 3  # Set Duration To 1000 ms == 1 second
-    winsound.Beep(frequency, duration)
+    # winsound.Beep(frequency, duration)
 
     if DEBUG:
         pyautogui.moveTo(oldx, oldy)

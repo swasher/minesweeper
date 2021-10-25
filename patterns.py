@@ -19,11 +19,11 @@ HOUSE
 import cv2 as cv
 from types import SimpleNamespace
 
-# set_pict = 'asset_24_1920x1080'
+set_pict = 'asset_24_1920x1080'
 # set_pict = 'asset_22_2560x1440'
-set_pict = 'asset_28_2560x1440'
+# set_pict = 'asset_28_2560x1440'
 
-# TODO Choose asset by scrren size
+# TODO Choose asset by screen size
 # TODO asset должен сам определять, какой взять, а если не получится определять на лету - прибить там гвоздями
 
 #TODO Сделать проверку, чтобы при загрузке ассетов они были нужного размера в px
@@ -44,9 +44,8 @@ class Asset():
     def __repr__(self):
         return '<'+self.name+'>'
 
-Asset.set_pict = set_pict
 
-# patterns = [Cell_pattern(f'{i}', f'{Cell_pattern.asset}/{i}.png') for i in range(7)]
+Asset.set_pict = set_pict
 
 keys = ['n'+str(x) for x in range(7)]
 numbered_cells = [Asset(f'{i}', f'{Asset.set_pict}/{i}.png') for i in range(7)]
