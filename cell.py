@@ -56,7 +56,7 @@ class Cell():  # TODO Разобраться, нужно ли тут насле�
             slot = '⚹'
         elif self.status.isnumeric():
             if self.status == '0':
-                slot = '⨯'  # ⨯·
+                slot = ' '  # ⨯·
             else:
                 slot = self.status
         else:
@@ -77,10 +77,15 @@ class Cell():  # TODO Разобраться, нужно ли тут насле�
 
     @property
     def is_closed(self):
-        if self.status == 'closed' or self.status == 'flag':
-            return True
-        else:
-            return False
+        """
+        ТУТ ГЛОБАЛЬНО ПЕРЕДЕЛАНА ЛОГИКА, МОЖЕТ ГЛЮЧИТЬ!
+        :return:
+        """
+        # if self.status == 'closed' or self.status == 'flag':
+        #     return True
+        # else:
+        #     return False
+        return True if self.status == 'closed' else False
 
     @property
     def is_bomb(self):
@@ -98,15 +103,10 @@ class Cell():  # TODO Разобраться, нужно ли тут насле�
         return not self.is_flag
 
     @property
-    def is_open(self):
-        return not self.is_closed
-
-    @property
-    def is_not_zero(self):
-        if self.status != 'closed':
-            if self.status.isnumeric() and self.status == '0':
-                return False
-        return True
+    def is_digit(self):
+        if self.status in ['1', '2', '3', '4', '5', '6', '7', '8']:
+            return True
+        return False
 
     def cell_random_coordinates(self):
         """

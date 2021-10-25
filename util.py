@@ -7,6 +7,7 @@ import mss
 from itertools import groupby
 from icecream import ic
 
+
 def r(num, rand):
     return num + rand * random.random()
 
@@ -17,7 +18,7 @@ def click(x, y, button):
     if DEBUG:
         oldx, oldy = pyautogui.position()
 
-    timestamp = 0.6
+    timestamp = 0.2
     pyautogui.moveTo(x, y, timestamp)
     pyautogui.click(button=button)
     frequency = 2000  # Set Frequency To 2500 Hertz

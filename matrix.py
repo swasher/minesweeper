@@ -8,6 +8,11 @@ import cell
 
 from patterns import patterns
 
+"""
+Соглашения:
+get_closed - возвращает только закрытые и НЕ отмеченные флагами
+"""
+
 
 class Matrix(object):
 
@@ -73,23 +78,67 @@ class Matrix(object):
             # k = cv.waitKey(0)
         return image
 
-    def get_closed_cells(self):
+    def get_around_cells(self, cell):
         """
-        Возвращает все закрытые ячейки
-        :return:
+        Возвращает список ячеек, расположенных вокруг (вкл. диагонали) заданой. Проблема в том, что нельзя просто
+        вернуть "минус одна ячейка вправо, плюс одна влево", потому что у крайних ячеек возникнет IndexError.
+        Поэтому есть вспомогательная функция get_slice, которая возвращаем "правильный" отрезок по оси.
+        :param col:
+        :param row:
+        :return: array of Cell objects
         """
-        cells = []
-        for row in range(self.matrix_height):
-            for col in range(self.matrix_width):
-                cell = self.table[row, col]
-                if cell.is_closed:
-                    cells.append(cell)
 
-            # TODO проще наверное так in cell in matrix.flat
-            # TODO переделать!
+        def get_slice(v, len_axis):
+            """
+            Вычисляет правильный "отрезок" соседних клеток. Например для оси длиной 5 [0, 1, 2, 3, 4] для
+            координаты 2 вернет [1, 2, 3], а для координаты 4 вернет [3, 4]
+            :param v: координата
+            :param len_axis: длина оси
+            :return:
+            """
+            if v not in range(len_axis):
+                raise Exception('`get_proper_area` function - out of matrix range')
+            if v == 0:
+                return 0, v + 2
+            elif v == len_axis - 1:
+                return v - 1, v + 1
+            else:
+                return v - 1, v + 2
+
+        # arr = self.table
+        cells = []
+        rows, cols = self.table.shape
+
+        # TODO переделать, чтобы не передавать номера строк/стобов, а ячейку
+        # TODO сделать типа def get_X_neighbours(cell)
+
+        c1, c2 = get_slice(cell.col, cols)
+        r1, r2 = get_slice(cell.row, rows)
+
+        for row in range(r1, r2):
+            for col in range(c1, c2):
+                if col == cell.col and row == cell.row:
+                    continue
+                else:
+                    cells.append(self.table[row, col])
         return cells
 
-    def get_bomb_cells(self):
+    def get_closed_cells(self):
+        """
+        Возвращает все закрытые ячейки (которые закрыты и НЕ отмечены флагом)
+        :return: array of Cell objects
+        """
+        cells = []
+        for cell in self.table.flat:
+            if cell.is_closed:
+                cells.append(cell)
+        return cells
+
+    def get_flag_cells(self):
+        """
+        Возвращает список закрытых ячеек, уже помеченных флагами
+        :return: array of Cell objects
+        """
         cells = []
         for cell in self.table.flat:
             if cell.is_bomb:
@@ -98,12 +147,44 @@ class Matrix(object):
         # TODO c передаваемам параметром типа get_cells(bomb)
         return cells
 
-    def digit_cells(self):
+    def get_digit_cells(self):
+        """
+        Возвращает список открытых ячеек (отличных от 0)
+        :return: array of Cell objects
+        """
         cells = []
         for cell in self.table.flat:
-            if cell.is_open and cell.is_not_zero:
+            if cell.is_digit:
                 cells.append(cell)
         return cells
+
+    def around_closed_cells(self, cell):
+        """
+        Возвращает число закрытых ячеек вокруг ячейки cell.
+        Флаги не считаются закрытыми ячейками.
+        :param cell: instance of Cell class
+        :return: closed_cells - array of Cell instances
+        """
+        cells = self.get_around_cells(cell)
+        closed_cells = []
+        for cell in cells:
+            if cell.is_closed and cell.is_not_flag:
+                closed_cells.append(cell)
+        return closed_cells
+
+    def around_flagged_cells(self, cell):
+        """
+        Возвращает число флагов вокруг ячейки cell
+        :param cell: instance of Cell class
+        :return: flagged_cells - array of Cell instances
+        """
+        cells = self.get_around_cells(cell)
+        flagged_cells = []
+        for cell in cells:
+            if cell.is_flag:
+                flagged_cells.append(cell)
+
+        return flagged_cells
 
     @property
     def region(self):
@@ -141,7 +222,7 @@ class Matrix(object):
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
-        bombs = self.get_bomb_cells()
+        bombs = self.get_flag_cells()
         if max_val > precision or len(bombs):
             print('Game Over!')
             exit()
@@ -198,65 +279,3 @@ class Matrix(object):
         # return cells
     """
 
-    def get_slice(self, v, len_axis):
-        if v not in range(len_axis):
-            raise Exception('`get_proper_area` function - out of matrix range')
-        if v == 0:
-            return 0, v + 2
-        elif v == len_axis - 1:
-            return v - 1, v + 1
-        else:
-            return v - 1, v + 2
-
-    def get_around_cells(self, cell):
-        """
-        see test/around_cell.py for explain
-        :param col:
-        :param row:
-        :return: array of cells around (x,y)
-        """
-        # arr = self.table
-        cells = []
-        rows, cols = self.table.shape
-
-        # TODO переделать, чтобы не передавать номера строк/стобов, а ячейку
-        # TODO сделать типа def get_X_neighbours(cell)
-
-        c1, c2 = self.get_slice(cell.col, cols)
-        r1, r2 = self.get_slice(cell.row, rows)
-
-        for row in range(r1, r2):
-            for col in range(c1, c2):
-                if col == cell.col and row == cell.row:
-                    continue
-                else:
-                    cells.append(self.table[row, col])
-        return cells
-
-    def around_closed_cells(self, cell):
-        """
-        Возвращает число закрытых ячеек вокруг ячейки cell.
-        Флаги не считаются закрытыми ячейками.
-        :param cell: instance of Cell class
-        :return: closed_cells - array of Cell instances
-        """
-        cells = self.get_around_cells(cell)
-        closed_cells = []
-        for cell in cells:
-            if cell.is_closed and cell.is_not_flag:
-                closed_cells.append(cell)
-        return closed_cells
-
-    def around_flagged_cells(self, cell):
-        """
-        Возвращает число флагов вокруг ячейки cell
-        :param cell: instance of Cell class
-        :return: flagged_cells - array of Cell instances
-        """
-        cells = self.get_around_cells(cell)
-        flagged_cells = []
-        for cell in cells:
-            if cell.is_flag:
-                flagged_cells.append(cell)
-
-        return flagged_cells

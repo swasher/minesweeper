@@ -3,6 +3,7 @@ from random import randrange
 from util import remove_dup
 from icecream import ic
 import sys
+import numpy as np
 ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
 
@@ -20,9 +21,34 @@ def solver_R1(matrix):
     :param matrix:
     :return:
     """
+    risktable = matrix.table
+
+    for cell in risktable.flat:
+        cell.risk = []
+
+    for digit in matrix.get_digit_cells():
+        around_closed = matrix.around_closed_cells(digit)
+        for cell in around_closed:
+            cell.risk.append(digit.digit / len(around_closed))
+
+    for r in risktable.flat:
+        if r.risk:
+            r.risk = np.mean(r.risk)
+
+
+
+
     cells = matrix.get_closed_cells()
     qty = len(cells)
     random_cell = cells[randrange(qty)]
+
+    ### debug
+    ic('------ R1')
+    ic(random_cell)
+    random_cell.mark_cell_debug()
+    input("Press Enter to mouse moving")
+    ### end debug
+
     return [random_cell], 'left'
 
 
@@ -38,16 +64,20 @@ def solver_B1(matrix):
     ТО все оставшиеся неоткрытые клетки - бомбы
     """
 
-    for cell in matrix.digit_cells():
+    for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
-        # ic('------')
+
+        ### debug
+        # ic('------ B1')
         # ic(cell)
-        # ic(closed, flags)
+        # ic(closed, closed, flags)
         # ic(cell.digit, len(closed), len(flags))
         # result = (cell.digit == len(closed) + len(flags)) and len(closed)>0
         # ic(result)
         # cell.mark_cell_debug()
+        ### end debug
+
         if (cell.digit == len(closed) + len(flags)) and len(closed)>0:
             # значит во всех closed клетках есть бомбы
             return closed, 'right'
@@ -67,9 +97,19 @@ def solver_E1(matrix):
     ячейки, ТО все закрытые ячейки вокруг являются пустыми.
     HINT: Такие ячейки можно "вскрыть" левым кликом - откроются все вокруг.
     """
-    for cell in matrix.digit_cells():
-        flags = matrix.around_flagged_cells(cell)
+    for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
+        flags = matrix.around_flagged_cells(cell)
+
+        ### debug
+        # ic('------ E1')
+        # ic(cell, flags, closed)
+        # ic(cell.digit, len(flags), len(closed))
+        # result = cell.digit == len(flags) and len(closed)
+        # ic(result)
+        # cell.mark_cell_debug()
+        ### end debug
+
         if cell.digit == len(flags) and len(closed):
             # cell.mark_cell_debug()
             # не возвращаем ячейки, потому что достаточно кликнуть на саму цифру, чтобы они открылись

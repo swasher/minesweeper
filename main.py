@@ -114,7 +114,7 @@ def draw():
 
 
 # TODO вспомогательная функция - возможнос стоит перенести в утиль
-def mark_cells(cells, button):
+def clicking_cells(cells, button):
     for cell in cells:
         ic(button, cell)
         cell.click(button)
@@ -130,6 +130,9 @@ def do_strategy(strategy):
     :param strategy: Одна из функий из модуля solve, напр. можно передать сюда стратегию solver_E1 или solver_R1
     :return:
     """
+
+    # TODO Сделать, чтобы можно было прервать процесс с клавиатуры
+
     name = strategy.__name__
     print(f'\nCalc {name} strategy')
 
@@ -139,11 +142,9 @@ def do_strategy(strategy):
         print(f'- do strategy')
         print(f'- click {button} on cells:', cells)
         # input("Press Enter to mouse moving")
-        mark_cells(cells, button)
+        clicking_cells(cells, button)
         matrix.update()
         matrix.display()
-        # TODO получается так, что мы нажимаем ячейка по нескольку штук, и между нажатиями не проверяем, закончилась ли
-        # TODO игра... нужно подумать, как этого избежать.. возможно, нужно делать update() после каждого клика
         matrix.check_game_over()
     else:
         print('- pass strategy')
