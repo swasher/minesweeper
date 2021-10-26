@@ -1,11 +1,8 @@
-import random
-
 import cv2 as cv
 import mss
 import numpy as np
 from icecream import ic
 
-import solve
 from util import scan_region
 from patterns import patterns
 from matrix import Matrix
@@ -39,10 +36,6 @@ and second number - it is COLUMN
 
 For example, [1, 2] - it's second row and third column.
 
-In terms of X:Y coordinates, axis X is vertically, and Y is horizontally.
-Alse X - its ROWS
-and  Y - its COLUMNS
-
 "Первая" ось 0 это по строкам, "вторая" - по столбцам
 table[строка, столбец]
 table[row, col]
@@ -56,8 +49,6 @@ s
 0
 
 """
-
-
 
 def find_board(pattern):
     """

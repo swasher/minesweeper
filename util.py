@@ -10,27 +10,39 @@ import winsound
 import mss
 from itertools import groupby
 from icecream import ic
+from config import config
 
 
 def r(num, rand):
     return num + rand * random.random()
 
 
-def click(x, y, button):
-    DEBUG = False
 
-    if DEBUG:
+### ======= WORKED =======
+def click(x, y, button):
+
+    if config.save_mouse_position:
         oldx, oldy = pyautogui.position()
 
-    timestamp = 00
-    pyautogui.moveTo(x, y, timestamp, pyautogui.easeInBounce)
+    pyautogui.moveTo(x, y, config.duration_mouse)
     pyautogui.click(button=button)
     frequency = 2000  # Set Frequency To 2500 Hertz
     duration = 3  # Set Duration To 1000 ms == 1 second
     # winsound.Beep(frequency, duration)
 
-    if DEBUG:
+    if config.save_mouse_position:
         pyautogui.moveTo(oldx, oldy)
+
+
+"""
+import mouse
+def click(x, y, button):
+    mouse.move(x, y, absolute=True, duration=config.duration_mouse)
+    mouse.click(button=button)
+"""
+
+
+
 
 
 def remove_dup(arr):

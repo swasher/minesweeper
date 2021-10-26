@@ -6,7 +6,6 @@ import sys
 import numpy as np
 ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
-
 """
 Любой алгоритм должен вернуть список ячеек (или []) и действие с ними (строку 'left' or 'right')
 
@@ -14,6 +13,7 @@ ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 bulk-ом для всей доски, оказалось так не комильфо)
 """
 
+from config import config
 def solver_R1(matrix):
     """
     Нажимает рандомную клетку из закрытых.
@@ -45,12 +45,11 @@ def solver_R1(matrix):
     qty = len(cells)
     random_cell = cells[randrange(qty)]
 
-    ### debug
-    # ic('------ R1')
-    # ic(random_cell)
-    # random_cell.mark_cell_debug()
-    # input("Press Enter to mouse moving")
-    ### end debug
+    if config.solvers_debug:
+        ic('------ R1')
+        ic(random_cell)
+        random_cell.mark_cell_debug()
+        input("Press Enter to mouse moving")
 
     return [random_cell], 'left'
 
@@ -71,15 +70,14 @@ def solver_B1(matrix):
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
-        ### debug
-        # ic('------ B1')
-        # ic(cell)
-        # ic(closed, closed, flags)
-        # ic(cell.digit, len(closed), len(flags))
-        # result = (cell.digit == len(closed) + len(flags)) and len(closed)>0
-        # ic(result)
-        # cell.mark_cell_debug()
-        ### end debug
+        if config.solvers_debug:
+            ic('------ B1')
+            ic(cell)
+            ic(closed, closed, flags)
+            ic(cell.digit, len(closed), len(flags))
+            result = (cell.digit == len(closed) + len(flags)) and len(closed)>0
+            ic(result)
+            cell.mark_cell_debug()
 
         if (cell.digit == len(closed) + len(flags)) and len(closed)>0:
             # значит во всех closed клетках есть бомбы
@@ -104,14 +102,13 @@ def solver_E1(matrix):
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
-        ### debug
-        # ic('------ E1')
-        # ic(cell, flags, closed)
-        # ic(cell.digit, len(flags), len(closed))
-        # result = cell.digit == len(flags) and len(closed)
-        # ic(result)
-        # cell.mark_cell_debug()
-        ### end debug
+        if config.solvers_debug:
+            ic('------ E1')
+            ic(cell, flags, closed)
+            ic(cell.digit, len(flags), len(closed))
+            result = cell.digit == len(flags) and len(closed)
+            ic(result)
+            cell.mark_cell_debug()
 
         if cell.digit == len(flags) and len(closed):
             # cell.mark_cell_debug()

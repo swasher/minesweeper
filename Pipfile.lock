@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a7278870fdeabef62614881bab6b972727e698d5a6d7d537c63c1bf38a9f8d3e"
+            "sha256": "3cdcf0d25700e2f3027f047ce2248426b430aa40d3f8656a2d35ef311db2c245"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,13 @@
         ]
     },
     "default": {
+        "mouse": {
+            "hashes": [
+                "sha256:d34bb9548890089fcb11988400e26f55c624e6c7b741fff75fedfdfbd37c0016"
+            ],
+            "index": "pypi",
+            "version": "==0.7.1"
+        },
         "mouseinfo": {
             "hashes": [
                 "sha256:2c62fb8885062b8e520a3cce0a297c657adcc08c60952eb05bc8256ef6f7f6e7"

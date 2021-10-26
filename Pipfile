@@ -9,6 +9,7 @@ numpy = {path = "./numpy-1.21.2+mkl-cp310-cp310-win_amd64.whl"}
 mss = "*"
 opencv-python = {path = "./opencv_python-4.5.3-cp310-cp310-win_amd64.whl"}
 pywin32 = "*"
+mouse = "*"
 
 [dev-packages]
 icecream = "*"

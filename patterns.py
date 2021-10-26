@@ -19,14 +19,14 @@ HOUSE
 import cv2 as cv
 from types import SimpleNamespace
 
-set_pict = 'asset_24_1920x1080'
+# set_pict = 'asset_24_1920x1080'
+set_pict = 'asset_28_2560x1440'
 # set_pict = 'asset_22_2560x1440'
-# set_pict = 'asset_28_2560x1440'
 
 # TODO Choose asset by screen size
 # TODO asset должен сам определять, какой взять, а если не получится определять на лету - прибить там гвоздями
 
-#TODO Сделать проверку, чтобы при загрузке ассетов они были нужного размера в px
+# TODO Сделать проверку, чтобы при загрузке ассетов они были нужного размера в px
 
 
 class Asset():

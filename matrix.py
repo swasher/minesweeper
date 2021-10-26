@@ -225,8 +225,8 @@ class Matrix(object):
         :return:
         """
 
-        #TODO Сделать это по человечески через функции в утиле
-
+        """
+        POSSIBLE DEPRECATED
         precision = 0.9
         image = self.get_image()
         template = patterns.fail.raster
@@ -236,9 +236,11 @@ class Matrix(object):
 
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+        """
 
         bombs = self.get_bomb_cells()
-        if (max_val > precision) or bool(len(bombs)):
+        # if (max_val > precision) or bool(len(bombs)):
+        if bool(len(bombs)):
             print('Game Over!')
             exit()
 

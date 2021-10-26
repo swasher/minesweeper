@@ -5,6 +5,7 @@ import win32gui
 import win32api
 
 from patterns import patterns
+from config import config
 
 
 class Cell(object):
@@ -128,10 +129,15 @@ class Cell(object):
 
     def click(self, button):
         """
-        нажимает на ячейку, каждый раз немного рандомно
+        Нажимает на ячейку.
+        Если randomize_mouse, то каждый раз немного рандомно
         :return:
         """
-        x, y = self.cell_random_coordinates()
+        # TODO уродский код - и тут и в cell_random_coordinates, надо переделать!
+        if config.randomize_mouse:
+            x, y = self.cell_random_coordinates()
+        else:
+            x, y = self.coordx + self.w//2, self.coordy + self.h//2
         x += Cell.ident_right
         y += Cell.ident_top
         util.click(x, y, button)
@@ -163,8 +169,6 @@ class Cell(object):
         :return:
         """
 
-
-
         # image_cell содержит пиксельную матрицы соотв. ячейки
         image_cell = image[self.coordy:self.coordy+self.h, self.coordx:self.coordx+self.w]
 
@@ -175,6 +179,10 @@ class Cell(object):
         list_patterns = []
         for name, obj in patterns.__dict__.items():
             list_patterns.append(obj)
+
+        # TODO какая есть мысля ускорить процесс
+        # TODO нужно уменьшить кол-во выполнения этого цикла, путем прерываения при нахождении
+        # TODO какого-то процента совпадения. Сначала нужно сравнивать с открытой и закрытой ячейками, потом с остальными.
 
         for patt in list_patterns:  # patterns imported from cell_pattern
             template = patt.raster
