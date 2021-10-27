@@ -18,10 +18,15 @@ HOUSE
 
 import cv2 as cv
 from types import SimpleNamespace
+from util import get_screen_size
 
-# set_pict = 'asset_24_1920x1080'
-set_pict = 'asset_28_2560x1440'
-# set_pict = 'asset_22_2560x1440'
+## TODO таким макаром мы будем искать размер экарана каждый раз при вызове паттерна!!!!
+screen = get_screen_size()
+if screen == [1920, 1080]:
+    set_pict = 'asset_24_1920x1080'
+elif screen == [2560, 1440]:
+    set_pict = 'asset_28_2560x1440'
+    # set_pict = 'asset_22_2560x1440'
 
 # TODO Choose asset by screen size
 # TODO asset должен сам определять, какой взять, а если не получится определять на лету - прибить там гвоздями

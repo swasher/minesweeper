@@ -19,11 +19,11 @@ class Configuration(object):
         bool_val = config.getboolean('section_a', 'bool_val')
         int_val = config.getint('section_a', 'int_val')
         """
-        self.pause = conf.getboolean('DEFAULT', 'pause')
-        self.solvers_debug = conf.getboolean('DEFAULT', 'solvers_debug')
-        self.save_mouse_position = conf.getboolean('DEFAULT', 'save_mouse_position')
-        self.randomize_mouse = conf.getboolean('DEFAULT', 'randomize_mouse')
-        self.duration_mouse = conf.getfloat('DEFAULT', 'duration_mouse')
+        self.debug_pause = conf.getboolean('main', 'debug_pause')
+        self.solvers_debug = conf.getboolean('main', 'solvers_debug')
+        self.save_mouse_position = conf.getboolean('main', 'save_mouse_position')
+        self.randomize_mouse = conf.getboolean('main', 'randomize_mouse')
+        self.duration_mouse = conf.getfloat('main', 'duration_mouse')
 
 
 config = Configuration()

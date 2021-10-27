@@ -213,9 +213,8 @@ class Matrix(object):
         :return:
         """
         image = self.get_image()
-        for cell in self.table.flat:
-            if cell.is_closed:
-                cell.update_cell(image)
+        for cell in self.get_closed_cells():
+            cell.update_cell(image)
 
     def check_game_over(self):
         """
@@ -237,6 +236,8 @@ class Matrix(object):
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
         """
+
+        # TODO НАХУЯ ТУТ СКАНИРОВАТЬ НА БОМБЫ, ЕСЛИ ОНИ УЖЕ ДОЛЖНЫ БЫТЬ В МАТРИЦЕ?!?!?!
 
         bombs = self.get_bomb_cells()
         # if (max_val > precision) or bool(len(bombs)):

@@ -3,6 +3,7 @@ import mss
 import numpy as np
 from icecream import ic
 
+from config import config
 from util import scan_region
 from patterns import patterns
 from matrix import Matrix
@@ -130,7 +131,8 @@ def do_strategy(strategy):
     if have_a_move:
         print(f'- do strategy')
         print(f'- click {button} on cells:', cells)
-        # input("Press Enter to mouse moving")
+        if config.debug_pause:
+            input("Press Enter to mouse moving")
         clicking_cells(cells, button)
         matrix.update()
         matrix.display()

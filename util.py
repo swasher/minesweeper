@@ -5,6 +5,7 @@ No import high level objects in UTIL! (like classes)
 import cv2 as cv
 import numpy as np
 import random
+import ctypes
 import pyautogui
 import winsound
 import mss
@@ -16,33 +17,50 @@ from config import config
 def r(num, rand):
     return num + rand * random.random()
 
-
-
-### ======= WORKED =======
-def click(x, y, button):
-
-    if config.save_mouse_position:
-        oldx, oldy = pyautogui.position()
-
+"""
+def click_pyautogui(x, y, button):
     pyautogui.moveTo(x, y, config.duration_mouse)
     pyautogui.click(button=button)
-    frequency = 2000  # Set Frequency To 2500 Hertz
-    duration = 3  # Set Duration To 1000 ms == 1 second
+    # frequency = 2000  # Set Frequency To 2500 Hertz
+    # duration = 3  # Set Duration To 1000 ms == 1 second
     # winsound.Beep(frequency, duration)
 
-    if config.save_mouse_position:
-        pyautogui.moveTo(oldx, oldy)
-
-
+from pynput.mouse import Button, Controller
+import time
+def click_pynput(x, y, button):
+    time.sleep(0.5)
+    mouse = Controller()
+    mouse.position = (x, y)
+    button = Button.left if button=='left' else Button.right
+    mouse.click(button)
 """
+
 import mouse
-def click(x, y, button):
+def click_mouse(x, y, button):
     mouse.move(x, y, absolute=True, duration=config.duration_mouse)
     mouse.click(button=button)
-"""
 
 
+def click(x, y, button):
+    # if config.save_mouse_position:
+    #     oldx, oldy = pyautogui.position()
 
+    # pyautogui
+    # click_pyautogui(x, y, button)
+    # mouse
+    click_mouse(x, y, button)
+    # pynput
+    # click_pynput(x, y, button)
+
+    # if config.save_mouse_position:
+    #     pyautogui.moveTo(oldx, oldy)
+
+
+def get_screen_size():
+    user32 = ctypes.windll.user32
+    user32.SetProcessDPIAware()
+    size = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
+    return size
 
 
 def remove_dup(arr):
@@ -211,3 +229,17 @@ def scan_region(region, template):
         """
 
     return cells_coord_y, cells_coord_x
+
+
+import timeit
+if __name__ == '__main__':
+    # x = random.randrange(100)
+    # y = random.randrange(100)
+    # print(timeit.timeit("click(random.randrange(100), random.randrange(100), 'left')", number=100, globals=locals()))
+    # print(get_screen_size())
+
+    x = 100
+    y = 300
+    # click_pyautogui(x, y, 'right')
+    # click_mouse(x, y, 'right')
+    click_pynput(x, y, 'right')
