@@ -4,7 +4,7 @@ import util
 import win32gui
 import win32api
 
-from patterns import patterns
+from patterns import patterns, list_patterns
 from config import config
 
 
@@ -173,12 +173,6 @@ class Cell(object):
         image_cell = image[self.coordy:self.coordy+self.h, self.coordx:self.coordx+self.w]
 
         precision = 0.8
-
-        # конвертируем объект SimpleNamespace, который по сути обертка для dict, в список.
-        # Потому что dict не итерируемый, а здесь нам нужен перебор, и в цикле и при сортировке чуть дальше
-        list_patterns = []
-        for name, obj in patterns.__dict__.items():
-            list_patterns.append(obj)
 
         # TODO какая есть мысля ускорить процесс
         # TODO нужно уменьшить кол-во выполнения этого цикла, путем прерываения при нахождении

@@ -16,6 +16,7 @@ HOUSE
 
 """
 
+import importlib
 import cv2 as cv
 from types import SimpleNamespace
 from util import get_screen_size
@@ -31,15 +32,22 @@ elif screen == [2560, 1440]:
 # TODO Choose asset by screen size
 # TODO asset должен сам определять, какой взять, а если не получится определять на лету - прибить там гвоздями
 
-# TODO Сделать проверку, чтобы при загрузке ассетов они были нужного размера в px
+# TODO Сделать проверку, чтобы при загрузке ассетов они были нужного размера в px (по размеру closed ячейки)
 
 
 class Asset():
+    # ----
+    # WARNING!!!!
+    # РАЗМЕР АССЕТОВ НЕ СООТВЕТСТВУЕТ РАЗМЕРУ ЯЧЕЕК - ОНИ КРОПЛЕНЫ В РАЗМЕР ИЗОБРАЖЕНИЯ!!!
+    # ТОЛЬКО РАЗМЕР ЯЧЕЙКИ CLOSED ЯВЛЯЕТСЯ РАЗМЕРОМ ЯЧЕЕК В ПИКСЕЛЯХ!!!
+    # ПОЭТОМУ ТУТ НЕ МОЖЕТ БЫТЬ СВОЙСТВ ШИРИНА-ВЫСОТА
+    # ----
     name = ''
     filename = ''
     similarity = 0
     set_pict = ''
     raster = ''
+    border = {}  # граница поля сапера в пикселях, от ячеек до края; скриншот каждый раз делается по этой области
 
     def __init__(self, name, filename):
         self.name = name
@@ -52,10 +60,18 @@ class Asset():
 
 Asset.set_pict = set_pict
 
+borders = importlib.import_module('..asset', package='asset_24_1920x1080.asset')
+Asset.border['top'] = borders.top
+Asset.border['bottom'] = borders.bottom
+Asset.border['left'] = borders.left
+Asset.border['right'] = borders.right
+
 keys = ['n'+str(x) for x in range(7)]
 numbered_cells = [Asset(f'{i}', f'{Asset.set_pict}/{i}.png') for i in range(7)]
 
 d = dict(zip(keys, numbered_cells))
+
+
 patterns = SimpleNamespace(**d)
 
 patterns.closed = Asset('closed', f'{Asset.set_pict}/closed.png')
@@ -65,3 +81,9 @@ patterns.flag = Asset('flag', f'{Asset.set_pict}/flag.png')
 patterns.fail = Asset('fail', f'{Asset.set_pict}/fail.png')
 patterns.win = Asset('win', f'{Asset.set_pict}/win.png')
 patterns.smile = Asset('smile', f'{Asset.set_pict}/smile.png')
+
+# конвертируем объект SimpleNamespace, который по сути обертка для dict, в список.
+# Потому что dict не итерируемый, а в cell.py нам нужен перебор for циклом
+list_patterns = []
+for name, obj in patterns.__dict__.items():
+    list_patterns.append(obj)

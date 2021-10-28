@@ -16,18 +16,21 @@ get_closed - возвращает только закрытые и НЕ отме
 
 class Matrix(object):
 
+    table = None  # matrix itself; numpy 2D array of Cell object
+    height = 0  # height of matrix (number of rows)
+    width = 0  # width of matrix (number of cols)
+
     def __init__(self, row_values, col_values, region, patterns):
         """
         Заполняет Matrix пустыми объектами Cell
         :param num_rows:
         :param num_cols:
         """
-        self.matrix_height = len(row_values)
-        self.matrix_width = len(col_values)
+        self.height = len(row_values)
+        self.width = len(col_values)
 
-        self.table = numpy.full((self.matrix_height, self.matrix_width), cell.Cell)
+        self.table = numpy.full((self.height, self.width), cell.Cell)
 
-        # TODO это нужно брать из класса Cell_pattern
         template = patterns.closed.raster
         h, w = template.shape[:2]
 
@@ -47,9 +50,9 @@ class Matrix(object):
         """
         print('---DISPLAY---')
         matrix_view = []
-        for row in range(self.matrix_height):
+        for row in range(self.height):
             row_view = ''
-            for col in range(self.matrix_width):
+            for col in range(self.width):
                 row_view += self.table[row, col].cell_pict() + ' '
             matrix_view.append(row_view)
         print('\n'.join(row for row in matrix_view))

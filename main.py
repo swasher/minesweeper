@@ -50,7 +50,7 @@ s
 0
 
 """
-
+from patterns import Asset
 def find_board(pattern):
     """
     Находит поле сапера
@@ -69,13 +69,10 @@ def find_board(pattern):
     template = pattern.closed.raster
     h, w = template.shape[:2]
 
-    # add pixels to cells size for get entire game board:
-    # left - 18, top - 81, right - 18, boottom - 17
-    # TODO эти параметры должны быть привязаны к ассету
-    left = 18
-    right = 18
-    top = 81
-    bottom = 17
+    left = Asset.border['left']
+    right = Asset.border['right']
+    top = Asset.border['top']
+    bottom = Asset.border['bottom']
 
     region_x1 = cells_coord_y[0] - left
     region_x2 = cells_coord_y[-1] + right + w
@@ -151,6 +148,8 @@ if __name__ == '__main__':
 
     row_values, col_values, region = find_board(patterns)
     matrix = Matrix(row_values, col_values, region, patterns)
+
+    # for col in matrix.table.wi
 
     have_a_move_B1 = True
     have_a_move_E1 = True
