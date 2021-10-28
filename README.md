@@ -12,14 +12,14 @@ Demo 2 (3 solve strategy):
 TODO
 ======================
 
-[ ] MatchTemplate занимает до 25-50% времени выполнения. Надо с этим что-то делать
-[ ] Написать тесты?
-[ ] Возможность остановть выполнение по нажатию клавиши
-[ ] Выяснить, что не так с red bomb
-[ ] Реализовать режим No-Flag
-[-] TODO можно делать движения мыши более "человеческими" PS Нет смысла, движения не пишутся, только время между кликами.
-[x] Сделать настройки через settings.ini
-[ ] Сделать слой абстракции конкретной реализации сапера
+[ ] MatchTemplate занимает до 25-50% времени выполнения. Надо с этим что-то делать  
+[ ] Написать тесты?  
+[ ] Возможность остановть выполнение по нажатию клавиши  
+[ ] Выяснить, что не так с red bomb  
+[ ] Реализовать режим No-Flag  
+[-] TODO можно делать движения мыши более "человеческими" PS Нет смысла, движения не пишутся, только время между кликами.  
+[x] Сделать настройки через settings.ini  
+[ ] Сделать слой абстракции конкретной реализации сапера  
 
 
 Installation
@@ -79,5 +79,14 @@ Search the screen for a specific element
 
 Алгоритмы
 ====================  
-[Reddit - how_to_write_your_own_minesweeper_ai_very](https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/)  
-[How to Write your own Minesweeper AI](https://luckytoilet.wordpress.com/2012/12/23/2125/)  
+[Reddit - how_to_write_your_own_minesweeper_ai_very](https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/)    
+[How to Write your own Minesweeper AI](https://luckytoilet.wordpress.com/2012/12/23/2125/)   
+[Solving Minesweeper with Matrices](https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/)  
+[Minesweeper: Advanced Tactics](http://www.nothings.org/games/minesweeper/)  
+[Strategy wiki](http://www.minesweeper.info/wiki/Strategy)  
+[Minesweeper and NP-completeness](http://web.mat.bham.ac.uk/R.W.Kaye/minesw/ordmsw.htm)  
+[Algorithmic Approaches to Playing Minesweeper PDF](https://pdfhost.io/v/uvgsPGU7Y_Algorithmic_Approaches_to_Playing_Minesweeper)  
+[reddit](https://www.reddit.com/r/Minesweeper/comments/8b3b30/odds_of_winning_at_minesweeper/)  
+
+
+[Miner online another](https://mines.zone/ru/)  

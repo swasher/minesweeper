@@ -17,8 +17,8 @@ from config import config
 def r(num, rand):
     return num + rand * random.random()
 
-"""
-def click_pyautogui(x, y, button):
+
+def click_mouse_pyautogui(x, y, button):
     pyautogui.moveTo(x, y, config.duration_mouse)
     pyautogui.click(button=button)
     # frequency = 2000  # Set Frequency To 2500 Hertz
@@ -27,16 +27,16 @@ def click_pyautogui(x, y, button):
 
 from pynput.mouse import Button, Controller
 import time
-def click_pynput(x, y, button):
-    time.sleep(0.5)
+def click_mouse_pynput(x, y, button):
     mouse = Controller()
     mouse.position = (x, y)
     button = Button.left if button=='left' else Button.right
+    time.sleep(config.duration_mouse)
     mouse.click(button)
-"""
+
 
 import mouse
-def click_mouse(x, y, button):
+def click_mouse_mouse(x, y, button):
     mouse.move(x, y, absolute=True, duration=config.duration_mouse)
     mouse.click(button=button)
 
@@ -45,12 +45,9 @@ def click(x, y, button):
     # if config.save_mouse_position:
     #     oldx, oldy = pyautogui.position()
 
-    # pyautogui
-    # click_pyautogui(x, y, button)
-    # mouse
-    click_mouse(x, y, button)
-    # pynput
-    # click_pynput(x, y, button)
+    # click_mouse_pyautogui(x, y, button)
+    # click_mouse_pynput(x, y, button)
+    click_mouse_mouse(x, y, button)
 
     # if config.save_mouse_position:
     #     pyautogui.moveTo(oldx, oldy)

@@ -194,6 +194,11 @@ class Cell(object):
             exit()
 
     def mark_cell_debug(self):
+        """
+        Draw small square on current cell right on Minesweeper board.
+        Ise it for debug purpose (mark cell)
+        :return:
+        """
         dc = win32gui.GetDC(0)
         red = win32api.RGB(255, 0, 0)
         # win32gui.SetPixel(dc, 0, 0, red)  # draw red at 0,0
@@ -202,6 +207,4 @@ class Cell(object):
 
         win32gui.MoveToEx(dc, self.abscoordx+9, self.abscoordy+9)
         win32gui.LineTo(dc, self.abscoordx+9, self.abscoordy+9)
-        # win32gui.ReleaseDC(dc)
-        # dc.Clear()
-        # dc.Refresh()
+

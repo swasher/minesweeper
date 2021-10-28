@@ -1,3 +1,4 @@
+import time
 import cv2 as cv
 import mss
 import numpy as np
@@ -11,6 +12,7 @@ from matrix import Matrix
 from solve import solver_B1
 from solve import solver_E1
 from solve import solver_R1
+
 
 """
 RULES FOR COORDINATES
@@ -128,9 +130,14 @@ def do_strategy(strategy):
     if have_a_move:
         print(f'- do strategy')
         print(f'- click {button} on cells:', cells)
+
         if config.debug_pause:
             input("Press Enter to mouse moving")
+
         clicking_cells(cells, button)
+        # This is very important setting! After click, website has lag due refresh game board.
+        # If we do not waiting at this point, we do not see any changes after mouse click.
+        time.sleep(config.LAG)
         matrix.update()
         matrix.display()
         matrix.check_game_over()

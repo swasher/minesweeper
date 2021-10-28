@@ -24,6 +24,7 @@ class Configuration(object):
         self.save_mouse_position = conf.getboolean('main', 'save_mouse_position')
         self.randomize_mouse = conf.getboolean('main', 'randomize_mouse')
         self.duration_mouse = conf.getfloat('main', 'duration_mouse')
+        self.LAG = conf.getfloat('main', 'LAG')
 
 
 config = Configuration()
