@@ -1,4 +1,5 @@
 """
+-- Agreement: --
 No import high level objects in UTIL! (like classes)
 """
 
@@ -6,7 +7,8 @@ import cv2 as cv
 import numpy as np
 import random
 import ctypes
-import pyautogui
+import mouse
+# import pyautogui
 import winsound
 import mss
 from itertools import groupby
@@ -18,39 +20,15 @@ def r(num, rand):
     return num + rand * random.random()
 
 
-def click_mouse_pyautogui(x, y, button):
-    pyautogui.moveTo(x, y, config.duration_mouse)
-    pyautogui.click(button=button)
-    # frequency = 2000  # Set Frequency To 2500 Hertz
-    # duration = 3  # Set Duration To 1000 ms == 1 second
-    # winsound.Beep(frequency, duration)
+def click(x, y, button):
+    if config.turn_by_turn:
+        oldx, oldy = mouse.get_position()
 
-from pynput.mouse import Button, Controller
-import time
-def click_mouse_pynput(x, y, button):
-    mouse = Controller()
-    mouse.position = (x, y)
-    button = Button.left if button=='left' else Button.right
-    time.sleep(config.duration_mouse)
-    mouse.click(button)
-
-
-import mouse
-def click_mouse_mouse(x, y, button):
     mouse.move(x, y, absolute=True, duration=config.duration_mouse)
     mouse.click(button=button)
 
-
-def click(x, y, button):
-    # if config.save_mouse_position:
-    #     oldx, oldy = pyautogui.position()
-
-    # click_mouse_pyautogui(x, y, button)
-    # click_mouse_pynput(x, y, button)
-    click_mouse_mouse(x, y, button)
-
-    # if config.save_mouse_position:
-    #     pyautogui.moveTo(oldx, oldy)
+    if config.turn_by_turn:
+        mouse.move(oldx, oldy)
 
 
 def get_screen_size():

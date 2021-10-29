@@ -1,9 +1,11 @@
-import icecream
+import itertools
 from random import randrange
-from util import remove_dup
-from icecream import ic
 import sys
 import numpy as np
+
+from config import config
+from icecream import ic
+
 ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
 """
@@ -13,7 +15,7 @@ ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 bulk-ом для всей доски, оказалось так не комильфо)
 """
 
-from config import config
+
 def solver_R1(matrix):
     """
     Нажимает рандомную клетку из закрытых.
@@ -45,7 +47,7 @@ def solver_R1(matrix):
     qty = len(cells)
     random_cell = cells[randrange(qty)]
 
-    if config.solvers_debug:
+    if config.turn_by_turn:
         ic('------ R1')
         ic(random_cell)
         random_cell.mark_cell_debug()
@@ -70,7 +72,7 @@ def solver_B1(matrix):
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
-        if config.solvers_debug:
+        if config.turn_by_turn:
             ic('------ B1')
             ic(cell)
             ic(closed, closed, flags)
@@ -102,7 +104,7 @@ def solver_E1(matrix):
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
-        if config.solvers_debug:
+        if config.turn_by_turn:
             ic('------ E1')
             ic(cell, flags, closed)
             ic(cell.digit, len(flags), len(closed))
@@ -118,47 +120,113 @@ def solver_E1(matrix):
     # если ни у одной клетки нет решения, возвращаем пустой список
     return [], 'right'
 
+
+
 class Root(object):
-    cells = []
-    bombs = 0
-    len = 0
+    ancestor = None # объект Cell - клетка, для которой строился root
+    closed = []     # список объектов Cell
+    flags = []      # список объектов Flag
+    number = 0      # int, цифра, вокруг которой построен "корень"
+
+    def __init__(self, cell, closed, flags):
+        self.ancestor = cell
+        self.closed = closed
+        self.flags = flags
+        self.digit = cell.digit
+
+    def __repr__(self):
+        return f'NUMBER: {self.digit} with {len(self.closed)} closed and {len(self.flags)} flags'
+
+    @property
+    def len_closed(self):
+        return len(self.closed)
+
+    @property
+    def rest_bombs(self):
+        return self.digit - len(self.flags)
 
 def create_roots(matrix):
     """
-    Строит "дерево" корней для каждой цифры на поле.
-    Для каждой цифры создается объект класса Root, который содержит список закрытых ячеек, длину списка, и кол-во бомб,
+    Строит "дерево" корней (соседних клеток) для каждой цифры на поле.
+    Берутся в учет только те клетки, у которых есть пустые клетки вокруг.
+    Для каждой цифры создается объект класса Root, который содержит список закрытых ячеек и список флагов,
     приходящихся на эти ячейки.
     :param matrix:
     :return:
     """
     roots = []
     for cell in matrix.get_digit_cells():
-        closed = matrix.around_closed_cells(cell)
-        flags = matrix.around_flagged_cells(cell)
-        number = int(cell.digit) - len(flags)
+        if len(matrix.around_closed_cells(cell)):
+            closed = matrix.around_closed_cells(cell)
+            flags = matrix.around_flagged_cells(cell)
+            roots.append(Root(cell, closed, flags))
+    return roots
 
 
 def solver_B2(matrix):
     """
     - Для каждой цифры делаем список закрытых ячеек
-    - Каждый список должен как-то знать, вокруг какой цифры он построен. При этом нужно из цифры вычесть кол-во флагов в округе.
-    - Сравниваем каждый список с каждым. Ищем различие в длинах списка на 1 (напр. длина 3 и длина 4)
-    - Если при этом цифра большего списка так же больше на 1, чем цифра меньшего, значит в лишней ячейке - бомба
+    - Если один набор полностью входит во второй
+    - Из ЦИФРЫ списка (вокруг которой root) вычитаем кол-во уже открытых флагов
+    - Сравниваем два корня (каждый с каждым).
+    - Находим совпадения:
+        `Цифра` первого корня + `Цифра` второго корня + разница в длине между корнями = длина большего корня
+        Вот эту разницу - отмечаем бомбами.
+    См. иллюстрацию в pic
+
+    r1 = roots[0]
+    r2 = roots[1]
+    set(r1.closed).issubset(set(r2.closed))  => True если r1 входид в множество r2
+
+    set(r1) ^ set(r2) => set содержащий элементы, которые входят только в одно из множеств (XOR)
+
+    r1.union(r2) => set содержащий все элементы обоих множеств (без дублирования) (OR)
     """
-    pass
+    roots = create_roots(matrix)
+    for r1, r2 in itertools.combinations(roots, 2):
 
+        set1 = set(r1.closed)
+        set2 = set(r2.closed)
+        if set1.issubset(set2) or set2.issubset(set1):
+            # сначала я думал убирать возможный знак минус, но именно так получается правильно - даже если будет минус,
+            # то в обоих случаях. А если его убрать, возможны коллизии
+            diff_len = r1.len_closed - r2.len_closed
 
+            diff_number = r1.rest_bombs - r2.rest_bombs
+            if diff_len and (diff_len == diff_number):
+                # XOR - возвращает то, что не входит в оба сета.
+                # Возвращает тип set. Если нужен список - обернуть в tuple.
+                bombs = tuple(set(r1.closed) ^ set(r2.closed))
+                # r1.ancestor.mark_cell_debug()
+                # r2.ancestor.mark_cell_debug()
+                # print('COMPARE', r1.ancestor, r2.ancestor)
+                # print(bombs)
+                return bombs, 'right'
+    return [], 'right'
 
 
 def solver_E2(matrix):
     """
-    - Для каждой цифры делаем список закрытых ячеек.
-    - Каждый список должен как-то знать, вокруг какой цифры он построен. При этом нужно из цифры вычесть кол-во флагов.
-    - Сравниваем каждый список с каждым. Ищем различие в длинах списка на 1 (напр. длина 3 и длина 4)
-    - Если при этом цифры одинаковые, то "лишняя" ячейка - пустая
+    - Для каждой цифры делаем список закрытых ячеек (Root.closed)
+    - При этом нужно из цифры вычесть кол-во флагов (Root.rest_bomb)
+    - Сравниваем каждый список с каждым. Ищем вхождение одного списка в другой.
+    - Если при этом цифры одинаковые, то все "лишние" ячейки - пустые (их может быть более 1-й)
 
     На "цифры" влияют флаги - т.е. цифру нужно считать как 'цифра минус флаги вокруг', см. пример solver_e2_2 (п.2)
     :param matrix:
     :return:
     """
-    pass
+    roots = create_roots(matrix)
+    for r1, r2 in itertools.combinations(roots, 2):
+
+        set1 = set(r1.closed)
+        set2 = set(r2.closed)
+        if set1.issubset(set2) or set2.issubset(set1):
+            if r1.rest_bombs == r2.rest_bombs:
+                empties = tuple(set(r1.closed) ^ set(r2.closed))
+                r1.ancestor.mark_cell_debug()
+                r2.ancestor.mark_cell_debug()
+                print('COMPARE:', r1.ancestor, r2.ancestor)
+                print('EMPTIES:', empties)
+                return empties, 'left'
+    return [], 'left'

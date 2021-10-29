@@ -15,11 +15,12 @@ TODO
 [ ] MatchTemplate занимает до 25-50% времени выполнения. Надо с этим что-то делать  
 [ ] Написать тесты?  
 [ ] Возможность остановть выполнение по нажатию клавиши  
-[ ] Выяснить, что не так с red bomb  
+[ ] Выяснить, что не так с red bomb (особенно когда красная бомба последняя = баг)
 [ ] Реализовать режим No-Flag  
 [-] TODO можно делать движения мыши более "человеческими" PS Нет смысла, движения не пишутся, только время между кликами.  
 [x] Сделать настройки через settings.ini  
 [ ] Сделать слой абстракции конкретной реализации сапера  
+[ ] Сделать в ридми описание стратегий
 
 
 Installation
@@ -58,7 +59,7 @@ pywinauto
 pyautogui
 -----------------
 
-PyAutoGUI is a cross-platform GUI automation Python module for human beings. Used to programmatically control the mouse & keyboard.  
+**[not used]** PyAutoGUI is a cross-platform GUI automation Python module for human beings. Used to programmatically control the mouse & keyboard.  
  [github](https://github.com/asweigart/)
 
 python-imagesearch
@@ -67,7 +68,12 @@ python-imagesearch
 **[not used]** search the screen for a specific element  
  [github](https://github.com/drov0/python-imagesearch)
 
-Articles
+mouse
+-----------
+Controlled mouse (at 100 times faster of pyautogui)
+ [github](https://github.com/boppreh/mouse)
+
+Articles and Algorithms
 ==================
 
 Automate gaming with python  
@@ -77,16 +83,22 @@ Search the screen for a specific element
  [Easy Image recognition for automation with python](https://medium.com/@martin.lees/image-recognition-for-automation-with-python-711ac617b4e5)  
  [How to easily image search with python](https://brokencode.io/how-to-easily-image-search-with-python/)  
 
-Алгоритмы
-====================  
 [Reddit - how_to_write_your_own_minesweeper_ai_very](https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/)    
 [How to Write your own Minesweeper AI](https://luckytoilet.wordpress.com/2012/12/23/2125/)   
 [Solving Minesweeper with Matrices](https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/)  
 [Minesweeper: Advanced Tactics](http://www.nothings.org/games/minesweeper/)  
 [Strategy wiki](http://www.minesweeper.info/wiki/Strategy)  
+[Minesweeper Strategy](https://minesweepergame.com/strategy.php)
 [Minesweeper and NP-completeness](http://web.mat.bham.ac.uk/R.W.Kaye/minesw/ordmsw.htm)  
 [Algorithmic Approaches to Playing Minesweeper PDF](https://pdfhost.io/v/uvgsPGU7Y_Algorithmic_Approaches_to_Playing_Minesweeper)  
 [reddit](https://www.reddit.com/r/Minesweeper/comments/8b3b30/odds_of_winning_at_minesweeper/)  
+[Официальное сообщество Minesweeper](https://www.reddit.com/r/Minesweeper/)
 
+Minesweeper boards
+-------------------------
 
-[Miner online another](https://mines.zone/ru/)  
+[Miner online another](https://mines.zone/ru/)
+[Minesweeper-X](https://minesweepergame.com/download/minesweeper-x.php)
+[Arbiter](https://minesweepergame.com/download/arbiter.php)
+[Viennasweeper](https://minesweepergame.com/download/viennasweeper.php)
+[minesweeper.online](https://minesweeper.online/)

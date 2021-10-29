@@ -1,4 +1,5 @@
 import time
+import sys
 import cv2 as cv
 import mss
 import numpy as np
@@ -9,9 +10,12 @@ from util import scan_region
 from patterns import patterns
 from matrix import Matrix
 
+from solve import solver_R1
 from solve import solver_B1
 from solve import solver_E1
-from solve import solver_R1
+
+from solve import solver_B2
+from solve import solver_E2
 
 
 """
@@ -131,11 +135,11 @@ def do_strategy(strategy):
         print(f'- do strategy')
         print(f'- click {button} on cells:', cells)
 
-        if config.debug_pause:
-            input("Press Enter to mouse moving")
-
+        # if config.turn_by_turn:
+        #     input("Press Enter to mouse moving")
         clicking_cells(cells, button)
-        # This is very important setting! After click, website has lag due refresh game board.
+
+        # This is very important setting! After click, website has a lag for refresh game board.
         # If we do not waiting at this point, we do not see any changes after mouse click.
         time.sleep(config.LAG)
         matrix.update()
@@ -143,10 +147,28 @@ def do_strategy(strategy):
         matrix.check_game_over()
     else:
         print('- pass strategy')
+    if name == 'solver_R1':
+        have_a_move = False
     return have_a_move
 
 
 if __name__ == '__main__':
+
+    # ===== DEBUG
+
+    row_values, col_values, region = find_board(patterns)
+    matrix = Matrix(row_values, col_values, region, patterns)
+    matrix.update()
+    move = True
+    while move:
+        move = do_strategy(solver_E2)
+        input('next turn')
+    sys.exit()
+
+    # ===== END DEBUG
+
+
+
 
     # TODO я хочу, чтобы можно было так делать:
     # TODO if bomb in matrix:
@@ -166,12 +188,29 @@ if __name__ == '__main__':
     # matrix.check_game_over()
 
     while do_random:
+        input('lets R1...')
         do_strategy(solver_R1)
 
-        have_a_move_B1 = True
-        while have_a_move_B1:
-            have_a_move_B1 = do_strategy(solver_B1)
+        have_a_move_B2 = True
+        input('lets B2...')
+        while have_a_move_B2:
+            have_a_move_B2 = do_strategy(solver_B2)
 
-            have_a_move_E1 = True
-            while have_a_move_E1:
-                have_a_move_E1 = do_strategy(solver_E1)
+            have_a_move_E2 = True
+            input('lets E2...')
+            while have_a_move_E2:
+                have_a_move_E2 = do_strategy(solver_E2)
+
+                have_a_move_B1 = True
+                while have_a_move_B1:
+                    have_a_move_B1 = do_strategy(solver_B1)
+
+                    have_a_move_E1 = True
+                    while have_a_move_E1:
+                        have_a_move_E1 = do_strategy(solver_E1)
+
+    # strat = [solver_E2, solver_B2, solver_E1, solver_B1, solver_R1]
+    # strat = [solver_R1, solver_B1, solver_E1, solver_B2, solver_E2]
+
+
+

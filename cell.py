@@ -47,6 +47,8 @@ class Cell(object):
         self.status = 'closed'
         self.type = patterns.closed
 
+    def __repr__(self):
+        return f'{self.row}:{self.col} {self.status}'
 
     def cell_pict(self):
         # TODO Сделать еще одно поле - TYPE с типом Pattern, и здесь
@@ -68,9 +70,6 @@ class Cell(object):
             return 'e'  # error
         return slot
         # return slot+f'{self.row}:{self.col}'
-
-    def __repr__(self):
-        return f'{self.row}:{self.col} {self.status}'
 
     @property
     def abscoordx(self):
@@ -178,7 +177,7 @@ class Cell(object):
         # TODO нужно уменьшить кол-во выполнения этого цикла, путем прерываения при нахождении
         # TODO какого-то процента совпадения. Сначала нужно сравнивать с открытой и закрытой ячейками, потом с остальными.
 
-        for patt in list_patterns:  # patterns imported from cell_pattern
+        for patt in list_patterns:  # list_patterns imported from cell_pattern
             template = patt.raster
             res = cv.matchTemplate(image_cell, template, cv.TM_CCOEFF_NORMED)
             min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)

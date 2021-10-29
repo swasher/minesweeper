@@ -1,3 +1,4 @@
+import sys
 import numpy
 import mss
 import numpy as np
@@ -246,7 +247,7 @@ class Matrix(object):
         # if (max_val > precision) or bool(len(bombs)):
         if bool(len(bombs)):
             print('Game Over!')
-            exit()
+            sys.exit()
 
         precision = 0.9
         image = self.get_image()
@@ -257,7 +258,7 @@ class Matrix(object):
 
         if max_val > precision:
             print('You WIN!')
-            exit()
+            sys.exit()
 
     def reset(self):
         """
