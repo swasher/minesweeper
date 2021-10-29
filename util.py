@@ -16,10 +16,6 @@ from icecream import ic
 from config import config
 
 
-def r(num, rand):
-    return num + rand * random.random()
-
-
 def click(x, y, button):
     if config.turn_by_turn:
         oldx, oldy = mouse.get_position()
