@@ -48,7 +48,7 @@ class Cell(object):
         self.type = patterns.closed
 
     def __repr__(self):
-        return f'{self.row}:{self.col} {self.status}'
+        return f'{self.status} ({self.row}:{self.col})'
 
     def cell_pict(self):
         # TODO Сделать еще одно поле - TYPE с типом Pattern, и здесь

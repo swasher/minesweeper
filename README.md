@@ -93,12 +93,16 @@ Search the screen for a specific element
 [Algorithmic Approaches to Playing Minesweeper PDF](https://pdfhost.io/v/uvgsPGU7Y_Algorithmic_Approaches_to_Playing_Minesweeper)  
 [reddit](https://www.reddit.com/r/Minesweeper/comments/8b3b30/odds_of_winning_at_minesweeper/)  
 [Официальное сообщество Minesweeper](https://www.reddit.com/r/Minesweeper/)
+[Minesweeper and Hypothetical Thinking Action Research & Pilot Study PDF](https://files.eric.ed.gov/fulltext/ED509464.pdf)
+
+[Большое сборник статей по мат. алгоритмам](https://minesweepergame.com/math-papers.php)
+
 
 Minesweeper boards
 -------------------------
 
-[Miner online another](https://mines.zone/ru/)
-[Minesweeper-X](https://minesweepergame.com/download/minesweeper-x.php)
-[Arbiter](https://minesweepergame.com/download/arbiter.php)
-[Viennasweeper](https://minesweepergame.com/download/viennasweeper.php)
-[minesweeper.online](https://minesweeper.online/)
+[Miner online another](https://mines.zone/ru/)  
+[Minesweeper-X](https://minesweepergame.com/download/minesweeper-x.php)  
+[Arbiter](https://minesweepergame.com/download/arbiter.php)  
+[Viennasweeper](https://minesweepergame.com/download/viennasweeper.php)  
+[minesweeper.online](https://minesweeper.online/)  

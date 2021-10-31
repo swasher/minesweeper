@@ -6,7 +6,7 @@ import numpy as np
 from config import config
 from icecream import ic
 
-ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
+
 
 """
 Любой алгоритм должен вернуть список ячеек (или []) и действие с ними (строку 'left' or 'right')
@@ -217,6 +217,8 @@ def solver_E2(matrix):
     :return:
     """
     roots = create_roots(matrix)
+    answers = []
+
     for r1, r2 in itertools.combinations(roots, 2):
 
         set1 = set(r1.closed)
@@ -226,7 +228,10 @@ def solver_E2(matrix):
                 empties = tuple(set(r1.closed) ^ set(r2.closed))
                 r1.ancestor.mark_cell_debug()
                 r2.ancestor.mark_cell_debug()
-                print('COMPARE:', r1.ancestor, r2.ancestor)
-                print('EMPTIES:', empties)
-                return empties, 'left'
-    return [], 'left'
+                # print('-----')
+                # print('COMPARE:', r1.ancestor, 'and', r2.ancestor)
+                # print('EMPTIES:', empties)
+                # return empties, 'left'
+                answers += empties
+
+    return answers, 'left'

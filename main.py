@@ -4,10 +4,12 @@ import cv2 as cv
 import mss
 import numpy as np
 from icecream import ic
+ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
 from config import config
-from util import scan_region
+from util import scan_image
 from patterns import patterns
+from patterns import Asset
 from matrix import Matrix
 
 from solve import solver_R1
@@ -56,47 +58,58 @@ s
 0
 
 """
-from patterns import Asset
-def find_board(pattern):
+
+
+def find_board(pattern, asset):
     """
     Находит поле сапера
-    :return: row, cols - кол-во столбцов и строк в поле; region - координаты сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол
+
+    :param pattern: объект Pattern, который содержит изображения клеток; мы будем искать на экране закрытую клетку (pattern.closed)
+    :param asset: класс (не инстанс!) Asset, в котором содержится информация о "доске" - а именно размер полей в пикселях,
+            от клеток до края "доски". Именно это поле (region), а не весь экран, мы в дальнейшем будем "сканировать".
+    :return cells_coord_x: [array of int] Координаты строк
+    :return cells_coord_y: [array of int] Координаты столбцов
+    :return region: [x1, y1, x2, y2] координаты доски сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол
     """
-    ic('FINDING BOARD')
-    ic('  first scan...')
-    # FIRST SCAN - entire screen, coordinates tied to screen
-    region = mss.mss().monitors[0]
-    cells_coord_x, cells_coord_y = scan_region(region, pattern.closed.raster)
-    if not len(cells_coord_x+cells_coord_y):
-        print('Minesweeper not found, exit')
+    ic('Try finding board...')
+    with mss.mss() as sct:
+        region = mss.mss().monitors[0]
+        screenshot = sct.grab(region)
+        raw = np.array(screenshot)
+    image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
+    cells_coord_x, cells_coord_y = scan_image(image, pattern.closed.raster)
+
+    if not len(cells_coord_x + cells_coord_y):
+        print(' - not found, exit')
         exit()
-    ic('  finish')
+    ic(' - found')
 
     template = pattern.closed.raster
     h, w = template.shape[:2]
 
-    left = Asset.border['left']
-    right = Asset.border['right']
-    top = Asset.border['top']
-    bottom = Asset.border['bottom']
+    # Это поля "игрового поля" в дополнение к самим клеткам в пикселях
+    left = asset.border['left']
+    right = asset.border['right']
+    top = asset.border['top']
+    bottom = asset.border['bottom']
 
-    region_x1 = cells_coord_y[0] - left
-    region_x2 = cells_coord_y[-1] + right + w
-    region_y1 = cells_coord_x[0] - top
-    region_y2 = cells_coord_x[-1] + bottom + h
+    region_x1 = cells_coord_x[0] - left
+    region_x2 = cells_coord_x[-1] + right + w
+    region_y1 = cells_coord_y[0] - top
+    region_y2 = cells_coord_y[-1] + bottom + h
 
-    # SECOND RUN - ONLY WITH REGION OF MINESWEEPER
-    # coordinates cells_coord_x, cells_coord_y tied to minesweeper board
-    ic('  second scan...')
     region = (region_x1, region_y1, region_x2, region_y2)
-    cells_coord_x, cells_coord_y = scan_region(region, pattern.closed.raster)
-    ic('  finish')
+
+    # Делаем коррекцию координат, чтобы они было относительно доски, а не экрана.
+    cells_coord_x = [x-region_x1 for x in cells_coord_x]
+    cells_coord_y = [y-region_y1 for y in cells_coord_y]
+
     return cells_coord_x, cells_coord_y, region
 
 
 def draw():
     """
-    ДОПИЛИТЬ ФУНКЦИЮ, ЧТОБЫ ДЕЛАТЬ ДЕБАГ-КАРТИНКИ
+    TODO ДОПИЛИТЬ ФУНКЦИЮ, ЧТОБЫ ДЕЛАТЬ ДЕБАГ-КАРТИНКИ
     :return: 
     """
     with mss.mss() as sct:
@@ -120,8 +133,8 @@ def do_strategy(strategy):
 
     Результат работы любой стратегии - список клеток, которые нужно нажать правой или левой кнопкой.
 
-    :param strategy: Одна из функий из модуля solve, напр. можно передать сюда стратегию solver_E1 или solver_R1
-    :return:
+    :param strategy: [function] Одна из функий из модуля solve, напр. можно передать сюда стратегию solver_E1 или solver_R1
+    :return: have_a_move: [boolean] - True, если стратегия выполнила ходы
     """
 
     # TODO Сделать, чтобы можно было прервать процесс с клавиатуры
@@ -144,7 +157,12 @@ def do_strategy(strategy):
         time.sleep(config.LAG)
         matrix.update()
         matrix.display()
-        matrix.check_game_over()
+        if matrix.you_win():
+            print('You win!')
+            sys.exit()
+        if matrix.you_fail():
+            print('Game over!')
+            sys.exit()
     else:
         print('- pass strategy')
     if name == 'solver_R1':
@@ -156,18 +174,16 @@ if __name__ == '__main__':
 
     # ===== DEBUG
 
-    row_values, col_values, region = find_board(patterns)
-    matrix = Matrix(row_values, col_values, region, patterns)
-    matrix.update()
-    move = True
-    while move:
-        move = do_strategy(solver_E2)
-        input('next turn')
-    sys.exit()
+    # row_values, col_values, region = find_board(patterns)
+    # matrix = Matrix(row_values, col_values, region, patterns)
+    # matrix.update()
+    # move = True
+    # while move:
+    #     move = do_strategy(solver_E2)
+    #     input('next turn')
+    # sys.exit()
 
     # ===== END DEBUG
-
-
 
 
     # TODO я хочу, чтобы можно было так делать:
@@ -175,7 +191,7 @@ if __name__ == '__main__':
     # TODO или, если у нас есть array of cells
     # TODO if bomb in array
 
-    row_values, col_values, region = find_board(patterns)
+    col_values, row_values, region = find_board(patterns, Asset)
     matrix = Matrix(row_values, col_values, region, patterns)
 
     # for col in matrix.table.wi
@@ -184,20 +200,21 @@ if __name__ == '__main__':
     have_a_move_E1 = True
     do_random = True
 
-    # matrix.update()
-    # matrix.check_game_over()
+
+
+    WIN = 5
 
     while do_random:
-        input('lets R1...')
+        # input('lets R1...')
         do_strategy(solver_R1)
 
         have_a_move_B2 = True
-        input('lets B2...')
+        # input('lets B2...')
         while have_a_move_B2:
             have_a_move_B2 = do_strategy(solver_B2)
 
             have_a_move_E2 = True
-            input('lets E2...')
+            # input('lets E2...')
             while have_a_move_E2:
                 have_a_move_E2 = do_strategy(solver_E2)
 
@@ -208,6 +225,8 @@ if __name__ == '__main__':
                     have_a_move_E1 = True
                     while have_a_move_E1:
                         have_a_move_E1 = do_strategy(solver_E1)
+
+    pass
 
     # strat = [solver_E2, solver_B2, solver_E1, solver_B1, solver_R1]
     # strat = [solver_R1, solver_B1, solver_E1, solver_B2, solver_E2]

@@ -69,8 +69,8 @@ class Matrix(object):
             Чтобы уже раз и на всегда решить вопрос:
             sct.grab отдает в формате BGRA.
             Мы его конвертим просто в BGR. Никаких RGB не нужно!
-            Планин pycharm'а показывает нормально когда BGR !!!
-            А RGB он показывает инвертно!
+            Планин pycharm'а показывает цвет правильно, только и когда он в BGR !!!
+            А RGB показывает инвертно!
             Можно убедиться наведя пипетку на красный цвет и посмотрев, где R - 255
             """
 
@@ -78,8 +78,6 @@ class Matrix(object):
             screenshot = sct.grab(self.region)
             raw = np.array(screenshot)
             image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
-            # cv.imshow("Display window", raw)
-            # k = cv.waitKey(0)
         return image
 
     def get_around_cells(self, cell):
@@ -220,35 +218,22 @@ class Matrix(object):
         for cell in self.get_closed_cells():
             cell.update_cell(image)
 
-    def check_game_over(self):
+    def you_fail(self):
         """
-        Вызывыет exit(), если игра окончена.
-        Проверяет смайлик - грустый или веселый,
-        а так же поле на наличие бомб - при маленьком размере поля смайлик не виден.
+        Если в матрице есть бомбы - то FAIL
         :return:
         """
-
-        """
-        POSSIBLE DEPRECATED
-        precision = 0.9
-        image = self.get_image()
-        template = patterns.fail.raster
-
-        # TODO возможно, имеет смысл отказаться от проверки рожицы и проверять только бомбы,
-        # TODO этого должго быть достаточно
-
-        res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-        """
-
-        # TODO НАХУЯ ТУТ СКАНИРОВАТЬ НА БОМБЫ, ЕСЛИ ОНИ УЖЕ ДОЛЖНЫ БЫТЬ В МАТРИЦЕ?!?!?!
-
         bombs = self.get_bomb_cells()
-        # if (max_val > precision) or bool(len(bombs)):
         if bool(len(bombs)):
             print('Game Over!')
-            sys.exit()
+            return True
+        return False
 
+    def you_win(self):
+        """
+        Если смайлик = веселый, то WIN
+        :return: boolean
+        """
         precision = 0.9
         image = self.get_image()
         template = patterns.win.raster
@@ -258,7 +243,9 @@ class Matrix(object):
 
         if max_val > precision:
             print('You WIN!')
-            sys.exit()
+            return True
+
+        return False
 
     def reset(self):
         """
