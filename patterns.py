@@ -1,7 +1,10 @@
 """
-WORK 2560х1440 [Scaling: 1(96dpi), Raw Dpi: 93 (Ratio:1.03)]
+Слой абстракции между логикой и конкретной реализацией сапера.
+
+
 ---------------
 
+WORK 2560х1440 [Scaling: 1(96dpi), Raw Dpi: 93 (Ratio:1.03)]
 масштаб клетка
 10      11x11 px (min size)
 20      22х23 px
@@ -11,6 +14,7 @@ WORK 2560х1440 [Scaling: 1(96dpi), Raw Dpi: 93 (Ratio:1.03)]
 60      67x67 px (max size)
 
 HOUSE
+масштаб клетка
 22      22x22 px
 *24     24x24 px
 
@@ -30,6 +34,7 @@ elif screen == [2560, 1440]:
     # set_pict = 'asset_22_2560x1440'
 
 # TODO Choose asset by screen size
+
 # TODO asset должен сам определять, какой взять, а если не получится определять на лету - прибить там гвоздями
 
 # TODO Сделать проверку, чтобы при загрузке ассетов они были нужного размера в px (по размеру closed ячейки)
@@ -60,11 +65,14 @@ class Asset():
 
 Asset.set_pict = set_pict
 
+# Дополнительные поля к клеткам, в пикселях
 borders = importlib.import_module('..asset', package='asset_24_1920x1080.asset')
 Asset.border['top'] = borders.top
 Asset.border['bottom'] = borders.bottom
 Asset.border['left'] = borders.left
 Asset.border['right'] = borders.right
+
+# Как нужно покропить поле, чтобы распозавать кол-во оставшихся бомб
 
 keys = ['n'+str(x) for x in range(7)]
 numbered_cells = [Asset(f'{i}', f'{Asset.set_pict}/{i}.png') for i in range(7)]
@@ -81,9 +89,12 @@ patterns.flag = Asset('flag', f'{Asset.set_pict}/flag.png')
 patterns.fail = Asset('fail', f'{Asset.set_pict}/fail.png')
 patterns.win = Asset('win', f'{Asset.set_pict}/win.png')
 patterns.smile = Asset('smile', f'{Asset.set_pict}/smile.png')
+patterns.noguess = Asset('noguess', f'{Asset.set_pict}/noguess.png')
 
 # конвертируем объект SimpleNamespace, который по сути обертка для dict, в список.
 # Потому что dict не итерируемый, а в cell.py нам нужен перебор for циклом
 list_patterns = []
 for name, obj in patterns.__dict__.items():
     list_patterns.append(obj)
+
+bomb_numbers = [Asset(f'{i}', f'{Asset.set_pict}/{i}.png') for i in range(9)]

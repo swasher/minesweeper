@@ -8,6 +8,7 @@ from icecream import ic
 import cell
 
 from patterns import patterns
+from patterns import Asset
 
 """
 Соглашения:
@@ -107,12 +108,8 @@ class Matrix(object):
             else:
                 return v - 1, v + 2
 
-        # arr = self.table
         cells = []
         rows, cols = self.table.shape
-
-        # TODO переделать, чтобы не передавать номера строк/стобов, а ячейку
-        # TODO сделать типа def get_X_neighbours(cell)
 
         c1, c2 = get_slice(cell.col, cols)
         r1, r2 = get_slice(cell.row, rows)
@@ -178,13 +175,16 @@ class Matrix(object):
         Возвращает список бомб. Используется в game_over
         :return: array of Cell objects
         """
-        # cells = []
-        # for cell in self.table.flat:
-        #     if cell.is_bomb:
-        #         cells.append(cell)
-        #
         cells = list([x for x in self.table.flat if x.is_open])
         return cells
+
+    def get_noguess_cell(self):
+        """
+        Первый ход для no-guess игр. Возвращает отмеченную крестиком клетку.
+        :return: list of Cell objects
+        """
+        cell = list([x for x in self.table.flat if x.is_noguess])
+        return cell
 
     def around_closed_cells(self, cell):
         """
@@ -261,6 +261,30 @@ class Matrix(object):
             return True
 
         return False
+
+    @property
+    def count_hide_bombs(self):
+        precision = 0.9
+        image = self.get_image()
+        crop_img = image[0:Asset.border['top'], 0:(self.region_x2-self.region_x1)//2]
+
+        cv.imshow("cropped", crop_img)
+        cv.waitKey(0)
+
+        template = patterns.win.raster
+
+
+
+        res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+
+        if max_val > precision:
+            print('You WIN!')
+            return True
+
+        print('REST BOMBS:', bombs)
+        exit()
+        return bombs
 
     def reset(self):
         """

@@ -61,6 +61,10 @@ class Cell(object):
             slot = '⚑'
         elif self.status == 'bomb':
             slot = '⚹'
+        elif self.status == 'red_bomb':
+            slot = '✱'
+        elif self.status == 'noguess':
+            slot = 'x'
         elif self.status.isnumeric():
             if self.status == '0':
                 slot = ' '  # ⨯·
@@ -86,10 +90,6 @@ class Cell(object):
         возращаем False для более ясной логики solver-ов
         :return:
         """
-        # if self.status == 'closed' or self.status == 'flag':
-        #     return True
-        # else:
-        #     return False
         return True if self.status == 'closed' else False
 
     @property
@@ -100,22 +100,21 @@ class Cell(object):
     def is_not_flag(self):
         return not self.is_flag
 
-
     @property
     def is_bomb(self):
         return True if self.status == 'bomb' else False
 
     @property
     def is_digit(self):
-        if self.status in ['1', '2', '3', '4', '5', '6', '7', '8']:
-            return True
-        return False
+        return True if self.status in ['1', '2', '3', '4', '5', '6', '7', '8'] else False
 
     @property
     def is_open(self):
-        if self.status in ['0', '1', '2', '3', '4', '5', '6', '7', '8']:
-            return True
-        return False
+        return True if self.status in ['0', '1', '2', '3', '4', '5', '6', '7', '8'] else False
+
+    @property
+    def is_noguess(self):
+        return True if self.status == 'noguess' else False
 
     def cell_random_coordinates(self):
         """
@@ -214,4 +213,3 @@ class Cell(object):
 
         win32gui.MoveToEx(dc, self.abscoordx+9, self.abscoordy+9)
         win32gui.LineTo(dc, self.abscoordx+9, self.abscoordy+9)
-        input('pause')

@@ -9,6 +9,7 @@ from datetime import datetime
 from icecream import ic
 ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
+from util import pause
 from config import config
 from util import scan_image
 from patterns import patterns
@@ -18,9 +19,10 @@ from matrix import Matrix
 from solve import solver_R1
 from solve import solver_B1
 from solve import solver_E1
-
 from solve import solver_B2
 from solve import solver_E2
+from solve import solver_noguess
+from solve import noguess_finish
 
 
 """
@@ -141,6 +143,7 @@ def do_strategy(strategy):
     """
 
     # TODO Сделать, чтобы можно было прервать процесс с клавиатуры
+    # TODO Пример, как это можно реализовать через потоки - keyboard_in_thread.py
 
     name = strategy.__name__
 
@@ -184,7 +187,7 @@ def do_strategy(strategy):
         # If we do not waiting at this point, we do not see any changes after mouse click.
         time.sleep(config.LAG)
         matrix.update()
-        # matrix.display()
+        matrix.display()
 
         if button == 'left':
             # Если в стратегии использовалась правая кнопка, т.е. ставились флажки, то игра не могла закончиться.
@@ -193,6 +196,8 @@ def do_strategy(strategy):
                 win_or_fail = 'win'
             if matrix.you_fail:
                 win_or_fail = 'fail'
+        if name == 'noguess_finish':
+            win_or_fail = 'fail'
     else:
         # print('- pass strategy')
         pass
@@ -211,12 +216,13 @@ def recusive_strategy(i):
         return recusive_strategy(i)
 
 
-if __name__ == '__main__':
-
-    col_values, row_values, region = find_board(patterns, Asset)
-    matrix = Matrix(row_values, col_values, region, patterns)
-
-    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+def recursive_wrapper(strategies):
+    if config.noguess:  # режим 'без отгадывания'
+        strategies.remove(solver_R1)
+        strategies.append(noguess_finish)
+        matrix.update()
+        matrix.display()
+        do_strategy(solver_noguess)
 
     need_win = 5
     need_total = 1
@@ -226,12 +232,18 @@ if __name__ == '__main__':
     # while win < need_win:
     while total < need_total:
         i = 0
+        before = datetime.now()
         win_or_fail = recusive_strategy(i)
+        after = datetime.now()
+
         total += 1
         if win_or_fail == 'win':
             win += 1
         elif win_or_fail == 'fail':
             pass
+
+        print('Complete in', (after-before).seconds, 'sec')
+        pause()
         matrix.reset()
         print(f'Total {total}, win {win}')
 
@@ -243,22 +255,33 @@ if __name__ == '__main__':
     print(f'WIN PERCENT: {win*100/total:.2f}')
 
 
+if __name__ == '__main__':
+
+    col_values, row_values, region = find_board(patterns, Asset)
+    matrix = Matrix(row_values, col_values, region, patterns)
+
+    a = matrix.count_hide_bombs
+
+    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    recursive_wrapper(strategies)
 
 
-    # самое-самое начало
-    # some logic
-    #
-    # - самое начало
-    # выполняем R1 один раз
-    # - начало
-    # выполняем B1, если ход есть выполняем и идем в начало, иначе продолжаем
-    # выполняем E1, если ход есть выполняем и идем в начало, иначе продолжаем
-    # выполняем B2, если ход есть выполняем и идем в начало, иначе продолжаем
-    # выполняем E2, если ход есть выполняем и идем в начало, иначе продолжаем
-    # ..... E3, B3 и т.д
-    # идем в самое начало
-    #
-    # на каждом ходе нужно проверить Game Over или You Win. Если да, идем в самое-самое начало.
+
+
+# самое-самое начало
+# some logic
+#
+# - самое начало
+# выполняем R1 один раз
+# - начало
+# выполняем B1, если ход есть выполняем и идем в начало, иначе продолжаем
+# выполняем E1, если ход есть выполняем и идем в начало, иначе продолжаем
+# выполняем B2, если ход есть выполняем и идем в начало, иначе продолжаем
+# выполняем E2, если ход есть выполняем и идем в начало, иначе продолжаем
+# ..... E3, B3 и т.д
+# идем в самое начало
+#
+# на каждом ходе нужно проверить Game Over или You Win. Если да, идем в самое-самое начало.
 
 
 

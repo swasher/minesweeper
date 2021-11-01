@@ -4,16 +4,33 @@ No import high level objects in UTIL! (like classes)
 """
 
 import cv2 as cv
-import numpy as np
-import random
 import ctypes
 import mouse
-# import pyautogui
-import winsound
-import mss
+import msvcrt
+import time
 from itertools import groupby
 from icecream import ic
 from config import config
+
+
+def pause(t=5):
+    pressed = False
+    print(f'Wait {t} sec, or type for pause')
+    for i in range(t*10, 0, -1):
+        if msvcrt.kbhit():
+            # key = msvcrt.getch()
+            pressed = True
+            break
+        # print(f'\b{i}')
+        print(f'\b\b\b{i/10:.1f}', end='')
+        time.sleep(0.1)
+    print('\b\b\b', end='')
+
+    if pressed:
+        print('Wait for key press')
+        k = False
+        while not k:
+            k = msvcrt.kbhit()
 
 
 def click(x, y, button):

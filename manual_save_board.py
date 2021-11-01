@@ -5,6 +5,8 @@
 Затем manual_save_board.py save -
 эта команда запишет в файл pickle объект Matrix,
 который содержит "снимок" текущего поля
+
+Команда load <DIR> воссоздает сохраненный объект Matrix
 """
 
 
@@ -41,8 +43,6 @@ def save():
 
     date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
     dir = 'game_SAVE_' + date_time_str
-    picklefile = 'obj.pickle'
-    image_file = 'image.png'
 
     if not os.path.exists(dir):
         os.makedirs(dir)
@@ -54,11 +54,24 @@ def save():
     cv.imwrite(os.path.join(dir, image_file), image)
 
 
+def load(dir):
+    with open(os.path.join(dir, picklefile), 'rb') as inp:
+        matrix = pickle.load(inp)
+    return matrix
+
+
 if __name__ == '__main__':
+    picklefile = 'obj.pickle'
+    image_file = 'image.png'
+
     action = sys.argv[1]
     if action == 'scan':
         scan()
     elif action == 'save':
         save()
+    elif action == 'load':
+        matrix = load(sys.argv[2])
+        matrix.display()
+
 
 

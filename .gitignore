@@ -5,3 +5,4 @@ private/
 *.whl
 test/
 shelve.*
+game_*/

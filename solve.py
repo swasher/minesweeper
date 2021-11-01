@@ -16,6 +16,30 @@ bulk-ом для всей доски, оказалось так не комил�
 """
 
 
+def solver_noguess(matrix):
+    """
+    Первый ход для no-guess игр.
+    Нажимает отмеченную крестиком клетку.
+    Этот солвер `должен` вернуть клетку, если нет, значит что-то пошло не так
+    :param matrix:
+    :return:
+    """
+    x_cell = matrix.get_noguess_cell()
+    if not len(x_cell):
+        raise Exception('Error in solver_noguess function!')
+    return x_cell, 'left'
+
+
+def noguess_finish():
+    """
+    Если не осталось ходов, то нужно закончить игру, чтобы не зацикливалось.
+    Применяется в игре без угадываения.
+    :return:
+    """
+    print('No_guess: No more turn')
+    return [], ''
+
+
 def solver_R1(matrix):
     """
     Нажимает рандомную клетку из закрытых.
@@ -47,7 +71,6 @@ def solver_R1(matrix):
     qty = len(cells)
     random_cell = cells[randrange(qty)]
 
-    random_cell.mark_cell_debug()
     # if config.turn_by_turn:
     #     ic('------ R1')
     #     ic(random_cell)

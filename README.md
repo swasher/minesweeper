@@ -16,7 +16,8 @@ TODO
 [ ] Написать тесты?  
 [ ] Возможность остановть выполнение по нажатию клавиши  
 [ ] Выяснить, что не так с red bomb (особенно когда красная бомба последняя = баг)
-[ ] Реализовать режим No-Flag  
+[ ] Реализовать режим [без флагов](https://minesweeper.online/ru/help/gameplay) (NF)
+[ ] Режим NG
 [-] TODO можно делать движения мыши более "человеческими" PS Нет смысла, движения не пишутся, только время между кликами.  
 [x] Сделать настройки через settings.ini  
 [ ] Сделать слой абстракции конкретной реализации сапера  
@@ -24,8 +25,9 @@ TODO
 [ ] Хочу, чтобы можно было так делать: `if bomb in matrix:`, или, если у нас есть array of cells - `if bomb in array`
 [ ] Разобраться, где и как используются cell.status и cell.type
 [ ] Перед выполнением R1 сохранять скриншот и pickle
-[ ] Режим NG
 [ ] Печатать время после игры
+[ ] Считать потраченные на игру клики
+[ ] Научить солверы быть "[эффективными](https://minesweeper.online/ru/help/efficiency)". Для этого можно выявлять все возможные решения и применять тот, который открывает максимум клеток.
 
 Installation
 =====================
@@ -110,3 +112,4 @@ Minesweeper boards
 [Arbiter](https://minesweepergame.com/download/arbiter.php)  
 [Viennasweeper](https://minesweepergame.com/download/viennasweeper.php)  
 [minesweeper.online](https://minesweeper.online/)  
+[Google minesweeper](https://www.google.com/fbx?fbx=minesweeper)  
