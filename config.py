@@ -22,6 +22,7 @@ class Configuration(object):
         # main
         self.LAG = conf.getfloat('main', 'LAG')
         self.randomize_mouse = conf.getboolean('main', 'randomize_mouse')
+        self.save_game_R1 = conf.getboolean('main', 'save_game_R1')
         self.duration_mouse = conf.getfloat('main', 'duration_mouse')
         # debug
         self.turn_by_turn = conf.getboolean('debug', 'turn_by_turn')

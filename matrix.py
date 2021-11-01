@@ -173,6 +173,19 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_bomb])
         return cells
 
+    def get_open_cells(self):
+        """
+        Возвращает список бомб. Используется в game_over
+        :return: array of Cell objects
+        """
+        # cells = []
+        # for cell in self.table.flat:
+        #     if cell.is_bomb:
+        #         cells.append(cell)
+        #
+        cells = list([x for x in self.table.flat if x.is_open])
+        return cells
+
     def around_closed_cells(self, cell):
         """
         Возвращает число закрытых ячеек вокруг ячейки cell.
@@ -218,6 +231,7 @@ class Matrix(object):
         for cell in self.get_closed_cells():
             cell.update_cell(image)
 
+    @property
     def you_fail(self):
         """
         Если в матрице есть бомбы - то FAIL
@@ -225,10 +239,11 @@ class Matrix(object):
         """
         bombs = self.get_bomb_cells()
         if bool(len(bombs)):
-            print('Game Over!')
+            print('You lose!')
             return True
         return False
 
+    @property
     def you_win(self):
         """
         Если смайлик = веселый, то WIN
@@ -256,35 +271,6 @@ class Matrix(object):
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
         face_coord_y = self.region_y1 + 40
         util.click(face_coord_x, face_coord_y, 'left')
-
-
-    """
-    Работает, дает "правильный" срез матрицы с учетом границ.
-    ПРоблема в том, что возвращает так же центральную ячейку, 
-    а в готовом срезе уже не понять, где была первоначальная ячейка.  
-    def get_proper_area(self, v, len_axis):
-        if v not in range(len_axis):
-            raise Exception('`get_proper_area` function - out of matrix range')
-        if v == 0:
-            return 0, v + 2
-        elif v == len_axis:
-            return v - 1, v + 1
-        else: return v - 1, v + 2
-
-    def get_around_cells(self, x, y):
-        x1, x2 = self.get_proper_area(x, self.count_x)
-        y1, y2 = self.get_proper_area(x, self.count_y)
-
-        square = self.table[y1:y2, x1:x2]
-        return square
-
-
-        # for row in [x - 1, x, x + 1]:
-        #     for col in [y - 1, y, y + 1]:
-        #         if (row not in range(matrix.count_x)) \
-        #                 or (col not in range(matrix.count_y)) \
-        #                 or (row == x and col == y):
-        #             continue
-        # return cells
-    """
-
+        for c in self.table.flat:
+            c.status = 'closed'
+            c.type = patterns.closed

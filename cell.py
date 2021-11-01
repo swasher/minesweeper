@@ -111,6 +111,12 @@ class Cell(object):
             return True
         return False
 
+    @property
+    def is_open(self):
+        if self.status in ['0', '1', '2', '3', '4', '5', '6', '7', '8']:
+            return True
+        return False
+
     def cell_random_coordinates(self):
         """
         :return: Координаты для клика с учетом рандомизации внутри ячейки
@@ -195,7 +201,8 @@ class Cell(object):
     def mark_cell_debug(self):
         """
         Draw small square on current cell right on Minesweeper board.
-        Ise it for debug purpose (mark cell)
+        Use it for debug purpose (mark cell)
+        TODO научить рисовать разными цветами
         :return:
         """
         dc = win32gui.GetDC(0)

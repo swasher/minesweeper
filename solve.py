@@ -47,11 +47,11 @@ def solver_R1(matrix):
     qty = len(cells)
     random_cell = cells[randrange(qty)]
 
-    if config.turn_by_turn:
-        ic('------ R1')
-        ic(random_cell)
-        random_cell.mark_cell_debug()
-        input("Press Enter to mouse moving")
+    # if config.turn_by_turn:
+    #     ic('------ R1')
+    #     ic(random_cell)
+    #     random_cell.mark_cell_debug()
+    #     input("Press Enter to mouse moving")
 
     return [random_cell], 'left'
 
@@ -72,14 +72,14 @@ def solver_B1(matrix):
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
-        if config.turn_by_turn:
-            ic('------ B1')
-            ic(cell)
-            ic(closed, closed, flags)
-            ic(cell.digit, len(closed), len(flags))
-            result = (cell.digit == len(closed) + len(flags)) and len(closed)>0
-            ic(result)
-            cell.mark_cell_debug()
+        # if config.turn_by_turn:
+        #     ic('------ B1')
+        #     ic(cell)
+        #     ic(closed, closed, flags)
+        #     ic(cell.digit, len(closed), len(flags))
+        #     result = (cell.digit == len(closed) + len(flags)) and len(closed)>0
+        #     ic(result)
+        #     cell.mark_cell_debug()
 
         if (cell.digit == len(closed) + len(flags)) and len(closed)>0:
             # значит во всех closed клетках есть бомбы
@@ -104,13 +104,13 @@ def solver_E1(matrix):
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
-        if config.turn_by_turn:
-            ic('------ E1')
-            ic(cell, flags, closed)
-            ic(cell.digit, len(flags), len(closed))
-            result = cell.digit == len(flags) and len(closed)
-            ic(result)
-            cell.mark_cell_debug()
+        # if config.turn_by_turn:
+        #     ic('------ E1')
+        #     ic(cell, flags, closed)
+        #     ic(cell.digit, len(flags), len(closed))
+        #     result = cell.digit == len(flags) and len(closed)
+        #     ic(result)
+        #     cell.mark_cell_debug()
 
         if cell.digit == len(flags) and len(closed):
             # cell.mark_cell_debug()
@@ -226,8 +226,8 @@ def solver_E2(matrix):
         if set1.issubset(set2) or set2.issubset(set1):
             if r1.rest_bombs == r2.rest_bombs:
                 empties = tuple(set(r1.closed) ^ set(r2.closed))
-                r1.ancestor.mark_cell_debug()
-                r2.ancestor.mark_cell_debug()
+                # r1.ancestor.mark_cell_debug()
+                # r2.ancestor.mark_cell_debug()
                 # print('-----')
                 # print('COMPARE:', r1.ancestor, 'and', r2.ancestor)
                 # print('EMPTIES:', empties)

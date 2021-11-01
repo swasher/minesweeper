@@ -1,8 +1,11 @@
 import time
 import sys
+import os
 import cv2 as cv
 import mss
 import numpy as np
+import pickle
+from datetime import datetime
 from icecream import ic
 ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
@@ -140,96 +143,123 @@ def do_strategy(strategy):
     # TODO Сделать, чтобы можно было прервать процесс с клавиатуры
 
     name = strategy.__name__
-    print(f'\nCalc {name} strategy')
+
+    # debug
+    if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
+        print(name)
+
+    import secrets
+    if name == 'solver_R1' and config.save_game_R1 and len(matrix.get_open_cells()) > 15:
+        im = matrix.get_image()
+        random_string = secrets.token_hex(2)
+        add milliseconds
+        date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S")
+        picklefile = 'obj_' + date_time_str + '.pickle'
+        image_file = 'image_' + date_time_str + '.png'
+        dir = 'game_R1 ' + date_time_str + ' ' + random_string
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+        with open(os.path.join(dir, picklefile), 'wb') as outp:
+            pickle.dump(matrix, outp, pickle.HIGHEST_PROTOCOL)
+
+        image = matrix.get_image()
+        cv.imwrite(os.path.join(dir, image_file), image)
+
+    win_or_fail = None
+    # print(f'\nCalc {name} strategy')
 
     cells, button = strategy(matrix)
     have_a_move = bool(len(cells))
     if have_a_move:
-        print(f'- do strategy')
-        print(f'- click {button} on cells:', cells)
+        # print(f'- do strategy')
+        # print(f'- click {button} on cells:', cells)
 
-        # if config.turn_by_turn:
-        #     input("Press Enter to mouse moving")
+        if config.turn_by_turn:
+            for c in cells:
+                c.mark_cell_debug()
+            input("Press Enter to mouse moving")
         clicking_cells(cells, button)
 
         # This is very important setting! After click, website has a lag for refresh game board.
         # If we do not waiting at this point, we do not see any changes after mouse click.
         time.sleep(config.LAG)
         matrix.update()
-        matrix.display()
-        if matrix.you_win():
-            print('You win!')
-            sys.exit()
-        if matrix.you_fail():
-            print('Game over!')
-            sys.exit()
+        # matrix.display()
+
+        if button == 'left':
+            # Если в стратегии использовалась правая кнопка, т.е. ставились флажки, то игра не могла закончиться.
+            # Проверяем только если использовалась левая - т.е. открывались клетки.
+            if matrix.you_win:
+                win_or_fail = 'win'
+            if matrix.you_fail:
+                win_or_fail = 'fail'
     else:
-        print('- pass strategy')
-    if name == 'solver_R1':
-        have_a_move = False
-    return have_a_move
+        # print('- pass strategy')
+        pass
+
+    return have_a_move, win_or_fail
+
+
+def recusive_strategy(i):
+    have_a_move, win_or_fail = do_strategy(strategies[i])
+    if win_or_fail:
+        return win_or_fail
+    if have_a_move:
+        return recusive_strategy(0)
+    else:
+        i += 1
+        return recusive_strategy(i)
 
 
 if __name__ == '__main__':
 
-    # ===== DEBUG
-
-    # row_values, col_values, region = find_board(patterns)
-    # matrix = Matrix(row_values, col_values, region, patterns)
-    # matrix.update()
-    # move = True
-    # while move:
-    #     move = do_strategy(solver_E2)
-    #     input('next turn')
-    # sys.exit()
-
-    # ===== END DEBUG
-
-
-    # TODO я хочу, чтобы можно было так делать:
-    # TODO if bomb in matrix:
-    # TODO или, если у нас есть array of cells
-    # TODO if bomb in array
-
     col_values, row_values, region = find_board(patterns, Asset)
     matrix = Matrix(row_values, col_values, region, patterns)
 
-    # for col in matrix.table.wi
+    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
 
-    have_a_move_B1 = True
-    have_a_move_E1 = True
-    do_random = True
+    need_win = 5
+    need_total = 1
+    win = 0
+    total = 0
+
+    # while win < need_win:
+    while total < need_total:
+        i = 0
+        win_or_fail = recusive_strategy(i)
+        total += 1
+        if win_or_fail == 'win':
+            win += 1
+        elif win_or_fail == 'fail':
+            pass
+        matrix.reset()
+        print(f'Total {total}, win {win}')
+
+    print('')
+    print('=============')
+    print(f'TOTALS: {total}')
+    print(f'WIN: {win}')
+    print(f'FAIL: {total-win}')
+    print(f'WIN PERCENT: {win*100/total:.2f}')
 
 
 
-    WIN = 5
 
-    while do_random:
-        # input('lets R1...')
-        do_strategy(solver_R1)
-
-        have_a_move_B2 = True
-        # input('lets B2...')
-        while have_a_move_B2:
-            have_a_move_B2 = do_strategy(solver_B2)
-
-            have_a_move_E2 = True
-            # input('lets E2...')
-            while have_a_move_E2:
-                have_a_move_E2 = do_strategy(solver_E2)
-
-                have_a_move_B1 = True
-                while have_a_move_B1:
-                    have_a_move_B1 = do_strategy(solver_B1)
-
-                    have_a_move_E1 = True
-                    while have_a_move_E1:
-                        have_a_move_E1 = do_strategy(solver_E1)
-
-    pass
-
-    # strat = [solver_E2, solver_B2, solver_E1, solver_B1, solver_R1]
-    # strat = [solver_R1, solver_B1, solver_E1, solver_B2, solver_E2]
+    # самое-самое начало
+    # some logic
+    #
+    # - самое начало
+    # выполняем R1 один раз
+    # - начало
+    # выполняем B1, если ход есть выполняем и идем в начало, иначе продолжаем
+    # выполняем E1, если ход есть выполняем и идем в начало, иначе продолжаем
+    # выполняем B2, если ход есть выполняем и идем в начало, иначе продолжаем
+    # выполняем E2, если ход есть выполняем и идем в начало, иначе продолжаем
+    # ..... E3, B3 и т.д
+    # идем в самое начало
+    #
+    # на каждом ходе нужно проверить Game Over или You Win. Если да, идем в самое-самое начало.
 
 
 
