@@ -7,11 +7,11 @@ import cv2 as cv
 import ctypes
 import mouse
 import msvcrt
+import random
 import time
 from itertools import groupby
 from icecream import ic
 from config import config
-
 
 def pause(t=5):
     pressed = False
@@ -37,7 +37,9 @@ def click(x, y, button):
     if config.turn_by_turn:
         oldx, oldy = mouse.get_position()
 
-    mouse.move(x, y, absolute=True, duration=config.duration_mouse)
+    # TODO прибито гвоздями; сделать через config.duration_mouse
+    duration = random.uniform(0.1, 0.6)
+    mouse.move(x, y, absolute=True, duration=duration)
     mouse.click(button=button)
 
     if config.turn_by_turn:

@@ -8,7 +8,7 @@ from icecream import ic
 import cell
 
 from patterns import patterns
-from patterns import Asset
+from patterns import Pattern
 
 """
 Соглашения:
@@ -257,7 +257,7 @@ class Matrix(object):
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
         if max_val > precision:
-            print('You WIN!')
+            print('You WIN!\n')
             return True
 
         return False
@@ -266,7 +266,8 @@ class Matrix(object):
     def count_hide_bombs(self):
         precision = 0.9
         image = self.get_image()
-        crop_img = image[0:Asset.border['top'], 0:(self.region_x2-self.region_x1)//2]
+        # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
+        crop_img = image[0:Pattern.border['top'], 0:(self.region_x2-self.region_x1)//2]
 
         cv.imshow("cropped", crop_img)
         cv.waitKey(0)
