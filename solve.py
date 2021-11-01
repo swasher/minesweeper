@@ -47,6 +47,7 @@ def solver_R1(matrix):
     qty = len(cells)
     random_cell = cells[randrange(qty)]
 
+    random_cell.mark_cell_debug()
     # if config.turn_by_turn:
     #     ic('------ R1')
     #     ic(random_cell)

@@ -207,10 +207,11 @@ class Cell(object):
         """
         dc = win32gui.GetDC(0)
         red = win32api.RGB(255, 0, 0)
+        win32gui.SetBkColor(dc, red)
         # win32gui.SetPixel(dc, 0, 0, red)  # draw red at 0,0
         win32gui.Rectangle(dc, self.abscoordx+6, self.abscoordy+6,
                            self.abscoordx+18, self.abscoordy+18)
 
         win32gui.MoveToEx(dc, self.abscoordx+9, self.abscoordy+9)
         win32gui.LineTo(dc, self.abscoordx+9, self.abscoordy+9)
-
+        input('pause')

@@ -152,11 +152,10 @@ def do_strategy(strategy):
     if name == 'solver_R1' and config.save_game_R1 and len(matrix.get_open_cells()) > 15:
         im = matrix.get_image()
         random_string = secrets.token_hex(2)
-        add milliseconds
-        date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S")
-        picklefile = 'obj_' + date_time_str + '.pickle'
-        image_file = 'image_' + date_time_str + '.png'
-        dir = 'game_R1 ' + date_time_str + ' ' + random_string
+        date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
+        picklefile = 'obj.pickle'
+        image_file = 'image.png'
+        dir = 'game_R1_' + date_time_str + '_' + random_string
         if not os.path.exists(dir):
             os.makedirs(dir)
 
