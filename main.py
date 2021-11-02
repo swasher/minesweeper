@@ -9,11 +9,11 @@ from datetime import datetime
 from icecream import ic
 ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
-from util import pause
 from config import config
-from util import scan_image
+from util import pause
 from patterns import patterns
-from patterns import Asset
+from patterns import Pattern
+from util import scan_image
 from matrix import Matrix
 
 from solve import solver_R1
@@ -151,6 +151,8 @@ def do_strategy(strategy):
     if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
         print(name)
 
+    # save random move to PNG and Pickle
+    # todo move it to separate file
     import secrets
     if name == 'solver_R1' and config.save_game_R1 and len(matrix.get_open_cells()) > 15:
         im = matrix.get_image()
@@ -187,7 +189,7 @@ def do_strategy(strategy):
         # If we do not waiting at this point, we do not see any changes after mouse click.
         time.sleep(config.LAG)
         matrix.update()
-        matrix.display()
+        #matrix.display()
 
         if button == 'left':
             # Если в стратегии использовалась правая кнопка, т.е. ставились флажки, то игра не могла закончиться.
@@ -221,7 +223,6 @@ def recursive_wrapper(strategies):
         strategies.remove(solver_R1)
         strategies.append(noguess_finish)
         matrix.update()
-        matrix.display()
         do_strategy(solver_noguess)
 
     need_win = 5
@@ -229,8 +230,8 @@ def recursive_wrapper(strategies):
     win = 0
     total = 0
 
-    # while win < need_win:
-    while total < need_total:
+    while win < need_win:
+    # while total < need_total:
         i = 0
         before = datetime.now()
         win_or_fail = recusive_strategy(i)
@@ -243,12 +244,11 @@ def recursive_wrapper(strategies):
             pass
 
         print('Complete in', (after-before).seconds, 'sec')
-        pause()
+        print(f'Win {win}, fail {total - win}')
+        pause(3)
         matrix.reset()
-        print(f'Total {total}, win {win}')
 
-    print('')
-    print('=============')
+    print('\n=============')
     print(f'TOTALS: {total}')
     print(f'WIN: {win}')
     print(f'FAIL: {total-win}')
@@ -257,10 +257,10 @@ def recursive_wrapper(strategies):
 
 if __name__ == '__main__':
 
-    col_values, row_values, region = find_board(patterns, Asset)
+    col_values, row_values, region = find_board(patterns, Pattern)
     matrix = Matrix(row_values, col_values, region, patterns)
 
-    a = matrix.count_hide_bombs
+    # a = matrix.count_hide_bombs
 
     strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
     recursive_wrapper(strategies)

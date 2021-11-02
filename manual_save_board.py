@@ -18,13 +18,14 @@ import cv2 as cv
 from datetime import datetime
 
 from matrix import Matrix
+# from patterns import patterns
 from patterns import patterns
-from patterns import Asset
+from patterns import Pattern
 from main import find_board
 
 
 def scan():
-    board = find_board(patterns, Asset)
+    board = find_board(patterns, Pattern)
     with shelve.open('shelve') as d:
         d['col_values'] = board[0]
         d['row_values'] = board[1]
