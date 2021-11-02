@@ -112,4 +112,4 @@ Minesweeper boards
 [Arbiter](https://minesweepergame.com/download/arbiter.php)  
 [Viennasweeper](https://minesweepergame.com/download/viennasweeper.php)  
 [minesweeper.online](https://minesweeper.online/)  
-[Google minesweeper](https://www.google.com/fbx?fbx=minesweeper)  
+[Google minesweeper](https://www.google.com/fbx?fbx=minesweeper) 
