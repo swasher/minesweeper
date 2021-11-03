@@ -265,6 +265,15 @@ class Matrix(object):
 
     @property
     def count_hide_bombs(self):
+        """
+        3 - плоъо
+        4 - плохо
+        5 - 0.99
+        6 - 1.0
+        7 - 1.0
+        9 - 0.89 (((
+        :return:
+        """
         precision = 0.9
         image = self.get_image()
         # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
@@ -273,13 +282,25 @@ class Matrix(object):
         # cv.imshow("cropped", crop_img)
         # cv.waitKey(0)
 
-        for patt in red_digits:
-            cells_coord_x, cells_coord_y = util.scan_image(crop_img, patt.raster)
-            if len(cells_coord_x)+len(cells_coord_y):
-                print('---', patt.name)
-                print('x:', cells_coord_x)
-                print('y:', cells_coord_y)
+        # for patt in red_digits:
+        #     cells_coord_x, cells_coord_y = util.scan_image(crop_img, patt.raster)
+        #     if len(cells_coord_x)+len(cells_coord_y):
+        #         print('---', patt.name)
+        #         print('x:', cells_coord_x)
+        #         print('y:', cells_coord_y)
 
+        for patt in red_digits:  # list_patterns imported from cell_pattern
+            template = patt.raster
+            res = cv.matchTemplate(crop_img, template, cv.TM_CCOEFF_NORMED)
+            min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+            # print(f'Cell {self.row}:{self.col} compared with {pattern} with result {max_val}')
+            patt.similarity = max_val
+            print(patt.name, patt.similarity)
+
+        # best_match = sorted(list_patterns, key=lambda x: x.similarity, reverse=True)[0]
+
+
+        bombs = 0
         print('REST BOMBS:', bombs)
         exit()
         return bombs

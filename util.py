@@ -208,13 +208,13 @@ def scan_image(image, template):
 
     # for test purpose; YOU CAN SEE WHAT GRABBING
     # draw at each cell it's row and column number
-    for col, x in enumerate(cells_coord_x):
-        for row, y in enumerate(cells_coord_y):
-            cv.putText(image, str(row), (x + 5, y + 11), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-            cv.putText(image, str(col), (x + 5, y + 19), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-    # cv.imwrite('output.png', image)
-    cv.imshow("Display window", image)
-    k = cv.waitKey(0)
+    # for col, x in enumerate(cells_coord_x):
+    #     for row, y in enumerate(cells_coord_y):
+    #         cv.putText(image, str(row), (x + 5, y + 11), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+    #         cv.putText(image, str(col), (x + 5, y + 19), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+    # # cv.imwrite('output.png', image)
+    # cv.imshow("Display window", image)
+    # k = cv.waitKey(0)
 
     return cells_coord_x, cells_coord_y
 
