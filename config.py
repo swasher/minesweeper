@@ -39,6 +39,7 @@ class Configuration(object):
         self.LAG = conf.getfloat('main', 'LAG')
         # game
         self.noguess = conf.getboolean('game', 'noguess')
+        self.allow_noguess = conf.getboolean('game', 'allow_noguess')
         self.need_win_parties = conf.getint('game', 'need_win_parties')
         self.need_total_parties = conf.getint('game', 'need_total_parties')
         # mouse

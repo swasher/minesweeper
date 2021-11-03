@@ -5,3 +5,4 @@ left = 13
 right = 9
 top = 104
 bottom = 27
+allow_noguess = False

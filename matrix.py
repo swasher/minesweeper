@@ -163,17 +163,12 @@ class Matrix(object):
         Возвращает список бомб. Используется в game_over
         :return: array of Cell objects
         """
-        # cells = []
-        # for cell in self.table.flat:
-        #     if cell.is_bomb:
-        #         cells.append(cell)
-        #
         cells = list([x for x in self.table.flat if x.is_bomb])
         return cells
 
     def get_open_cells(self):
         """
-        Возвращает список бомб. Используется в game_over
+        Возвращает список открытых ячеек (включая нули).
         :return: array of Cell objects
         """
         cells = list([x for x in self.table.flat if x.is_open])
@@ -311,6 +306,10 @@ class Matrix(object):
         TODO BUG Рожицы нет в играх на маленьких полях
         :return:
         """
+
+        ТУТ ВСЕ ПРИВЯЗАНО К КОНКРЕТНОЙ РЕАЛИЗАЦИИ
+        В VIENNA ВСЕ ПО ДРУГОМУ
+
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
         face_coord_y = self.region_y1 + 40
         util.click(face_coord_x, face_coord_y, 'left')

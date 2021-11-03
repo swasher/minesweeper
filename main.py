@@ -266,8 +266,6 @@ if __name__ == '__main__':
     recursive_wrapper(strategies)
 
 
-
-
 # самое-самое начало
 # some logic
 #
