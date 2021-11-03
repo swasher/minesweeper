@@ -36,10 +36,19 @@ class Configuration(object):
         """
         # main
         self.LAG = conf.getfloat('main', 'LAG')
-        self.randomize_mouse = conf.getboolean('main', 'randomize_mouse')
-        self.save_game_R1 = conf.getboolean('main', 'save_game_R1')
-        self.noguess = conf.getboolean('main', 'noguess')
-        self.duration_mouse = conf.getfloat('main', 'duration_mouse')
+        # game
+        self.noguess = conf.getboolean('game', 'noguess')
+        self.need_win_parties = conf.getint('game', 'need_win_parties')
+        self.need_total_parties = conf.getint('game', 'need_total_parties')
+        # mouse
+        self.mouse_randomize_xy = conf.getboolean('mouse', 'mouse_randomize_xy')
+        self.mouse_duration = conf.getfloat('mouse', 'mouse_duration')
+        self.mouse_gaussian = conf.getfloat('mouse', 'mouse_gaussian')
+        self.minimum_delay = conf.getfloat('mouse', 'minimum_delay')
+        # debug
+        self.save_game_R1 = conf.getboolean('debug', 'save_game_R1')
+        self.turn_by_turn = conf.getboolean('debug', 'turn_by_turn')
+        self.icecream = conf.getboolean('debug', 'icecream')
 
         # TODO эта функция должна импортироваться из Util, но при этом я получают множественные
         #      цикличные импорты
@@ -50,10 +59,6 @@ class Configuration(object):
             self.asset = assets['Asset_28_2560x1440']
             # self.asset  = assets['Asset_22_2560x1440']
         # self.asset = assets['Asset_24_1920x1080']
-
-        # debug
-        self.turn_by_turn = conf.getboolean('debug', 'turn_by_turn')
-        self.icecream = conf.getboolean('debug', 'icecream')
 
 
 config = Configuration()

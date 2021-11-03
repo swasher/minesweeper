@@ -225,8 +225,8 @@ def recursive_wrapper(strategies):
         matrix.update()
         do_strategy(solver_noguess)
 
-    need_win = 5
-    need_total = 1
+    need_win = config.need_win_parties
+    need_total = config.need_total_parties
     win = 0
     total = 0
 
@@ -260,7 +260,7 @@ if __name__ == '__main__':
     col_values, row_values, region = find_board(patterns, Pattern)
     matrix = Matrix(row_values, col_values, region, patterns)
 
-    # a = matrix.count_hide_bombs
+    a = matrix.count_hide_bombs
 
     strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
     recursive_wrapper(strategies)

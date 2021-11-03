@@ -3,6 +3,8 @@
 No import high level objects in UTIL! (like classes)
 """
 
+import os
+import numpy as np
 import cv2 as cv
 import ctypes
 import mouse
@@ -39,7 +41,7 @@ def click(x, y, button):
 
     # TODO прибито гвоздями; сделать через config.duration_mouse
     duration = random.uniform(0.1, 0.6)
-    mouse.move(x, y, absolute=True, duration=duration)
+    mouse.move(x, y, absolute=True, duration=gauss_duration())
     mouse.click(button=button)
 
     if config.turn_by_turn:
@@ -142,7 +144,6 @@ def find_templates(pattern, image, precision):
     return centers
 
 
-# def scan_region(region, template):
 def scan_image(image, template):
     """
     Сканирует изображение в поисках шаблона template
@@ -199,11 +200,12 @@ def scan_image(image, template):
     num_cols = len(cells_coord_x)
     total_cells = len(cells_coord_y) * len(cells_coord_x)
 
-    ic(num_rows)
-    ic(num_cols)
-    ic(total_cells)
+    # ic(num_rows)
+    # ic(num_cols)
+    # ic(total_cells)
 
-    """
+
+
     # for test purpose; YOU CAN SEE WHAT GRABBING
     # draw at each cell it's row and column number
     for col, x in enumerate(cells_coord_x):
@@ -213,20 +215,29 @@ def scan_image(image, template):
     # cv.imwrite('output.png', image)
     cv.imshow("Display window", image)
     k = cv.waitKey(0)
-    """
 
     return cells_coord_x, cells_coord_y
 
 
-import timeit
-if __name__ == '__main__':
-    # x = random.randrange(100)
-    # y = random.randrange(100)
-    # print(timeit.timeit("click(random.randrange(100), random.randrange(100), 'left')", number=100, globals=locals()))
-    # print(get_screen_size())
+def gauss_duration():
+    """
+    Testing gaussian function for randomize time beetween clicks
 
-    x = 100
-    y = 300
-    # click_pyautogui(x, y, 'right')
-    # click_mouse(x, y, 'right')
-    click_pynput(x, y, 'right')
+    Look at action there:
+    https://replit.com/@swasher/Gaussian-distribution-for-Minesweeper-mouse-duration
+    """
+    if config.mouse_duration > 0:
+        mu = config.mouse_duration      # Значение в "центре" колокола
+        sigma = config.mouse_gaussian   # Значения " по бокам" колокола, то есть отклонение от центра
+        gauss = np.random.normal(mu, sigma, 1000)
+        gauss = gauss[gauss > config.minimum_delay]     # remove all negative and very small
+        return random.choice(gauss)
+    else:
+        return 0
+
+
+if __name__ == '__main__':
+    from timeit import Timer
+    t = Timer(lambda: gauss_duration())
+    print(t.timeit(number=1000))
+

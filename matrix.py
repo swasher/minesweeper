@@ -8,6 +8,7 @@ from icecream import ic
 import cell
 
 from patterns import patterns
+from patterns import red_digits
 from patterns import Pattern
 
 """
@@ -269,19 +270,15 @@ class Matrix(object):
         # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
         crop_img = image[0:Pattern.border['top'], 0:(self.region_x2-self.region_x1)//2]
 
-        cv.imshow("cropped", crop_img)
-        cv.waitKey(0)
+        # cv.imshow("cropped", crop_img)
+        # cv.waitKey(0)
 
-        template = patterns.win.raster
-
-
-
-        res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-
-        if max_val > precision:
-            print('You WIN!')
-            return True
+        for patt in red_digits:
+            cells_coord_x, cells_coord_y = util.scan_image(crop_img, patt.raster)
+            if len(cells_coord_x)+len(cells_coord_y):
+                print('---', patt.name)
+                print('x:', cells_coord_x)
+                print('y:', cells_coord_y)
 
         print('REST BOMBS:', bombs)
         exit()

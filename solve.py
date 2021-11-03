@@ -26,7 +26,7 @@ def solver_noguess(matrix):
     """
     x_cell = matrix.get_noguess_cell()
     if not len(x_cell):
-        raise Exception('Error in solver_noguess function!')
+        raise Exception('Error in solver_noguess function! Не найден крест в режиме угадывания!!!')
     return x_cell, 'left'
 
 

@@ -138,7 +138,7 @@ class Cell(object):
         :return:
         """
         # TODO уродский код - и тут и в cell_random_coordinates, надо переделать!
-        if config.randomize_mouse:
+        if config.mouse_randomize_xy:
             x, y = self.cell_random_coordinates()
         else:
             x, y = self.coordx + self.w//2, self.coordy + self.h//2
