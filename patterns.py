@@ -88,7 +88,8 @@ patterns.flag = Pattern('flag', f'{directory}/flag.png')
 patterns.fail = Pattern('fail', f'{directory}/fail.png')
 patterns.win = Pattern('win', f'{directory}/win.png')
 patterns.smile = Pattern('smile', f'{directory}/smile.png')
-patterns.noguess = Pattern('noguess', f'{directory}/noguess.png')
+# TODO Если асет для minesweeper onlie то добавлять иначе нет
+#patterns.noguess = Pattern('noguess', f'{directory}/noguess.png')
 
 # конвертируем объект SimpleNamespace, который по сути обертка для dict, в список.
 # Потому что dict не итерируемый, а в cell.py нам нужен перебор `for` циклом

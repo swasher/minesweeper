@@ -30,7 +30,7 @@ def solver_noguess(matrix):
     return x_cell, 'left'
 
 
-def noguess_finish():
+def noguess_finish(matrix):
     """
     Если не осталось ходов, то нужно закончить игру, чтобы не зацикливалось.
     Применяется в игре без угадываения.
