@@ -8,7 +8,8 @@ conf.read('settings.ini')
 # Известные виды сапера. Называние соотв. директории с ассетом.
 assets = {'Asset_24_1920x1080': 'asset_24_1920x1080',
           'Asset_28_2560x1440': 'asset_28_2560x1440',
-          'Asset_22_2560x1440': 'asset_22_2560x1440'
+          'Asset_22_2560x1440': 'asset_22_2560x1440',
+          'Asset_vienna': 'asset_vienna'
           }
 
 
@@ -59,6 +60,7 @@ class Configuration(object):
             self.asset = assets['Asset_28_2560x1440']
             # self.asset  = assets['Asset_22_2560x1440']
         # self.asset = assets['Asset_24_1920x1080']
+        # self.asset = assets['Asset_vienna']
 
 
 config = Configuration()
