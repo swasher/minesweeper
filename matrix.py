@@ -1,15 +1,18 @@
-import sys
 import numpy
 import mss
 import numpy as np
 import cv2 as cv
 import util
+import time
 from icecream import ic
-import cell
 
-from patterns import patterns
-from patterns import red_digits
-from patterns import Pattern
+import cell
+from config import config
+from asset import Asset
+from asset import patterns
+from asset import red_digits
+
+
 
 """
 Соглашения:
@@ -223,6 +226,11 @@ class Matrix(object):
         Запускает обновление всех ячеек в соответствии с полем Minesweeper
         :return:
         """
+        # This is very important setting! After click, website has a lag for refresh game board.
+        # If we do not waiting at this point, we do not see any changes after mouse click.
+        if Asset.LAG:
+            time.sleep(Asset.LAG)
+
         image = self.get_image()
         for cell in self.get_closed_cells():
             cell.update_cell(image)
@@ -259,9 +267,9 @@ class Matrix(object):
         return False
 
     @property
-    def count_hide_bombs(self):
+    def bomb_counter(self):
         """
-        3 - плоъо
+        3 - плохо
         4 - плохо
         5 - 0.99
         6 - 1.0
@@ -272,7 +280,7 @@ class Matrix(object):
         precision = 0.9
         image = self.get_image()
         # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
-        crop_img = image[0:Pattern.border['top'], 0:(self.region_x2-self.region_x1)//2]
+        crop_img = image[0:Asset.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
 
         # cv.imshow("cropped", crop_img)
         # cv.waitKey(0)
@@ -300,19 +308,48 @@ class Matrix(object):
         exit()
         return bombs
 
+    def bomb_counter2(self):
+        image = self.get_image()
+        # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
+        crop_img = image[0:Asset.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
+        precision = 0.99
+        # for patt in red_digits[::-1]:  # list_patterns imported from cell_pattern
+        for patt in red_digits:  # list_patterns imported from cell_pattern
+            template = patt.raster
+            crop_img = image[0:Asset.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
+
+            # result = util.find_templates(template, crop_img, precision)
+            # print(patt.name, result)
+
+            result = util.search_pattern_in_image(template, crop_img, precision)
+            print(patt.name, result)
+
+        return result
+
+
     def reset(self):
         """
         Нажимает на рожицу, чтобы перезапустить поле
         TODO BUG Рожицы нет в играх на маленьких полях
         :return:
-        """
+
 
         ТУТ ВСЕ ПРИВЯЗАНО К КОНКРЕТНОЙ РЕАЛИЗАЦИИ
         В VIENNA ВСЕ ПО ДРУГОМУ
 
+        Сделать, чтобы эти настройки брались из asset.
+        Пока что мне кажется можно координату X брать как половину поля,
+        а Y из ассета
+        """
+
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
-        face_coord_y = self.region_y1 + 40
+        face_coord_y = self.region_y1 + Asset.smile_y_coord
         util.click(face_coord_x, face_coord_y, 'left')
         for c in self.table.flat:
             c.status = 'closed'
             c.type = patterns.closed
+        # todo тут прибито гвоздями.
+        #      онлайну подходит 0,1*3
+        #      vienne
+        time.sleep(0.5)
+        self.update()

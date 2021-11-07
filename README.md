@@ -10,7 +10,7 @@ Demo 2 (3 solve strategy):
 ![demo2.gif](.github/demo2.gif)
 
 TODO
-======================
+----------------------------------------  
 
 [ ] MatchTemplate занимает до 25-50% времени выполнения. Надо с этим что-то делать  
 [ ] Написать тесты?  
@@ -109,9 +109,9 @@ Search the screen for a specific element
 [reddit](https://www.reddit.com/r/Minesweeper/comments/8b3b30/odds_of_winning_at_minesweeper/)  
 [Официальное сообщество Minesweeper](https://www.reddit.com/r/Minesweeper/)
 [Minesweeper and Hypothetical Thinking Action Research & Pilot Study PDF](https://files.eric.ed.gov/fulltext/ED509464.pdf)
+[Авторитетный сапер](http://www.minesweeper.info/)
 
 [Большое сборник статей по мат. алгоритмам](https://minesweepergame.com/math-papers.php)
-
 
 Minesweeper boards
 -------------------------
@@ -122,3 +122,5 @@ Minesweeper boards
 [Viennasweeper](https://minesweepergame.com/download/viennasweeper.php)  
 [minesweeper.online](https://minesweeper.online/)  
 [Google minesweeper](https://www.google.com/fbx?fbx=minesweeper) 
+[minesweeperonline.com](https://minesweeperonline.com/)
+

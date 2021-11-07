@@ -35,7 +35,7 @@ from types import SimpleNamespace
 from config import config
 
 
-class Pattern(object):
+class Asset(object):
     """
     Привязывает растровые изображения ячеек к классу Pattern. Является зависимым от типа сапера.
     """
@@ -48,10 +48,12 @@ class Pattern(object):
 
     # TODO тут это вообще не уместно - паттерн про паттерны, а не про границы доски!!!
     border = {}  # граница поля сапера в пикселях, от ячеек до края; скриншот каждый раз делается по этой области
+    smile_y_coord = 0  # координата Y для клика по смайлу
     name = ''
     filename = ''
     similarity = 0
     raster = ''
+    open_digit_action = ''
 
     def __init__(self, name, filename):
         self.name = name
@@ -64,12 +66,28 @@ class Pattern(object):
 
 directory = config.asset
 
+asset_data = importlib.import_module(f'{directory}.asset', package='.minesweeper')
+
 # Дополнительные поля к ячейкам сапера, которые образовывают игровую доску, в пикселях
-borders = importlib.import_module(f'{directory}.asset', package='.minesweeper')
-Pattern.border['top'] = borders.top
-Pattern.border['bottom'] = borders.bottom
-Pattern.border['left'] = borders.left
-Pattern.border['right'] = borders.right
+Asset.border['top'] = asset_data.top
+Asset.border['bottom'] = asset_data.bottom
+Asset.border['left'] = asset_data.left
+Asset.border['right'] = asset_data.right
+
+# Y координата для клика по смайлу
+Asset.smile_y_coord = asset_data.smile_y_coord
+
+# Разрешить для ассета режим No guess (без отгадывания, первый ход по зеленому кресту)
+Asset.allow_noguess = asset_data.allow_noguess
+
+# Какие кнопки мыши задействованы для данной реализации
+Asset.flag = asset_data.flag
+Asset.open = asset_data.open
+Asset.nearby = asset_data.nearby
+
+# Лаг обновления экрана после клика мышки
+# float Lag for the board to have time to update the image after click the mouse button. Different value for different game realization.
+Asset.LAG = asset_data.LAG
 
 
 # Создаем список patterns - который содержит все изображения клеток. Тип SimpleNamespace
@@ -77,20 +95,20 @@ Pattern.border['right'] = borders.right
 # Так же делаем list_patterns - это просто tuple всех паттернов.
 keys = ['n' + str(x) for x in range(7)]
 # TODO в теории ниже должно быть range(9) - но изображение восьмерки очень сложно поймать.
-numbered_cells = [Pattern(f'{i}', f'{directory}/{i}.png') for i in range(8)]
+numbered_cells = [Asset(f'{i}', f'{directory}/{i}.png') for i in range(8)]
 d = dict(zip(keys, numbered_cells))
 patterns = SimpleNamespace(**d)
 
-patterns.closed = Pattern('closed', f'{directory}/closed.png')
-patterns.bomb = Pattern('bomb', f'{directory}/bomb.png')
-patterns.red_bomb = Pattern('red_bomb', f'{directory}/red_bomb.png')
-patterns.flag = Pattern('flag', f'{directory}/flag.png')
-patterns.fail = Pattern('fail', f'{directory}/fail.png')
-patterns.win = Pattern('win', f'{directory}/win.png')
-patterns.smile = Pattern('smile', f'{directory}/smile.png')
+patterns.closed = Asset('closed', f'{directory}/closed.png')
+patterns.bomb = Asset('bomb', f'{directory}/bomb.png')
+patterns.red_bomb = Asset('red_bomb', f'{directory}/red_bomb.png')
+patterns.flag = Asset('flag', f'{directory}/flag.png')
+patterns.fail = Asset('fail', f'{directory}/fail.png')
+patterns.win = Asset('win', f'{directory}/win.png')
+patterns.smile = Asset('smile', f'{directory}/smile.png')
 # TODO Если асет для minesweeper onlie то добавлять иначе нет
-if config.allow_noguess:
-    patterns.noguess = Pattern('noguess', f'{directory}/noguess.png')
+if Asset.allow_noguess:
+    patterns.noguess = Asset('noguess', f'{directory}/noguess.png')
 
 # конвертируем объект SimpleNamespace, который по сути обертка для dict, в список.
 # Потому что dict не итерируемый, а в cell.py нам нужен перебор `for` циклом
@@ -99,5 +117,5 @@ for name, obj in patterns.__dict__.items():
     list_patterns.append(obj)
 
 # Список цифр, используемых на поле в подсчете бомб и секунд
-red_digits = [Pattern(f'clock{i}', f'{directory}/clock_{i}.png') for i in range(10)]
+red_digits = [Asset(f'clock{i}', f'{directory}/clock_{i}.png') for i in range(10)]
 

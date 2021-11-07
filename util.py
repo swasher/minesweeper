@@ -39,10 +39,14 @@ def click(x, y, button):
     if config.turn_by_turn:
         oldx, oldy = mouse.get_position()
 
-    # TODO прибито гвоздями; сделать через config.duration_mouse
-    duration = random.uniform(0.1, 0.6)
     mouse.move(x, y, absolute=True, duration=gauss_duration())
-    mouse.click(button=button)
+    if button in ['left', 'right']:
+        mouse.click(button=button)
+    elif button == 'both':
+        mouse.press(button='left')
+        mouse.press(button='right')
+        mouse.release(button='left')
+        mouse.release(button='right')
 
     if config.turn_by_turn:
         mouse.move(oldx, oldy)
@@ -108,9 +112,7 @@ def find_templates(pattern, image, precision):
     """
 
     h, w = pattern.shape[:2]
-
-    print('h', h, 'w', w)
-
+    # print('h', h, 'w', w)
     method = cv.TM_CCORR_NORMED
 
     res = cv.matchTemplate(image, pattern, method)
@@ -118,11 +120,11 @@ def find_templates(pattern, image, precision):
 
     # fake out max_val for first run through loop
     max_val = 1
-    centers = []
+    coords = []
     while max_val > precision:
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
         if max_val > precision:
-            centers.append( (max_loc[0] + w//2, max_loc[1] + h//2) )
+            coords.append((max_loc[0], max_loc[1], max_val))
 
             x1 = max(max_loc[0] - w//2, 0)
             y1 = max(max_loc[1] - h//2, 0)
@@ -132,7 +134,8 @@ def find_templates(pattern, image, precision):
 
             res[y1:y2, x1:x2] = 0
 
-            image = cv.rectangle(image, (max_loc[0], max_loc[1]), (max_loc[0]+w+1, max_loc[1]+h+1), (0,255,0) )
+            # эта строка портит image для дальнейших сравнений в цикле
+            # image = cv.rectangle(image, (max_loc[0], max_loc[1]), (max_loc[0]+w+1, max_loc[1]+h+1), (0,255,0) )
 
     """
     DEBUG
@@ -141,50 +144,73 @@ def find_templates(pattern, image, precision):
     cv.imshow("Test", image)
     cv.waitKey(0)
     """
-    return centers
+    return coords
 
 
-def scan_image(image, template):
+def search_pattern_in_image(pattern, image, precision):
     """
-    Сканирует изображение в поисках шаблона template
+    Сканирует изображение image в поисках шаблона template (множественные вхождения).
     Возвращает два списка row_values и col_values. Начало координат - верх лево.
+
+    Чем меньше значение precision, тем больше "похожих" клеток находит скрипт. При поиске клеток доски:
+    При значении 0.6 он вообще зацикливается
+    При значении 0.7 он находит closed cell в самых неожиданных местах
+    Значение 0.9 выглядит ок, но на экране 2560х1440 находит несколько ячеек
+    смещенных на 1 пиксель - это из-за того, что сами ячейки экрана имеют плавающий размер, при этом
+    сами ячейки находятся нормально. Увеличение threshold при этом качество результата не увеличивает - смещены сами ячейки на экране.
+    В результирующем списке ячейки расположены хаотично,
+    поэтому нам нужно разобрать список координат отдельно по X и отдельно по Y, и создать 2D матрицу ячеек.
 
     :param image - изображение, например снимок экрана или взятое из файла
     :param template
+    :param precision - точность поиска, см. описание
 
     :return: cells_coord_x - список координаты по оси X для каждого столбца (в пикселях относительно верха лева экрана)
     :return: cells_coord_y - анал. по оси Y
     :rtype:
     """
 
-    h, w = template.shape[:2]
+    h, w = pattern.shape[:2]
 
     method = cv.TM_CCOEFF_NORMED
 
-    threshold = 0.90  # Чем меньше это значение, тем больше "похожих" клеток находит скрипт.
-                     # При значении 0.6 он вообще зацикливается
-                     # При значении 0.7 он находит closed cell в самых неожиданных местах
-                     # Значение 0.9 выглядит ок, но на экране 2560х1440 находит несколько ячеек
-                     #    смещенных на 1 пиксель - это из-за того, что сами ячейки экрана имеют плавающий размер, при этом
-                     # сами ячейки находятся нормально. Увеличение threshold при этом качество результата не увеличивает - смещены сами ячейки на экране.
-                     # В результирующем списке ячейки расположены хаотично,
-                     # поэтому нам нужно разобрать список координат отдельно по X и отдельно по Y, и создать 2D матрицу ячеек.
-
-    res = cv.matchTemplate(image, template, method)
+    res = cv.matchTemplate(image, pattern, method)
 
     # fake out max_val for first run through loop
     max_val = 1
 
     cells = []
-    while max_val > threshold:
+    while max_val > precision:
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
-        if max_val > threshold:
+        if max_val > precision:
             res[max_loc[1] - h // 2:max_loc[1] + h // 2 + 1, max_loc[0] - w // 2:max_loc[0] + w // 2 + 1] = 0
             image = cv.rectangle(image, (max_loc[0], max_loc[1]), (max_loc[0] + w + 1, max_loc[1] + h + 1), (0, 255, 0))
-            cellule = (max_loc[0], max_loc[1])
+            cellule = (max_loc[0], max_loc[1], max_val)
             cells.append(cellule)
-            # cv.putText(image, str(x), (max_loc[0]+3, max_loc[1]+10), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+            # `debug` cv.putText(image, str(x), (max_loc[0]+3, max_loc[1]+10), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+
+    # # DEBUG; YOU CAN SEE WHAT GRABBING
+    # # draw at each cell it's row and column number
+    # for c in cells:
+    #     x = c[1]
+    #     y = c[0]
+    #     cv.putText(image, str(x), (y + 11, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+    #     cv.putText(image, str(y), (y + 19, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+    # # cv.imwrite('output.png', image)
+    # cv.imshow("Display window", image)
+    # k = cv.waitKey(0)
+
+    return cells
+
+
+def cell_coordinates(cells):
+    """
+    Превращает список координат ВСЕХ ячеек поля в список отдельно X и Y координат
+    :param cells: list of tuples (x, y, cv2 max_val)
+    :return cells_coord_x: list of int, список координаты по оси X для каждого столбца (в пикселях относительно верха лева экрана)
+    :return cells_coord_y: list of int, анал. по оси Y
+    """
 
     cells_coord_y = []
     cells_coord_x = []
@@ -195,26 +221,6 @@ def scan_image(image, template):
     # Эти два списка - искомые координаты ячеек. Убираем из них дубликаты при помощи set()
     cells_coord_x = compress_array(cells_coord_x)  # кол-во соотв. кол-ву столбцов; координаты столбцов слева направо по X
     cells_coord_y = compress_array(cells_coord_y)  # кол-во соотв. кол-ву строк; координаты строк сверху вниз по Y
-
-    num_rows = len(cells_coord_y)
-    num_cols = len(cells_coord_x)
-    total_cells = len(cells_coord_y) * len(cells_coord_x)
-
-    # ic(num_rows)
-    # ic(num_cols)
-    # ic(total_cells)
-
-
-
-    # for test purpose; YOU CAN SEE WHAT GRABBING
-    # draw at each cell it's row and column number
-    # for col, x in enumerate(cells_coord_x):
-    #     for row, y in enumerate(cells_coord_y):
-    #         cv.putText(image, str(row), (x + 5, y + 11), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-    #         cv.putText(image, str(col), (x + 5, y + 19), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-    # # cv.imwrite('output.png', image)
-    # cv.imshow("Display window", image)
-    # k = cv.waitKey(0)
 
     return cells_coord_x, cells_coord_y
 

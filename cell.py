@@ -4,7 +4,7 @@ import util
 import win32gui
 import win32api
 
-from patterns import patterns, list_patterns
+from asset import patterns, list_patterns
 from config import config
 
 

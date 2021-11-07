@@ -20,12 +20,12 @@ from datetime import datetime
 from matrix import Matrix
 # from patterns import patterns
 from patterns import patterns
-from patterns import Pattern
+from patterns import Asset
 from main import find_board
 
 
 def scan():
-    board = find_board(patterns, Pattern)
+    board = find_board(patterns, Asset)
     with shelve.open('shelve') as d:
         d['col_values'] = board[0]
         d['row_values'] = board[1]

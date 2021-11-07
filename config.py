@@ -35,11 +35,8 @@ class Configuration(object):
         bool_val = config.getboolean('section_a', 'bool_val')
         int_val = config.getint('section_a', 'int_val')
         """
-        # main
-        self.LAG = conf.getfloat('main', 'LAG')
         # game
         self.noguess = conf.getboolean('game', 'noguess')
-        self.allow_noguess = conf.getboolean('game', 'allow_noguess')
         self.need_win_parties = conf.getint('game', 'need_win_parties')
         self.need_total_parties = conf.getint('game', 'need_total_parties')
         # mouse
@@ -52,16 +49,7 @@ class Configuration(object):
         self.turn_by_turn = conf.getboolean('debug', 'turn_by_turn')
         self.icecream = conf.getboolean('debug', 'icecream')
 
-        # TODO эта функция должна импортироваться из Util, но при этом я получают множественные
-        #      цикличные импорты
-        screen = get_screen_size()
-        if screen == [1920, 1080]:
-            self.asset = assets['Asset_24_1920x1080']
-        elif screen == [2560, 1440]:
-            self.asset = assets['Asset_28_2560x1440']
-            # self.asset  = assets['Asset_22_2560x1440']
-        # self.asset = assets['Asset_24_1920x1080']
-        self.asset = assets['Asset_vienna']
+        self.asset = conf.get('main', 'asset')
 
 
 config = Configuration()

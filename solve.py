@@ -1,9 +1,9 @@
 import itertools
 from random import randrange
-import sys
 import numpy as np
 
 from config import config
+from asset import Asset
 from icecream import ic
 
 
@@ -27,7 +27,7 @@ def solver_noguess(matrix):
     x_cell = matrix.get_noguess_cell()
     if not len(x_cell):
         raise Exception('Error in solver_noguess function! Не найден крест в режиме NG!!!')
-    return x_cell, 'left'
+    return x_cell, Asset.open
 
 
 def noguess_finish(matrix):
@@ -77,7 +77,7 @@ def solver_R1(matrix):
     #     random_cell.mark_cell_debug()
     #     input("Press Enter to mouse moving")
 
-    return [random_cell], 'left'
+    return [random_cell], Asset.open
 
 
 def solver_B1(matrix):
@@ -110,7 +110,7 @@ def solver_B1(matrix):
             return closed, 'right'
 
     # если ни у одной клетки нет решения, возвращаем пустой список
-    return [], 'right'
+    return [], Asset.flag
 
 
 def solver_E1(matrix):
@@ -122,27 +122,27 @@ def solver_E1(matrix):
     Проверяем все ячейки с цифрами.
     Если вокруг ячейки с цифрой такое же кол-во флагов, и вокруг есть закрытые
     ячейки, ТО все закрытые ячейки вокруг являются пустыми.
-    HINT: Такие ячейки можно "вскрыть" левым кликом - откроются все вокруг.
+    HINT: Такие ячейки можно "вскрыть" левым или "both" кликом - откроются все вокруг.
     """
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
         # if config.turn_by_turn:
-        #     ic('------ E1')
-        #     ic(cell, flags, closed)
-        #     ic(cell.digit, len(flags), len(closed))
-        #     result = cell.digit == len(flags) and len(closed)
-        #     ic(result)
-        #     cell.mark_cell_debug()
+            # ic('------ E1')
+            # ic(cell, flags, closed)
+            # ic(cell.digit, len(flags), len(closed))
+            # result = cell.digit == len(flags) and len(closed)
+            # ic(result)
+            # cell.mark_cell_debug()
 
         if cell.digit == len(flags) and len(closed):
             # cell.mark_cell_debug()
             # не возвращаем ячейки, потому что достаточно кликнуть на саму цифру, чтобы они открылись
-            return [cell], 'left'
+            return [cell], Asset.nearby
 
     # если ни у одной клетки нет решения, возвращаем пустой список
-    return [], 'right'
+    return [], Asset.nearby
 
 
 
@@ -226,7 +226,7 @@ def solver_B2(matrix):
                 # print('COMPARE', r1.ancestor, r2.ancestor)
                 # print(bombs)
                 return bombs, 'right'
-    return [], 'right'
+    return [], Asset.flag
 
 
 def solver_E2(matrix):
@@ -250,12 +250,16 @@ def solver_E2(matrix):
         if set1.issubset(set2) or set2.issubset(set1):
             if r1.rest_bombs == r2.rest_bombs:
                 empties = tuple(set(r1.closed) ^ set(r2.closed))
-                # r1.ancestor.mark_cell_debug()
-                # r2.ancestor.mark_cell_debug()
-                # print('-----')
-                # print('COMPARE:', r1.ancestor, 'and', r2.ancestor)
-                # print('EMPTIES:', empties)
-                # return empties, 'left'
+
+                # -- debug
+                r1.ancestor.mark_cell_debug()
+                r2.ancestor.mark_cell_debug()
+                print('-----')
+                print('COMPARE:', r1.ancestor, 'and', r2.ancestor)
+                print('EMPTIES:', empties)
+                return empties, 'left'
+                # -- debug
+
                 answers += empties
 
-    return answers, 'left'
+    return answers, Asset.open

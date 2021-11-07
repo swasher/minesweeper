@@ -5,15 +5,17 @@ import cv2 as cv
 import mss
 import numpy as np
 import pickle
+import timeit
 from datetime import datetime
 from icecream import ic
 ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
 from config import config
 from util import pause
-from patterns import patterns
-from patterns import Pattern
-from util import scan_image
+from util import cell_coordinates
+from asset import patterns
+from asset import Asset
+from util import search_pattern_in_image
 from matrix import Matrix
 
 from solve import solver_R1
@@ -82,7 +84,10 @@ def find_board(pattern, asset):
         screenshot = sct.grab(region)
         raw = np.array(screenshot)
     image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
-    cells_coord_x, cells_coord_y = scan_image(image, pattern.closed.raster)
+    precision = 0.9
+
+    cells = search_pattern_in_image(pattern.closed.raster, image, precision)
+    cells_coord_x, cells_coord_y = cell_coordinates(cells)
 
     if not len(cells_coord_x + cells_coord_y):
         print(' - not found, exit')
@@ -151,11 +156,10 @@ def do_strategy(strategy):
     if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
         print(name)
 
-    # save random move to PNG and Pickle
+    # if move is random click - save board to PNG and Pickle file (board object)
     # todo move it to separate file
     import secrets
     if name == 'solver_R1' and config.save_game_R1 and len(matrix.get_open_cells()) > 15:
-        im = matrix.get_image()
         random_string = secrets.token_hex(2)
         date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
         picklefile = 'obj.pickle'
@@ -177,7 +181,7 @@ def do_strategy(strategy):
     have_a_move = bool(len(cells))
     if have_a_move:
         # print(f'- do strategy')
-        # print(f'- click {button} on cells:', cells)
+        # print(f'- click {button} on:', cells)
 
         if config.turn_by_turn:
             for c in cells:
@@ -185,9 +189,6 @@ def do_strategy(strategy):
             input("Press Enter to mouse moving")
         clicking_cells(cells, button)
 
-        # This is very important setting! After click, website has a lag for refresh game board.
-        # If we do not waiting at this point, we do not see any changes after mouse click.
-        time.sleep(config.LAG)
         matrix.update()
         #matrix.display()
 
@@ -198,12 +199,12 @@ def do_strategy(strategy):
                 win_or_fail = 'win'
             if matrix.you_fail:
                 win_or_fail = 'fail'
-        if name == 'noguess_finish':
-            win_or_fail = 'fail'
     else:
         # print('- pass strategy')
         pass
 
+    if name == 'noguess_finish':
+        win_or_fail = 'fail'
     return have_a_move, win_or_fail
 
 
@@ -223,17 +224,18 @@ def recursive_wrapper(strategies):
         strategies.remove(solver_R1)
         strategies.append(noguess_finish)
         matrix.update()
-        do_strategy(solver_noguess)
+
 
     need_win = config.need_win_parties
     need_total = config.need_total_parties
     win = 0
     total = 0
 
-    while win < need_win:
-    # while total < need_total:
+    while True:
         i = 0
         before = datetime.now()
+        if config.noguess:
+            do_strategy(solver_noguess)
         win_or_fail = recusive_strategy(i)
         after = datetime.now()
 
@@ -244,8 +246,13 @@ def recursive_wrapper(strategies):
             pass
 
         print('Complete in', (after-before).seconds, 'sec')
-        print(f'Win {win}, fail {total - win}')
-        pause(3)
+        print(f'Win {win}, fail {total - win} (need win {need_win} and total {need_total})')
+        # TODO do pause random!
+        pause(2)
+
+        cont = (bool(need_win) and win < need_win) or (bool(need_total) and total < need_total)
+        if not cont:
+            break
         matrix.reset()
 
     print('\n=============')
@@ -257,13 +264,16 @@ def recursive_wrapper(strategies):
 
 if __name__ == '__main__':
 
-    col_values, row_values, region = find_board(patterns, Pattern)
+    col_values, row_values, region = find_board(patterns, Asset)
     matrix = Matrix(row_values, col_values, region, patterns)
 
-    # a = matrix.count_hide_bombs
+    matrix.bomb_counter2()
 
-    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
-    recursive_wrapper(strategies)
+    # debug - test perfomance
+    # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
+
+    # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    # recursive_wrapper(strategies)
 
 
 # самое-самое начало
