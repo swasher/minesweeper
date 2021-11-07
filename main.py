@@ -1,3 +1,4 @@
+import random
 import time
 import sys
 import os
@@ -247,8 +248,10 @@ def recursive_wrapper(strategies):
 
         print('Complete in', (after-before).seconds, 'sec')
         print(f'Win {win}, fail {total - win} (need win {need_win} and total {need_total})')
-        # TODO do pause random!
-        pause(2)
+
+        # TODO сделать через настройки
+        t = random.randrange(3, 6)
+        pause(t)
 
         cont = (bool(need_win) and win < need_win) or (bool(need_total) and total < need_total)
         if not cont:
@@ -267,13 +270,13 @@ if __name__ == '__main__':
     col_values, row_values, region = find_board(patterns, Asset)
     matrix = Matrix(row_values, col_values, region, patterns)
 
-    matrix.bomb_counter2()
+    # matrix.bomb_counter2()
 
     # debug - test perfomance
     # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
 
-    # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
-    # recursive_wrapper(strategies)
+    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    recursive_wrapper(strategies)
 
 
 # самое-самое начало

@@ -312,7 +312,7 @@ class Matrix(object):
         image = self.get_image()
         # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
         crop_img = image[0:Asset.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
-        precision = 0.99
+        precision = 0.94
         # for patt in red_digits[::-1]:  # list_patterns imported from cell_pattern
         for patt in red_digits:  # list_patterns imported from cell_pattern
             template = patt.raster

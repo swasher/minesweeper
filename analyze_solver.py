@@ -2,6 +2,7 @@ import os
 import pickle
 import solve
 
+# TODO добавить описание, что это и как этим юзать
 
 def load(dir):
     with open(os.path.join(dir, picklefile), 'rb') as inp:
