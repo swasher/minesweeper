@@ -7,6 +7,7 @@ top = 81
 bottom = 17
 smile_y_coord = 80
 allow_noguess = True
+LAG = 0.1
 flag = 'right'
 open = 'left'
 nearby = 'left'
