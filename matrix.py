@@ -351,5 +351,5 @@ class Matrix(object):
         # todo тут прибито гвоздями.
         #      онлайну подходит 0,1*3
         #      vienne
-        time.sleep(0.5)
+        time.sleep(0.7)
         self.update()

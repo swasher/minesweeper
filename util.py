@@ -39,6 +39,8 @@ def click(x, y, button):
     if config.turn_by_turn:
         oldx, oldy = mouse.get_position()
 
+    from global_ import clicks
+    clicks += 1
     mouse.move(x, y, absolute=True, duration=gauss_duration())
     if button in ['left', 'right']:
         mouse.click(button=button)

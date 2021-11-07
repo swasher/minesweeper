@@ -79,7 +79,7 @@ def find_board(pattern, asset):
     :return cells_coord_y: [array of int] Координаты столбцов
     :return region: [x1, y1, x2, y2] координаты доски сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол
     """
-    ic('Try finding board...')
+    print('Try finding board...')
     with mss.mss() as sct:
         region = mss.mss().monitors[0]
         screenshot = sct.grab(region)
@@ -93,7 +93,7 @@ def find_board(pattern, asset):
     if not len(cells_coord_x + cells_coord_y):
         print(' - not found, exit')
         exit()
-    ic(' - found')
+    print(f' - found, {len(cells_coord_x)}x{len(cells_coord_y)}')
 
     template = pattern.closed.raster
     h, w = template.shape[:2]
@@ -220,6 +220,7 @@ def recusive_strategy(i):
         return recusive_strategy(i)
 
 
+from global_ import clicks
 def recursive_wrapper(strategies):
     if config.noguess:  # режим 'без отгадывания'
         strategies.remove(solver_R1)
@@ -263,6 +264,7 @@ def recursive_wrapper(strategies):
     print(f'WIN: {win}')
     print(f'FAIL: {total-win}')
     print(f'WIN PERCENT: {win*100/total:.2f}')
+    print(f'Clicks: {clicks}')
 
 
 if __name__ == '__main__':
