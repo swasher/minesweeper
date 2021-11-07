@@ -6,3 +6,4 @@ private/
 test/
 shelve.*
 game_*/
+settings.ini
