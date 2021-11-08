@@ -264,7 +264,7 @@ def recursive_wrapper(strategies):
     print(f'WIN: {win}')
     print(f'FAIL: {total-win}')
     print(f'WIN PERCENT: {win*100/total:.2f}')
-    print(f'Clicks: {clicks}')
+
 
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@ No import high level objects in UTIL! (like classes)
 """
 
 import os
+import math
 import numpy as np
 import cv2 as cv
 import ctypes
@@ -36,12 +37,17 @@ def pause(t=5):
 
 
 def click(x, y, button):
-    if config.turn_by_turn:
-        oldx, oldy = mouse.get_position()
+    oldx, oldy = mouse.get_position()
 
     from global_ import clicks
     clicks += 1
+
+    dist = math.hypot(oldx - x, oldy - y)
+    # print(dist)
+    # time.sleep(1)
     mouse.move(x, y, absolute=True, duration=gauss_duration())
+
+
     if button in ['left', 'right']:
         mouse.click(button=button)
     elif button == 'both':

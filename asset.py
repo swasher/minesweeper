@@ -29,6 +29,8 @@ HOUSE
 
 """
 
+import os
+import pathlib
 import importlib
 import cv2 as cv
 from types import SimpleNamespace
@@ -88,9 +90,15 @@ Asset.nearby = asset_data.nearby
 # float Lag for the board to have time to update the image after click the mouse button. Different value for different game realization.
 Asset.LAG = asset_data.LAG
 
+# Проверяем наличие всех изображений ассета - получаем эксепшн при отсутствии файла
+pics = ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', 'bomb.png', 'clock_0.png', 'clock_1.png', 'clock_2.png', 'clock_3.png', 'clock_4.png', 'clock_5.png', 'clock_6.png', 'clock_7.png', 'clock_8.png', 'clock_9.png', 'closed.png', 'error_bomb.png', 'fail.png', 'flag.png', 'red_bomb.png', 'smile.png', 'win.png']
+if Asset.allow_noguess:
+    pics.append('noguess.png')
+for f in pics:
+    pathlib.Path(pathlib.PurePath(directory, f)).open()
 
-# Создаем список patterns - который содержит все изображения клеток. Тип SimpleNamespace
-# Можно обращаться patterns.bomb или patterns.n3
+# Создаем список patterns - который содержит все изображения клеток. Его тип - SimpleNamespace
+# К нему можно обращаться patterns.bomb или patterns.n3
 # Так же делаем list_patterns - это просто tuple всех паттернов.
 keys = ['n' + str(x) for x in range(7)]
 # TODO в теории ниже должно быть range(9) - но изображение восьмерки очень сложно поймать.
@@ -117,4 +125,3 @@ for name, obj in patterns.__dict__.items():
 
 # Список цифр, используемых на поле в подсчете бомб и секунд
 red_digits = [Asset(f'clock{i}', f'{directory}/clock_{i}.png') for i in range(10)]
-

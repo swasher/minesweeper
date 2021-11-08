@@ -1,96 +1,124 @@
-# import mouse
-# import threading
-# import time
-# import win32api
-#
-#
-# def threadFunc():
-#     while True:
-#         # mouse.on_click(mouse_callback())
-#         mouse.on_click(lambda: print("Left Button clicked."))
-#
-#
-#
-#
-# # def printit():
-# #   print ("Hello, World!")
-# #   threading.Timer(1.0, printit).start()
-# # threading.Timer(1.0, printit).start()
-#
-#
-# def mouse_callback():
-#     print(1)
-#
-# # mouse.on_click()
-# #
-# # mouse.get_position()
-#
-# if __name__ == '__main__':
-#     # while True:
-#     #     # mouse.on_click(mouse_callback())
-#     #     mouse.on_click(lambda: print("Left Button clicked."))
-#     # mouse.unhook_all()
-#
-#
-#     # # Create a Thread with a function without any arguments
-#     # th = threading.Thread(target=threadFunc)
-#     # th.start()
-#     # th.join()
-#     # mouse.unhook_all()
-#
-#     import ctypes
-#     import time
-#
-#
-#     def DetectClick(button, watchtime=5):
-#         '''Waits watchtime seconds. Returns True on click, False otherwise'''
-#         if button in (1, '1', 'l', 'L', 'left', 'Left', 'LEFT'):
-#             bnum = 0x01
-#         elif button in (2, '2', 'r', 'R', 'right', 'Right', 'RIGHT'):
-#             bnum = 0x02
-#
-#         start = time.time()
-#         while 1:
-#             if ctypes.windll.user32.GetKeyState(bnum) not in [0, 1]:
-#                 # ^ this returns either 0 or 1 when button is not being held down
-#                 return True
-#             elif time.time() - start >= watchtime:
-#                 break
-#             time.sleep(0.001)
-#         return False
-#
-#
-#     while True:
-#     DetectClick('left')
+"""
+Util for analyze human mouse use - time and distance.
 
+Results:
 
+Online, size 28 (big cells). 30 clicks per run. 3 runs every test.
+---------------------------
+Рядом стоящие клетки
+Distance 30.72, Time: 0.43, Time per 100 px: 1.47
+Distance 31.89, Time: 0.41, Time per 100 px: 1.35
+Distance 31.03, Time: 0.40, Time per 100 px: 1.36
+
+Средне расположенные клетки (треть - две трети высоты поля)
+Distance 299.88, Time: 0.96, Time per 100 px: 0.37
+Distance 286.46, Time: 0.89, Time per 100 px: 0.42
+Distance 254.39, Time: 0.88, Time per 100 px: 0.39
+
+Отдаленно стоящие клетки
+Distance 663.85, Time: 1.08, Time per 100 px: 0.18
+Distance 691.21, Time: 0.97, Time per 100 px: 0.15
+Distance 690.31, Time: 1.03, Time per 100 px: 0.16
+
+"""
+import time
+import math
+import numpy as np
+from dataclasses import dataclass, field
 from pynput import mouse
+from datetime import datetime
+
+oldx = 0
+oldy = 0
+oldtime = datetime.now()
+
+
+@dataclass(order=True)
+class Moving:
+    # for analyze
+    dist: float
+    tdelta: time
+    # for append next item
+    t: time
+    x: int
+    y: int
+
+    @classmethod
+    def add(self, x, y):
+        oldx = mousemove[-1].x
+        oldy = mousemove[-1].y
+        oldt = mousemove[-1].t
+        dist = math.hypot(oldx - x, oldy - y)
+        t = datetime.now()
+        tdelta = t - oldt
+        x = x
+        y = y
+        mousemove.append(Moving(dist, tdelta, t, x, y))
+
+
+mousemove = []
+
 
 def on_move(x, y):
-    print('Pointer moved to {0}'.format((x, y)))
-    # pass
+    # print('Pointer moved to {0}'.format((x, y)))
+    pass
+
 
 def on_click(x, y, button, pressed):
-    print('{0} at {1}'.format(
-        'Pressed' if pressed else 'Released',
-        (x, y)))
-    if not pressed:
-        # Stop listener
-        return False
+    # print('{0} at {1}'.format('Pressed' if pressed else 'Released', (x, y)))
+    if not pressed:  # считаем клик при отпускании кнопки
+        # print(f'Click {button} at {x},{y}')
+        Moving.add(x, y)
+        # print(mousemove[-1].tdelta.total_seconds())
+    # if not pressed:
+    #     # Stop listener
+    #     return False
+
 
 def on_scroll(x, y, dx, dy):
     print('Scrolled {0} at {1}'.format('down' if dy < 0 else 'up', (x, y)))
 
+
 # # Collect events until released
-# with mouse.Listener(
-#         on_move=on_move,
-#         on_click=on_click,
-#         on_scroll=on_scroll) as listener:
-#     listener.join()
+# while True:
+#     with mouse.Listener(
+#             on_move=on_move,
+#             on_click=on_click,
+#             on_scroll=on_scroll) as listener:
+#         listener.join()
 
 # ...or, in a non-blocking fashion:
 listener = mouse.Listener(
     on_move=on_move,
     on_click=on_click,
     on_scroll=on_scroll)
-listener.start()
+
+
+def main():
+    print('Start mouse listener')
+    m = Moving(dist=0, tdelta=0, x=0, y=0, t=datetime.now())
+    mousemove.append(m)
+
+    listener.start()
+    # while True:
+    while len(mousemove) < 30:
+        time.sleep(0.001)
+
+    mousemove.pop(0)  # remove first two elements
+    mousemove.pop(0)
+    mm_sorted = sorted(mousemove, key=lambda mousemove: mousemove.dist)
+    per100 = []
+    for x in mm_sorted:
+        per100_ = x.tdelta.total_seconds() * 100 / x.dist
+        per100.append(per100_)
+        print(f'dist: {x.dist:.2f}, time: {x.tdelta.total_seconds():.3f}, per 100 px: {per100_:.3f}')
+    arr = np.array([o.dist for o in mm_sorted])
+    dist_mean = np.mean(arr)
+    delta_mean = np.mean(np.array([o.tdelta.total_seconds() for o in mm_sorted]))
+    per100_mean = np.mean(np.array(per100))
+    print('----Meaning values:')
+    print(f'Distance {dist_mean:.2f}, Time: {delta_mean:.2f}, Time per 100 px: {per100_mean:.2f}')
+
+
+if __name__ == '__main__':
+    main()
