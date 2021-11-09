@@ -38,6 +38,34 @@ TODO
 [ ] asset_24_1920x1080 (а может быть, и другие ассеты) не распознает окончание игры, если взорвались на последней бомбе (т.е. на поле только одна бомба и она красная) 
 
 
+Targets and indicators
+=======================
+
+Engine speed
+-----------------
+
+Измеряется на Vienna Minesweeper с нулевыми задержками на Professional поле. Показывает общую скорость движка и
+потенциальные бутылочные горлышки.
+
+No guess solving
+---------------------
+
+Показывает мощь алгоритмов. В no guess досках всегда есть решение и не применяется случайный выбор. Процент
+решенных досок показывает, насколько "умны" алгоритмы решений. Выполняется на online-сапере.
+
+Guess percentage
+---------------------
+
+Аналогично предыдущему, но так же задействует алгоритм выборы случайной клетки. Выполняется на Vienna с большими
+выборками.
+
+Efficiency
+------------------
+
+Значение 3BV, поделенное на количество кликов. Требует особой настройки алгоритмов. Сейчас можно просто произвести замеры.
+Требует технологии подсчета 3BV, пока не реализовано.
+
+
 Installation
 =====================
 
@@ -111,6 +139,7 @@ Search the screen for a specific element
 [Minesweeper and Hypothetical Thinking Action Research & Pilot Study PDF](https://files.eric.ed.gov/fulltext/ED509464.pdf)
 [Авторитетный сапер](http://www.minesweeper.info/)
 [Вероятности закрытых ячеек](https://docs.google.com/document/d/10YxF7QWxqVcl2Cgxo_mu6Q33uUjKxb9Q0F5gmp3r74c/edit)
+[Algorithms for Minesweeper Game Grid Generation](https://dspace.cvut.cz/bitstream/handle/10467/68632/F3-BP-2017-Cicvarek-Jan-Algorithms%20for%20Minesweeper%20Game%20Grid%20Generation.pdf)
 
 [Большое сборник статей по мат. алгоритмам](https://minesweepergame.com/math-papers.php)
 
