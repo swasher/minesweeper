@@ -191,7 +191,7 @@ def do_strategy(strategy):
         clicking_cells(cells, button)
 
         matrix.update()
-        #matrix.display()
+        # matrix.display()
 
         if button == 'left':
             # Если в стратегии использовалась правая кнопка, т.е. ставились флажки, то игра не могла закончиться.

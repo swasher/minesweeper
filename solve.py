@@ -166,6 +166,8 @@ def solver_E1(matrix):
         # если ни у одной клетки нет решения, возвращаем пустой список
         solution = []
 
+    if solution:
+        ic('------ E1')
     return solution, Asset.nearby
 
 
