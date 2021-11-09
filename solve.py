@@ -1,7 +1,8 @@
 import itertools
 from random import randrange
 import numpy as np
-
+import math
+import util
 from config import config
 from asset import Asset
 from icecream import ic
@@ -98,26 +99,33 @@ def solver_B1(matrix):
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
-        # if config.turn_by_turn:
-        #     ic('------ B1')
-        #     ic(cell)
-        #     ic(closed, closed, flags)
-        #     ic(cell.digit, len(closed), len(flags))
-        #     result = (cell.digit == len(closed) + len(flags)) and len(closed)>0
-        #     ic(result)
-        #     cell.mark_cell_debug()
-
-        if (cell.digit == len(closed) + len(flags)) and len(closed)>0:
+        if (cell.digit == len(closed) + len(flags)) and len(closed) > 0:
             # значит во всех closed клетках есть бомбы
+
+            # вариант алгоритма с возвратом первой найденной ячейки
             # можно вернуть одну ячейку
             # return closed, 'right'
 
-            # или все найденные
             for c in closed:
                 cells.append(c)
-            ТУТ КАКАЯ ТО ХЕРНЯ
 
-    # если ни у одной клетки нет решения, возвращаем пустой список
+
+    # В список cells одна и та же ячейка может попасть несколько раз (при анализе разных "цифр"). Убираем дубликаты.
+    cells = util.remove_dup(cells)
+
+    # Алгоритм B1 выдает серию клеток; сортировать их в порядке "близости" на поле, а то он помечает их в хаотичном порядке
+    # Сделано довольно топорно - от сортирует в порядке возрастания расстояния от центра достки.
+    # В принцепе работает, но по феншую нужно сделать "ближайшее к текущей позиции", а затем к "новой текущей", типа рекурсии
+    center_x = matrix.region_x1 + (matrix.region_x2 - matrix.region_x1)/2
+    center_y = matrix.region_y1 + (matrix.region_y2 - matrix.region_y1)/2
+    cells = sorted(cells, key=lambda c: math.hypot(center_x - c.coordx, center_y - c.coordy))
+
+    # ic('------ B1')
+    # for cell in cells:
+        # ic(cell)
+        # cell.mark_cell_debug()
+    # input('wait...')
+
     return cells, Asset.flag
 
 
@@ -159,7 +167,6 @@ def solver_E1(matrix):
         solution = []
 
     return solution, Asset.nearby
-
 
 
 class Root(object):

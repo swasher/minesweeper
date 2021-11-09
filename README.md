@@ -34,7 +34,7 @@ TODO
 [ ] Если в начале игры на поле обнаруден крест - автоматически ставить игру в режим No Guess  
 [ ] Проверять, все ли файлы ассета в наличии  
 [ ] Провести эксперимент - играть руками в сапера на разных размерах и питоном записать распределение времени между кликами  
-[ ] Можно находить координаты для клика Reset автоматом по smile.png  
+[ ] Можно находить координаты для клика Reset автоматом по smile.png
 
 
 Installation
@@ -109,6 +109,7 @@ Search the screen for a specific element
 [Официальное сообщество Minesweeper](https://www.reddit.com/r/Minesweeper/)
 [Minesweeper and Hypothetical Thinking Action Research & Pilot Study PDF](https://files.eric.ed.gov/fulltext/ED509464.pdf)
 [Авторитетный сапер](http://www.minesweeper.info/)
+[Вероятности закрытых ячеек](https://docs.google.com/document/d/10YxF7QWxqVcl2Cgxo_mu6Q33uUjKxb9Q0F5gmp3r74c/edit)
 
 [Большое сборник статей по мат. алгоритмам](https://minesweepergame.com/math-papers.php)
 
@@ -122,4 +123,4 @@ Minesweeper boards
 [minesweeper.online](https://minesweeper.online/)  
 [Google minesweeper](https://www.google.com/fbx?fbx=minesweeper) 
 [minesweeperonline.com](https://minesweeperonline.com/)
-
+[Analize bot](https://davidnhill.github.io/JSMinesweeper/)

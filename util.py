@@ -16,6 +16,7 @@ from itertools import groupby
 from icecream import ic
 from config import config
 
+
 def pause(t=5):
     pressed = False
     print(f'Wait {t} sec, or type for pause')
@@ -46,7 +47,6 @@ def click(x, y, button):
     # print(dist)
     # time.sleep(1)
     mouse.move(x, y, absolute=True, duration=gauss_duration())
-
 
     if button in ['left', 'right']:
         mouse.click(button=button)
