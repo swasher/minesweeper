@@ -3,6 +3,7 @@ import cv2 as cv
 import util
 import win32gui
 import win32api
+import xxhash
 
 from asset import patterns, list_patterns
 from config import config
@@ -19,7 +20,9 @@ class Cell(object):
     w = 0
     h = 0
     status = ''
-    type = None  # Pattern instance
+    # type = None  # Pattern instance
+    image = None  # Current image of cell; ndarray
+    hash = 0
 
     def __init__(self, row, col, coordx, coordy, w, h):
         """
@@ -30,6 +33,8 @@ class Cell(object):
         :param w: ширина ячейки в пикселях
         :param h: высота ячейки в пикселях
         :param status: (str) 'closed' закрыто / 'opened' открыто / 'flag' флаг / digit(str)
+        :param image: ndarray - текущее изображение ячейки
+        :param hash: int - хэш изображения ячейки
 
         POSSIBLE STATUS:
         str - closed (default)
@@ -45,7 +50,7 @@ class Cell(object):
         self.w = w
         self.h = h
         self.status = 'closed'
-        self.type = patterns.closed
+        # self.type = patterns.closed
 
     def __repr__(self):
         return f'{self.status} ({self.row}:{self.col})'
@@ -166,36 +171,44 @@ class Cell(object):
         else:
             return -1
 
-    def update_cell(self, image):
+    def hashing(self):
+        c = self.image.copy(order='C')
+        h = xxhash.xxh64()
+        h.update(c)
+        intdigits = h.intdigest()
+        return intdigits
+
+    def update_cell(self, crop):
         """
         Обновляет содержимое ячейки в соответствии с полем Minesweeper
-        :param image: текущее изображение поля игры, после нажатия на клетку
-        :return:
+        :param crop: актуальное изображение ячейки
+        :return: None
         """
+        self.image = crop
+        hash = self.hashing()
+        if self.hash != hash:
+            self.hash = hash
 
-        # image_cell содержит пиксельную матрицы соотв. ячейки
-        image_cell = image[self.coordy:self.coordy+self.h, self.coordx:self.coordx+self.w]
+            precision = 0.8
 
-        precision = 0.8
+            # TODO какая есть мысля ускорить процесс
+            # TODO нужно уменьшить кол-во выполнения этого цикла, путем прерываения при нахождении
+            # TODO какого-то процента совпадения. Сначала нужно сравнивать с открытой и закрытой ячейками, потом с остальными.
 
-        # TODO какая есть мысля ускорить процесс
-        # TODO нужно уменьшить кол-во выполнения этого цикла, путем прерываения при нахождении
-        # TODO какого-то процента совпадения. Сначала нужно сравнивать с открытой и закрытой ячейками, потом с остальными.
+            for patt in list_patterns:  # list_patterns imported from cell_pattern
+                template = patt.raster
+                res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
+                min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+                # print(f'Cell {self.row}:{self.col} compared with {pattern} with result {max_val}')
+                patt.similarity = max_val
 
-        for patt in list_patterns:  # list_patterns imported from cell_pattern
-            template = patt.raster
-            res = cv.matchTemplate(image_cell, template, cv.TM_CCOEFF_NORMED)
-            min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-            # print(f'Cell {self.row}:{self.col} compared with {pattern} with result {max_val}')
-            patt.similarity = max_val
+            best_match = sorted(list_patterns, key=lambda x: x.similarity, reverse=True)[0]
 
-        best_match = sorted(list_patterns, key=lambda x: x.similarity, reverse=True)[0]
-
-        if best_match.similarity > precision:
-            self.status = best_match.name
-        else:
-            print(f'Cell {self.row}x{self.col} do not match anything. Exit')
-            exit()
+            if best_match.similarity > precision:
+                self.status = best_match.name
+            else:
+                print(f'Cell {self.row}x{self.col} do not match anything. Exit')
+                exit()
 
     def mark_cell_debug(self):
         """

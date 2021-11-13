@@ -9,6 +9,13 @@ Demo 2 (3 solve strategy):
 
 ![demo2.gif](.github/demo2.gif)
 
+Demo 3 (5 solve strategy):  
+----------------------------------------
+
+![demo3.gif](.github/demo3.gif)
+
+
+
 TODO
 ----------------------------------------  
 
@@ -68,10 +75,16 @@ Efficiency
 Perfomance
 ====================
 
-No guessing medium
----------------------
+level 3 algorithm
+------------------
 
-84.75% win (total 59 games) [level 3 algorithm]
+*Professional*
+10% (total 20 games)
+
+*No guessing medium*
+84.75% win (total 59 games)
+
+
 
 Installation
 =====================

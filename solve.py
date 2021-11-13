@@ -72,8 +72,6 @@ def solver_R1(matrix):
     qty = len(cells)
     random_cell = cells[randrange(qty)]
 
-    # TODO при игре на виенне плохо опознает выигрышный конец
-
     # if config.turn_by_turn:
     #     ic('------ R1')
     #     ic(random_cell)
@@ -166,8 +164,6 @@ def solver_E1(matrix):
         # если ни у одной клетки нет решения, возвращаем пустой список
         solution = []
 
-    if solution:
-        ic('------ E1')
     return solution, Asset.nearby
 
 

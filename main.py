@@ -184,16 +184,18 @@ def do_strategy(strategy):
         # print(f'- do strategy')
         # print(f'- click {button} on:', cells)
 
-        if config.turn_by_turn:
-            for c in cells:
-                c.mark_cell_debug()
-            input("Press Enter to mouse moving")
+        # debug
+        # if config.turn_by_turn:
+        #     for c in cells:
+        #         c.mark_cell_debug()
+        #     input("Press Enter to mouse moving")
+
         clicking_cells(cells, button)
 
         matrix.update()
         # matrix.display()
 
-        if button == 'left':
+        if button in ['left', 'both']:
             # Если в стратегии использовалась правая кнопка, т.е. ставились флажки, то игра не могла закончиться.
             # Проверяем только если использовалась левая - т.е. открывались клетки.
             if matrix.you_win:
@@ -250,9 +252,10 @@ def recursive_wrapper(strategies):
         print('Complete in', (after-before).seconds, 'sec')
         print(f'Win {win}, fail {total - win} (need win {need_win} and total {need_total})')
 
-        # TODO сделать через настройки
-        t = random.randrange(3, 6)
-        pause(t)
+        # пауза примерно t секунд, если t не ноль
+        if t := config.beetwen_games:
+            t = abs(random.gauss(t, 2))
+            pause(t)
 
         cont = (bool(need_win) and win < need_win) or (bool(need_total) and total < need_total)
         if not cont:
@@ -270,7 +273,7 @@ def recursive_wrapper(strategies):
 if __name__ == '__main__':
 
     col_values, row_values, region = find_board(patterns, Asset)
-    matrix = Matrix(row_values, col_values, region, patterns)
+    matrix = Matrix(row_values, col_values, region)
 
     # matrix.bomb_counter2()
 

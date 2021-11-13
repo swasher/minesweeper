@@ -35,6 +35,8 @@ class Configuration(object):
         bool_val = config.getboolean('section_a', 'bool_val')
         int_val = config.getint('section_a', 'int_val')
         """
+        # main
+        self.beetwen_games = conf.getint('main', 'beetwen_games')
         # game
         self.noguess = conf.getboolean('game', 'noguess')
         self.need_win_parties = conf.getint('game', 'need_win_parties')

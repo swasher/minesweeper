@@ -26,12 +26,17 @@ class Matrix(object):
     height = 0  # height of matrix (number of rows)
     width = 0  # width of matrix (number of cols)
 
-    def __init__(self, row_values, col_values, region, patterns):
+    def __init__(self, row_values, col_values, region):
         """
         Заполняет Matrix пустыми объектами Cell
         :param num_rows:
         :param num_cols:
         """
+        self.region_x1, self.region_y1, self.region_x2, self.region_y2 = region
+        cell.Cell.ident_right = self.region_x1
+        cell.Cell.ident_top = self.region_y1
+
+        self.image = self.get_image()
         self.height = len(row_values)
         self.width = len(col_values)
 
@@ -40,13 +45,11 @@ class Matrix(object):
         template = patterns.closed.raster
         h, w = template.shape[:2]
 
-        self.region_x1, self.region_y1, self.region_x2, self.region_y2 = region
-        cell.Cell.ident_right = self.region_x1
-        cell.Cell.ident_top = self.region_y1
-
         for row, coordy in enumerate(row_values):  # cell[строка][столбец]
             for col, coordx in enumerate(col_values):
                 c = cell.Cell(row, col, coordx, coordy, w, h)
+                c.image = self.image_cell(c)
+                c.hash = c.hashing()
                 self.table[row, col] = c
 
     def display(self):
@@ -221,6 +224,13 @@ class Matrix(object):
         """
         return self.region_x1, self.region_y1, self.region_x2, self.region_y2
 
+    def image_cell(self, cell):
+        """
+        вырезает из image сооветствующую ячейку.
+        :return: ndarray (image)
+        """
+        return self.image[cell.coordy:cell.coordy+cell.h, cell.coordx:cell.coordx+cell.w]
+
     def update(self):
         """
         Запускает обновление всех ячеек в соответствии с полем Minesweeper
@@ -231,9 +241,10 @@ class Matrix(object):
         if Asset.LAG:
             time.sleep(Asset.LAG)
 
-        image = self.get_image()
+        self.image = self.get_image()
         for cell in self.get_closed_cells():
-            cell.update_cell(image)
+            crop = self.image_cell(cell)
+            cell.update_cell(crop)
 
     @property
     def you_fail(self):

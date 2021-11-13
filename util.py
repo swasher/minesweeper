@@ -18,14 +18,19 @@ from config import config
 
 
 def pause(t=5):
+    """
+    Пауза длительностью t секунд.
+    Можно остановить обратный отсчет, нажав любую клавишу.
+    :param t:
+    :return:
+    """
     pressed = False
-    print(f'Wait {t} sec, or type for pause')
-    for i in range(t*10, 0, -1):
+    print(f'Wait {t:.1f} sec, or type for pause')
+    for i in range(round(t*10), 0, -1):
         if msvcrt.kbhit():
             # key = msvcrt.getch()
             pressed = True
             break
-        # print(f'\b{i}')
         print(f'\b\b\b{i/10:.1f}', end='')
         time.sleep(0.1)
     print('\b\b\b', end='')
@@ -243,9 +248,12 @@ def gauss_duration():
     if config.mouse_duration > 0:
         mu = config.mouse_duration      # Значение в "центре" колокола
         sigma = config.mouse_gaussian   # Значения " по бокам" колокола, то есть отклонение от центра
-        gauss = np.random.normal(mu, sigma, 1000)
-        gauss = gauss[gauss > config.minimum_delay]     # remove all negative and very small
-        return random.choice(gauss)
+        # deprecated
+        # gauss = np.random.normal(mu, sigma, 1000)
+        # gauss = gauss[gauss > config.minimum_delay]     # remove all negative and very small
+        # return random.choice(gauss)
+        gauss = random.gauss(mu, sigma)
+        return gauss
     else:
         return 0
 
