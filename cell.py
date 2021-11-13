@@ -102,7 +102,7 @@ class Cell(object):
 
     @property
     def is_bomb(self):
-        return True if self.status == 'bomb' else False
+        return True if self.status in ['bomb', 'red_bomb'] else False
 
     @property
     def is_digit(self):
