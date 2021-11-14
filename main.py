@@ -25,6 +25,7 @@ from solver import solver_B1
 from solver import solver_E1
 from solver import solver_E2
 from solver import solver_B2
+from solver import solver_B1E1
 from solver import solver_noguess
 from solver import noguess_finish
 
@@ -132,25 +133,26 @@ def draw():
 
 def clicking_cells(cells, button):
     for cell in cells:
+        matrix.lastclicked = cell
         cell.click(button)
 
 
 def do_strategy(strategy):
     """
-    Обертка для выполнения "стратегии" - после того как алгоритм найдет, что нажимать, эта функция нажимает
+    Обертка для выполнения "стратегии" - после того как алгоритм `strategy` найдет, что нажимать, эта функция нажимает
     нужные клетки, обновляет matrix, пишет лог и так далее.
 
     Результат работы любой стратегии - список клеток, которые нужно нажать правой или левой кнопкой.
 
     :param strategy: [function] Одна из функий из модуля solve, напр. можно передать сюда стратегию solver_E1 или solver_R1
     :return: have_a_move: [boolean] - True, если стратегия выполнила ходы
+    :return: win_or_fail: [string] - 'win', если ход закончил игру выигрышем, 'fail' если ход закончил игру проигрышем, и None если игра после хода не закончилась
     """
 
     # TODO Сделать, чтобы можно было прервать процесс с клавиатуры
     # TODO Пример, как это можно реализовать через потоки - keyboard_in_thread.py
 
     name = strategy.__name__
-    print(name)
 
     # debug
     if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
@@ -188,7 +190,13 @@ def do_strategy(strategy):
         #         c.mark_cell_debug()
         #     input("Press Enter to mouse moving")
 
-        clicking_cells(cells, button)
+        if config.noflag and name in ['solver_B1', 'solver_B2']:
+            # в этом режиме мы должны только "запомнить", т.е. пометить в матрице, где флаги,
+            # вместо того, чтобы реально отмечать их на поле
+            for cell in cells:
+                cell.set_flag()
+        else:
+            clicking_cells(cells, button)
 
         matrix.update()
         # matrix.display()
@@ -275,7 +283,8 @@ if __name__ == '__main__':
     # debug - test perfomance
     # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
 
-    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
     recursive_wrapper(strategies)
 
 

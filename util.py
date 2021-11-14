@@ -55,7 +55,7 @@ def human_mouse_speed(distance):
     y = [1.47, 0.4, 0.17]
     f = interpolate.interp1d(x, y, fill_value="extrapolate")
     per100px = f(distance)
-    t = distance * per100px / 100 / 3
+    t = distance * per100px / 100 / 3.5
     return t
 
 
@@ -67,7 +67,6 @@ def click(x, y, button):
     # time.sleep(1)
     # mouse.move(x, y, absolute=True, duration=gauss_duration())
     duration = human_mouse_speed(dist)
-    print(f'Dist {dist}, duration {duration}')
     if duration < 0:
         duration = 0
     mouse.move(x, y, absolute=True, duration=duration)

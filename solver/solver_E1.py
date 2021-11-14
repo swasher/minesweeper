@@ -1,3 +1,4 @@
+from config import config
 from asset import Asset
 
 
@@ -17,8 +18,11 @@ def solver_E1(matrix):
     Алгоритм сканирует все поле по этому принципу, затем выбирает ту ячейку, у которой максимальное кол-во пустых клеток.
 
     HINT: Такие ячейки можно "вскрыть" левым или "both" кликом - откроются все вокруг.
+    КРОМЕ режима noflag - тогда отдаем все нужные ячейки
     """
     cells = []
+    button = Asset.nearby
+
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
@@ -30,6 +34,11 @@ def solver_E1(matrix):
     if cells:
         solution = [max(cells, key=lambda item: item.nearby_closed)]
 
+        if config.noflag:
+            # todo тут говно год... Завязана логика поиска решений на тип игры (noflag)
+            solution = matrix.around_closed_cells(solution[0])
+            button = Asset.open
+
         # if config.turn_by_turn:
         #     ic('------ E1')
         #     ic(solution)
@@ -38,7 +47,7 @@ def solver_E1(matrix):
         # если ни у одной клетки нет решения, возвращаем пустой список
         solution = []
 
-    return solution, Asset.nearby
+    return solution, button
 
 
 

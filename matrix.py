@@ -1,3 +1,4 @@
+import math
 import numpy
 import mss
 import numpy as np
@@ -51,6 +52,12 @@ class Matrix(object):
                 c.image = self.image_cell(c)
                 c.hash = c.hashing()
                 self.table[row, col] = c
+
+        self.lastclicked = self.table[0, 0]
+
+    def cell_distance(self, cell1, cell2):
+        d = math.hypot(cell1.row - cell2.row, cell1.col - cell2.col)
+        return d
 
     def display(self):
         """
@@ -158,10 +165,11 @@ class Matrix(object):
         Возвращает список открытых ячеек (отличных от 0)
         :return: array of Cell objects
         """
-        cells = []
-        for cell in self.table.flat:
-            if cell.is_digit:
-                cells.append(cell)
+        # cells = []
+        # for cell in self.table.flat:
+        #     if cell.is_digit:
+        #         cells.append(cell)
+        cells = list([x for x in self.table.flat if x.is_digit])
         return cells
 
     def get_bomb_cells(self):

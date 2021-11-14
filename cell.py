@@ -121,6 +121,9 @@ class Cell(object):
     def is_noguess(self):
         return True if self.status == 'noguess' else False
 
+    def set_flag(self):
+        self.status = 'flag'
+
     def cell_random_coordinates(self):
         """
         :return: Координаты для клика с учетом рандомизации внутри ячейки
