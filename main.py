@@ -7,6 +7,7 @@ import mss
 import numpy as np
 import pickle
 import timeit
+import secrets
 from datetime import datetime
 from icecream import ic
 ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
@@ -19,13 +20,14 @@ from asset import Asset
 from util import search_pattern_in_image
 from matrix import Matrix
 
-from solve import solver_R1
-from solve import solver_B1
-from solve import solver_E1
-from solve import solver_B2
-from solve import solver_E2
-from solve import solver_noguess
-from solve import noguess_finish
+from solver import solver_R1
+from solver import solver_B1
+from solver import solver_E1
+from solver import solver_E2
+from solver import solver_B2
+from solver import solver_noguess
+from solver import noguess_finish
+
 
 
 """
@@ -49,13 +51,9 @@ First number - its OUTER list,
 second number - INNER list
 
 So first numer - it'a apply to line number or ROW
-and second number - it is COLUMN 
-
+and second number - it is COLUMN: table[row, col]  
+ 
 For example, [1, 2] - it's second row and third column.
-
-"Первая" ось 0 это по строкам, "вторая" - по столбцам
-table[строка, столбец]
-table[row, col]
 
         axis 1
        col0  col1  col2
@@ -152,6 +150,7 @@ def do_strategy(strategy):
     # TODO Пример, как это можно реализовать через потоки - keyboard_in_thread.py
 
     name = strategy.__name__
+    print(name)
 
     # debug
     if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
@@ -159,7 +158,6 @@ def do_strategy(strategy):
 
     # if move is random click - save board to PNG and Pickle file (board object)
     # todo move it to separate file
-    import secrets
     if name == 'solver_R1' and config.save_game_R1 and len(matrix.get_open_cells()) > 15:
         random_string = secrets.token_hex(2)
         date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
@@ -222,13 +220,11 @@ def recusive_strategy(i):
         return recusive_strategy(i)
 
 
-from global_ import clicks
 def recursive_wrapper(strategies):
     if config.noguess:  # режим 'без отгадывания'
         strategies.remove(solver_R1)
         strategies.append(noguess_finish)
         matrix.update()
-
 
     need_win = config.need_win_parties
     need_total = config.need_total_parties
@@ -267,7 +263,6 @@ def recursive_wrapper(strategies):
     print(f'WIN: {win}')
     print(f'FAIL: {total-win}')
     print(f'WIN PERCENT: {win*100/total:.2f}')
-
 
 
 if __name__ == '__main__':

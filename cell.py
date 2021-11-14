@@ -189,23 +189,26 @@ class Cell(object):
         if self.hash != hash:
             self.hash = hash
 
-            precision = 0.8
-
-            # TODO какая есть мысля ускорить процесс
-            # TODO нужно уменьшить кол-во выполнения этого цикла, путем прерываения при нахождении
-            # TODO какого-то процента совпадения. Сначала нужно сравнивать с открытой и закрытой ячейками, потом с остальными.
+            precision = 0.99
 
             for patt in list_patterns:  # list_patterns imported from cell_pattern
                 template = patt.raster
                 res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
                 # print(f'Cell {self.row}:{self.col} compared with {pattern} with result {max_val}')
-                patt.similarity = max_val
+                # patt.similarity = max_val
+                if max_val > precision:
+                    self.status = patt.name
+                    break
 
-            best_match = sorted(list_patterns, key=lambda x: x.similarity, reverse=True)[0]
+            # deprecated
+            # был вариант находить для каждого паттерна индекс "похожести" и выбирать наибольший
+            # но по сути все совпадения имеют индекс более 0,9999 или 1,0, так что нет смысла заморачиваться
+            # best_match = sorted(list_patterns, key=lambda x: x.similarity, reverse=True)[0]
+            # print(best_match.similarity)
 
-            if best_match.similarity > precision:
-                self.status = best_match.name
+            # if best_match.similarity > precision:
+            #     self.status = best_match.name
             else:
                 print(f'Cell {self.row}x{self.col} do not match anything. Exit')
                 exit()

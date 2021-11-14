@@ -6,12 +6,14 @@ No import high level objects in UTIL! (like classes)
 import os
 import math
 import numpy as np
+from scipy import interpolate
 import cv2 as cv
 import ctypes
 import mouse
 import msvcrt
 import random
 import time
+
 from itertools import groupby
 from icecream import ic
 from config import config
@@ -42,16 +44,33 @@ def pause(t=5):
             k = msvcrt.kbhit()
 
 
+def human_mouse_speed(distance):
+    """
+    Возвращает время в секундах, за которое человек проведет мышью расстояние distance (в пикселях).
+    Замеры смотри в track_mouse_when_man_playing.py
+    :param distance: int
+    :return: float
+    """
+    x = [30, 280, 660]
+    y = [1.47, 0.4, 0.17]
+    f = interpolate.interp1d(x, y, fill_value="extrapolate")
+    per100px = f(distance)
+    t = distance * per100px / 100 / 3
+    return t
+
+
 def click(x, y, button):
     oldx, oldy = mouse.get_position()
-
-    from global_ import clicks
-    clicks += 1
 
     dist = math.hypot(oldx - x, oldy - y)
     # print(dist)
     # time.sleep(1)
-    mouse.move(x, y, absolute=True, duration=gauss_duration())
+    # mouse.move(x, y, absolute=True, duration=gauss_duration())
+    duration = human_mouse_speed(dist)
+    print(f'Dist {dist}, duration {duration}')
+    if duration < 0:
+        duration = 0
+    mouse.move(x, y, absolute=True, duration=duration)
 
     if button in ['left', 'right']:
         mouse.click(button=button)
@@ -252,7 +271,7 @@ def gauss_duration():
         # gauss = np.random.normal(mu, sigma, 1000)
         # gauss = gauss[gauss > config.minimum_delay]     # remove all negative and very small
         # return random.choice(gauss)
-        gauss = random.gauss(mu, sigma)
+        gauss = abs(random.gauss(mu, sigma))
         return gauss
     else:
         return 0

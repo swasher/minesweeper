@@ -100,7 +100,7 @@ for f in pics:
 # Создаем список patterns - который содержит все изображения клеток. Его тип - SimpleNamespace
 # К нему можно обращаться patterns.bomb или patterns.n3
 # Так же делаем list_patterns - это просто tuple всех паттернов.
-keys = ['n' + str(x) for x in range(7)]
+keys = ['n' + str(x) for x in range(8)]
 # TODO в теории ниже должно быть range(9) - но изображение восьмерки очень сложно поймать.
 numbered_cells = [Asset(f'{i}', f'{directory}/{i}.png') for i in range(8)]
 d = dict(zip(keys, numbered_cells))
@@ -122,6 +122,13 @@ if Asset.allow_noguess:
 list_patterns = []
 for name, obj in patterns.__dict__.items():
     list_patterns.append(obj)
+
+# TODO говногод
+#      но я хз как сделать красиво. Суть в том, что дальше мы будем очень часто итерировать этот список.
+#      и для увеличения производительности самые часто встечающиеся элементы должны быть в начале списка. Это 0 и closed
+list_patterns.remove(patterns.closed)
+list_patterns.insert(0, patterns.closed)
+
 
 # Список цифр, используемых на поле в подсчете бомб и секунд
 red_digits = [Asset(f'clock{i}', f'{directory}/clock_{i}.png') for i in range(10)]
