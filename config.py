@@ -40,6 +40,7 @@ class Configuration(object):
         # game
         self.noguess = conf.getboolean('game', 'noguess')
         self.noflag = conf.getboolean('game', 'noflag')
+        self.arena = conf.getboolean('game', 'arena')
         self.need_win_parties = conf.getint('game', 'need_win_parties')
         self.need_total_parties = conf.getint('game', 'need_total_parties')
         # mouse

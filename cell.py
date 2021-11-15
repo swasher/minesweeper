@@ -198,7 +198,7 @@ class Cell(object):
                 template = patt.raster
                 res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-                print(f'Cell {self.row}:{self.col} compared with {patt.name} with result {max_val}')
+                # print(f'Cell {self.row}:{self.col} compared with {patt.name} with result {max_val}')
                 patt.similarity = max_val
                 if max_val > precision:
                     self.status = patt.name
@@ -216,19 +216,29 @@ class Cell(object):
                 print(f'Cell {self.row}x{self.col} do not match anything. Exit')
                 exit()
 
-    def mark_cell_debug(self):
+    def mark_cell_debug(self, color, dist=6, size=8):
         """
         Draw small square on current cell right on Minesweeper board.
         Use it for debug purpose (mark cell)
-        TODO научить рисовать разными цветами
         :return:
         """
-        dc = win32gui.GetDC(0)
-        red = win32api.RGB(255, 0, 0)
-        win32gui.SetBkColor(dc, red)
-        # win32gui.SetPixel(dc, 0, 0, red)  # draw red at 0,0
-        win32gui.Rectangle(dc, self.abscoordx+6, self.abscoordy+6,
-                           self.abscoordx+18, self.abscoordy+18)
+        select = {
+            'red': win32api.RGB(255, 0, 0),
+            'green': win32api.RGB(0, 255, 0),
+            'blue': win32api.RGB(0, 0, 255),
+            'yellow': win32api.RGB(255, 255, 0),
+            'cyan': win32api.RGB(0, 255, 255),
+            'magenta': win32api.RGB(255, 0, 255),
+        }
 
-        win32gui.MoveToEx(dc, self.abscoordx+9, self.abscoordy+9)
-        win32gui.LineTo(dc, self.abscoordx+9, self.abscoordy+9)
+        dc = win32gui.GetDC(0)
+        rect = (self.abscoordx+dist, self.abscoordy+dist, self.abscoordx+dist+size, self.abscoordy+dist+size)
+
+        # win32gui.SetBkColor(dc, red)
+        # win32gui.Rectangle(dc, self.abscoordx+6, self.abscoordy+6, self.abscoordx+18, self.abscoordy+18)
+
+        brush = win32gui.CreateSolidBrush(select[color])
+        win32gui.FillRect(dc, rect, brush)
+
+        # win32gui.MoveToEx(dc, self.abscoordx+9, self.abscoordy+9)
+        # win32gui.LineTo(dc, self.abscoordx+9, self.abscoordy+9)

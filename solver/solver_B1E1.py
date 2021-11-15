@@ -102,13 +102,33 @@ def solver_B1E1(matrix):
     #
     # Выбираем, что возвращать
     #
-    if dist_b1 or dist_e1:
-        if dist_b1 >= dist_e1:
-            return cells_b1[0:1], button_b1
-        else:
-            return solution_e1, button_e1
+
+    # - debug
+    # matrix.lastclicked.mark_cell_debug('magenta')
+    # for cc in cells_b1:
+    #     cc.mark_cell_debug('red')
+    # for cc in cells_e1:
+    #     cc.mark_cell_debug('yellow')
+    # print(f'cells B1: <{dist_b1}> {cells_b1}')
+    # print(f'cells E1: <{dist_e1}> {cells_e1}')
+    # - end debug
+
+    # todo говно код, но лучше ничего не придумал.
+    if dist_b1 == 0 and dist_e1 == 0:
+        c, b = [], None
+    elif dist_b1 > 0 and dist_e1 == 0:
+        c, b = cells_b1[0:1], button_b1
+    elif dist_b1 == 0 and dist_e1 > 0:
+        c, b = solution_e1, button_e1
+    elif dist_b1 > dist_e1:
+        c, b = solution_e1, button_e1
     else:
-        return [], None
+        c, b = cells_b1[0:1], button_b1
+
+    # if c:
+    #     c[0].mark_cell_debug('green', dist=12, size=12)
+    # print(f'Result: {b} on {c}\n')
+    return c, b
 
 
 

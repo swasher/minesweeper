@@ -5,3 +5,4 @@ from .solver_E1 import *
 from .solver_B2 import *
 from .solver_E2 import *
 from .solver_B1E1 import *
+from .solver_human import *

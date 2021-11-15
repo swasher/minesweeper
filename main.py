@@ -26,6 +26,7 @@ from solver import solver_E1
 from solver import solver_E2
 from solver import solver_B2
 from solver import solver_B1E1
+from solver import solver_human
 from solver import solver_noguess
 from solver import noguess_finish
 
@@ -229,6 +230,7 @@ def recusive_strategy(i):
 
 
 def recursive_wrapper(strategies):
+    global matrix
     if config.noguess:  # режим 'без отгадывания'
         strategies.remove(solver_R1)
         strategies.append(noguess_finish)
@@ -254,17 +256,21 @@ def recursive_wrapper(strategies):
             pass
 
         print('Complete in', (after-before).seconds, 'sec')
-        print(f'Win {win}, fail {total - win} (need win {need_win} and total {need_total})')
+        print(f'Total: {total}, win: {win}, fail: {total - win} (need {need_win} win and {need_total} total)')
 
-        # пауза примерно t секунд, если t не ноль
-        if t := config.beetwen_games:
-            t = abs(random.gauss(t, 2))
+        # пауза примерно `beetwen_games` секунд, если оно не ноль
+        if config.beetwen_games:
+            t = abs(random.gauss(config.beetwen_games, 2))
             pause(t)
 
-        cont = (bool(need_win) and win < need_win) or (bool(need_total) and total < need_total)
-        if not cont:
+        contin = (bool(need_win) and win < need_win) or (bool(need_total) and total < need_total)
+        if not contin:
             break
         matrix.reset()
+        if config.arena:
+            col_values, row_values, region = find_board(patterns, Asset)
+            matrix = Matrix(row_values, col_values, region)
+        matrix.update()
 
     print('\n=============')
     print(f'TOTALS: {total}')
@@ -274,7 +280,6 @@ def recursive_wrapper(strategies):
 
 
 if __name__ == '__main__':
-
     col_values, row_values, region = find_board(patterns, Asset)
     matrix = Matrix(row_values, col_values, region)
 
@@ -285,6 +290,13 @@ if __name__ == '__main__':
 
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
     strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
+
+    config.human = True
+    if config.human:  # режим 'без отгадывания'
+        strategies.remove(solver_R1)
+        strategies.append(solver_human)
+        matrix.update()
+
     recursive_wrapper(strategies)
 
 
