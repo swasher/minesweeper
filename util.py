@@ -54,15 +54,7 @@ def human_mouse_speed(distance):
     """
     x = [30, 280, 660]
     y = [1.47, 0.4, 0.17]
-
-
-    # scipy version
-    # f = interpolate.interp1d(x, y, fill_value="extrapolate")
-    # per100px = f(distance)
-
-    # numpy version
     per100px = np.interp(distance, x, y)
-
     t = distance * per100px / 100 / 3
     return t
 
@@ -220,7 +212,7 @@ def search_pattern_in_image(pattern, image, precision):
 
     cells = []
     # debug - view found cells
-    # dc = win32gui.GetDC(0)
+    dc = win32gui.GetDC(0)
     while max_val > precision:
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
