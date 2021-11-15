@@ -198,7 +198,7 @@ class Cell(object):
                 template = patt.raster
                 res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-                print(f'Cell {self.row}:{self.col} compared with {patt.name} with result {max_val}')
+                # print(f'Cell {self.row}:{self.col} compared with {patt.name} with result {max_val}')
                 patt.similarity = max_val
                 if max_val > precision:
                     self.status = patt.name

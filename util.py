@@ -63,7 +63,7 @@ def human_mouse_speed(distance):
     # numpy version
     per100px = np.interp(distance, x, y)
 
-    t = distance * per100px / 100 / 3.5
+    t = distance * per100px / 100 / 3
     return t
 
 
@@ -219,7 +219,8 @@ def search_pattern_in_image(pattern, image, precision):
     max_val = 1
 
     cells = []
-    dc = win32gui.GetDC(0)
+    # debug - view found cells
+    # dc = win32gui.GetDC(0)
     while max_val > precision:
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
@@ -228,11 +229,13 @@ def search_pattern_in_image(pattern, image, precision):
             image = cv.rectangle(image, (max_loc[0], max_loc[1]), (max_loc[0] + w + 1, max_loc[1] + h + 1), (0, 255, 0))
             cellule = (max_loc[0], max_loc[1], max_val)
             cells.append(cellule)
-            # `debug` cv.putText(image, str(x), (max_loc[0]+3, max_loc[1]+10), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
 
+            # debug - put digit on found cells
+            # cv.putText(image, str(x), (max_loc[0]+3, max_loc[1]+10), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
 
-            x, y = max_loc[0], max_loc[1]
-            win32gui.Rectangle(dc, x + 3, y + 3, x + 8, y + 8)
+            # debug - view found cells
+            # x, y = max_loc[0], max_loc[1]
+            # win32gui.Rectangle(dc, x + 3, y + 3, x + 8, y + 8)
 
     # # DEBUG; YOU CAN SEE WHAT GRABBING
     # # draw at each cell it's row and column number

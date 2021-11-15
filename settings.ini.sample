@@ -12,6 +12,8 @@ noguess = 1
 ; int сколько партий нужно сыграть подряд - всего или выигрышных
 need_win_parties = 3
 need_total_parties = 0
+; noflag mode
+noflag = 0
 
 [mouse]
 ; bool нужно ли рандомизировать координаты кликов внутри ячейки
