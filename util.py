@@ -6,13 +6,14 @@ No import high level objects in UTIL! (like classes)
 import os
 import math
 import numpy as np
-from scipy import interpolate
+# from scipy import interpolate
 import cv2 as cv
 import ctypes
 import mouse
 import msvcrt
 import random
 import time
+import win32gui
 
 from itertools import groupby
 from icecream import ic
@@ -53,8 +54,15 @@ def human_mouse_speed(distance):
     """
     x = [30, 280, 660]
     y = [1.47, 0.4, 0.17]
-    f = interpolate.interp1d(x, y, fill_value="extrapolate")
-    per100px = f(distance)
+
+
+    # scipy version
+    # f = interpolate.interp1d(x, y, fill_value="extrapolate")
+    # per100px = f(distance)
+
+    # numpy version
+    per100px = np.interp(distance, x, y)
+
     t = distance * per100px / 100 / 3.5
     return t
 
@@ -211,6 +219,7 @@ def search_pattern_in_image(pattern, image, precision):
     max_val = 1
 
     cells = []
+    dc = win32gui.GetDC(0)
     while max_val > precision:
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
@@ -220,6 +229,10 @@ def search_pattern_in_image(pattern, image, precision):
             cellule = (max_loc[0], max_loc[1], max_val)
             cells.append(cellule)
             # `debug` cv.putText(image, str(x), (max_loc[0]+3, max_loc[1]+10), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+
+
+            x, y = max_loc[0], max_loc[1]
+            win32gui.Rectangle(dc, x + 3, y + 3, x + 8, y + 8)
 
     # # DEBUG; YOU CAN SEE WHAT GRABBING
     # # draw at each cell it's row and column number

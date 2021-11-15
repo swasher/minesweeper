@@ -84,7 +84,7 @@ def find_board(pattern, asset):
         screenshot = sct.grab(region)
         raw = np.array(screenshot)
     image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
-    precision = 0.9
+    precision = 0.8
 
     cells = search_pattern_in_image(pattern.closed.raster, image, precision)
     cells_coord_x, cells_coord_y = cell_coordinates(cells)
