@@ -191,7 +191,7 @@ def do_strategy(strategy):
         #         c.mark_cell_debug()
         #     input("Press Enter to mouse moving")
 
-        if config.noflag and name in ['solver_B1', 'solver_B2']:
+        if config.noflag and name in ['solver_B1', 'solver_B2', 'solver_E1B1']:
             # в этом режиме мы должны только "запомнить", т.е. пометить в матрице, где флаги,
             # вместо того, чтобы реально отмечать их на поле
             for cell in cells:
@@ -288,11 +288,11 @@ if __name__ == '__main__':
     # debug - test perfomance
     # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
 
-    # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
-    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
     config.human = True
-    if config.human:  # режим 'без отгадывания'
+    if config.human:  # режим 'human'
         strategies.remove(solver_R1)
         strategies.append(solver_human)
         matrix.update()

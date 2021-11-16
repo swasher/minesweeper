@@ -192,7 +192,7 @@ class Cell(object):
         if self.hash != hash:
             self.hash = hash
 
-            precision = 0.9
+            precision = 0.8
 
             for patt in list_patterns:  # list_patterns imported from cell_pattern
                 template = patt.raster
