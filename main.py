@@ -156,8 +156,8 @@ def do_strategy(strategy):
     name = strategy.__name__
 
     # debug
-    if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
-        print(name)
+    # if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
+    #     print(name)
 
     # if move is random click - save board to PNG and Pickle file (board object)
     # todo move it to separate file
@@ -242,6 +242,7 @@ def recursive_wrapper(strategies):
     total = 0
 
     while True:
+        print('-new round')
         i = 0
         before = datetime.now()
         if config.noguess:
@@ -255,8 +256,8 @@ def recursive_wrapper(strategies):
         elif win_or_fail == 'fail':
             pass
 
-        print('Complete in', (after-before).seconds, 'sec')
-        print(f'Total: {total}, win: {win}, fail: {total - win} (need {need_win} win and {need_total} total)')
+        print(f'{win_or_fail} in', (after-before).seconds, 'sec')
+        print(f'Total: {total}, win: {win}, fail: {total - win} (need {need_win} win and {need_total} total)\n')
 
         # пауза примерно `beetwen_games` секунд, если оно не ноль
         if config.beetwen_games:
@@ -291,7 +292,7 @@ if __name__ == '__main__':
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
     strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
-    config.human = True
+    config.human = False
     if config.human:  # режим 'human'
         strategies.remove(solver_R1)
         strategies.append(solver_human)

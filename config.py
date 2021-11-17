@@ -35,8 +35,11 @@ class Configuration(object):
         bool_val = config.getboolean('section_a', 'bool_val')
         int_val = config.getint('section_a', 'int_val')
         """
+        self.asset = conf.get('main', 'asset')
+
         # main
         self.beetwen_games = conf.getint('main', 'beetwen_games')
+        self.reset_pause = conf.getfloat('main', 'reset_pause')
         # game
         self.noguess = conf.getboolean('game', 'noguess')
         self.noflag = conf.getboolean('game', 'noflag')
@@ -53,7 +56,16 @@ class Configuration(object):
         self.turn_by_turn = conf.getboolean('debug', 'turn_by_turn')
         self.icecream = conf.getboolean('debug', 'icecream')
 
-        self.asset = conf.get('main', 'asset')
+        self.left = conf.getint(self.asset, 'left')
+        self.right = conf.getint(self.asset, 'right')
+        self.top = conf.getint(self.asset, 'top')
+        self.bottom = conf.getint(self.asset, 'bottom')
+        self.smile_y_coord = conf.getint(self.asset, 'smile_y_coord')
+        self.allow_noguess = conf.getboolean(self.asset, 'allow_noguess')
+        self.LAG = conf.getfloat(self.asset, 'LAG')
+        self.flag = conf.get(self.asset, 'flag')
+        self.open = conf.get(self.asset, 'open')
+        self.nearby = conf.get(self.asset, 'nearby')
 
 
 config = Configuration()

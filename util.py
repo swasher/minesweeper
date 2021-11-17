@@ -55,7 +55,7 @@ def human_mouse_speed(distance):
     x = [30, 280, 660]
     y = [1.47, 0.4, 0.17]
     per100px = np.interp(distance, x, y)
-    t = distance * per100px / 100 / 2.5
+    t = distance * per100px / 100 / 3
     return t
 
 
@@ -67,7 +67,7 @@ def click(x, y, button):
     # time.sleep(1)
     # mouse.move(x, y, absolute=True, duration=gauss_duration())
     duration = human_mouse_speed(dist)
-    if duration < 0:
+    if duration < 0 or config.mouse_duration == 0:
         duration = 0
     mouse.move(x, y, absolute=True, duration=duration)
 

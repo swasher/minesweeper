@@ -376,5 +376,5 @@ class Matrix(object):
         # todo тут прибито гвоздями. Нужно ждать некоторое время, пока поле обновится.
         #      онлайну подходит 0,1*3
         #      vienne
-        time.sleep(0.7)
+        time.sleep(config.reset_pause)
 
