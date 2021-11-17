@@ -59,8 +59,8 @@ def solver_human(matrix):
     print('Stop mouse listen')
     print(f'{xx}, {yy}, {bb}')
 
-    exit()
-    cell = 'cell'
+    point = (xx, yy)
+    cell = matrix.cell_by_abs_coords(point)
     button = Asset.open
     button = Asset.flag
     return [cell], Asset.open

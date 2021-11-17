@@ -243,10 +243,18 @@ def search_pattern_in_image(pattern, image, precision):
     return cells
 
 
+def point_in_rect(point, x1, y1, w, h):
+    x2, y2 = x1 + w, y1 + h
+    x, y = point
+    if (x1 < x < x2) and (y1 < y < y2):
+        return True
+    return False
+
+
 def cell_coordinates(cells):
     """
     Превращает список координат ВСЕХ ячеек поля в список отдельно X и Y координат
-    :param cells: list of tuples (x, y, cv2 max_val)
+    :param cells: list of tuples (x, y, cv2_max_val)
     :return cells_coord_x: list of int, список координаты по оси X для каждого столбца (в пикселях относительно верха лева экрана)
     :return cells_coord_y: list of int, анал. по оси Y
     """

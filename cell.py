@@ -7,6 +7,7 @@ import xxhash
 
 from asset import patterns, list_patterns
 from config import config
+from util import point_in_rect
 
 
 class Cell(object):
@@ -215,6 +216,17 @@ class Cell(object):
             else:
                 print(f'Cell {self.row}x{self.col} do not match anything. Exit')
                 exit()
+
+    def point_in_cell(self, point):
+        """
+        Проверяет, входит ли точка point в данную ячейку
+        :param point: tuple (x, y)
+        :return: bool
+        """
+        if point_in_rect(point, self.abscoordx, self.abscoordy, self.w, self.h):
+            return True
+        else:
+            return False
 
     def mark_cell_debug(self, color, dist=6, size=8):
         """

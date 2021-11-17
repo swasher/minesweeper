@@ -12,6 +12,7 @@ from config import config
 from asset import Asset
 from asset import patterns
 from asset import red_digits
+from util import point_in_rect
 
 
 
@@ -345,6 +346,15 @@ class Matrix(object):
 
         return result
 
+    def cell_by_abs_coords(self, point):
+        """
+        Возвращает ячейку, которая содержит данную точку (по абсолютным координатам на экране)
+        :param point: (x, y)
+        :return: Cell object
+        """
+        for cell in self.table.flat:
+            if cell.point_in_cell(point):
+                return cell
 
     def reset(self):
         """
