@@ -66,29 +66,31 @@ class Asset(object):
 
 
 directory = config.asset
+asset = config.asset
 
-asset_data = importlib.import_module(f'{directory}.asset', package='.minesweeper')
+# deprecated
+# asset_data = importlib.import_module(f'{directory}.asset', package='.minesweeper')
 
 # Дополнительные поля к ячейкам сапера, которые образовывают игровую доску, в пикселях
-Asset.border['top'] = asset_data.top
-Asset.border['bottom'] = asset_data.bottom
-Asset.border['left'] = asset_data.left
-Asset.border['right'] = asset_data.right
+Asset.border['top'] = config.top
+Asset.border['bottom'] = config.bottom
+Asset.border['left'] = config.left
+Asset.border['right'] = config.right
 
 # Y координата для клика по смайлу
-Asset.smile_y_coord = asset_data.smile_y_coord
+Asset.smile_y_coord = config.smile_y_coord
 
 # Разрешить для ассета режим No guess (без отгадывания, первый ход по зеленому кресту)
-Asset.allow_noguess = asset_data.allow_noguess
+Asset.allow_noguess = config.allow_noguess
 
 # Какие кнопки мыши задействованы для данной реализации
-Asset.flag = asset_data.flag
-Asset.open = asset_data.open
-Asset.nearby = asset_data.nearby
+Asset.flag = config.flag
+Asset.open = config.open
+Asset.nearby = config.nearby
 
 # Лаг обновления экрана после клика мышки
 # float Lag for the board to have time to update the image after click the mouse button. Different value for different game realization.
-Asset.LAG = asset_data.LAG
+Asset.LAG = config.LAG
 
 # Проверяем наличие всех изображений ассета - получаем эксепшн при отсутствии файла
 pics = ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', 'bomb.png', 'clock_0.png', 'clock_1.png', 'clock_2.png', 'clock_3.png', 'clock_4.png', 'clock_5.png', 'clock_6.png', 'clock_7.png', 'clock_8.png', 'clock_9.png', 'closed.png', 'error_bomb.png', 'fail.png', 'flag.png', 'red_bomb.png', 'smile.png', 'win.png']

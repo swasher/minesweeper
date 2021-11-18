@@ -44,13 +44,36 @@ listener = mouse.Listener(
         win32_event_filter=win32_event_filter
 )
 
+import time
+import msvcrt
+def wait_func(t=5):
+    print(f'Wait {t:.1f} sec')
+    for i in range(round(t*10), 0, -1):
+        if msvcrt.kbhit():
+            # key = msvcrt.getch()
+            pressed = True
+            break
+        print(f'\b\b\b{i/10:.1f}', end='')
+        time.sleep(0.1)
+    print('\b\b\b', end='')
 
+    # if pressed:
+    #     print('Wait for key press')
+    #     k = False
+    #     while not k:
+    #         k = msvcrt.kbhit()
+
+import threading
 def solver_human(matrix):
     """
     Передает управление человеку, если нет ходов
     :param matrix:
     :return:
     """
+
+    x = threading.Thread(target=wait_func(), args=(), daemon=True)
+    x.start()
+
     print('Start mouse listen')
 
     with listener:
@@ -59,6 +82,7 @@ def solver_human(matrix):
     print('Stop mouse listen')
     print(f'{xx}, {yy}, {bb}')
 
+    exit()
     point = (xx, yy)
     cell = matrix.cell_by_abs_coords(point)
     button = Asset.open
