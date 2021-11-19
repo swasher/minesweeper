@@ -1,27 +1,35 @@
 [main]
-asset = asset_28_2560x1440
+;asset = asset_16_2560x1440
+;asset = asset_28_2560x1440
 ;asset = asset_22_2560x1440
-;asset = asset_24_1920x1080
+asset = asset_24_1920x1080
 ;asset = asset_vienna
 
-beetwen_games = 0
+beetwen_games = 4
+reset_pause = 0.04
+# 0.04 - min for vienna
 
 [game]
 ; bool тип игры NG - 'без угадывания'; allow разрешает такие игры, noguess устанавлиывет тип игры
-noguess = 1
+noguess = 0
 ; int сколько партий нужно сыграть подряд - всего или выигрышных
-need_win_parties = 3
+need_win_parties = 10
 need_total_parties = 0
 ; noflag mode
-noflag = 0
+noflag = 1
+; arena mode - new board every time
+arena = 0
 
 [mouse]
 ; bool нужно ли рандомизировать координаты кликов внутри ячейки
 mouse_randomize_xy = false
 ; float среднее время перемещения курсора, и отклонение. см. useful_code_examples/mouse_gaussian.py
-mouse_duration = 0.2
-mouse_gaussian = 0.15
+; depreated
+mouse_duration = 0.5
+; deprecated
+mouse_gaussian = 0.1
 ; float Минимальная задержка в секундах. Для некоторых игр может быть 0, для других, типа онлайн, должна быть чуть больше, чтобы быть похожим на человека
+; если mouse_duration=0, то не оказывает влияния
 minimum_delay = 0.05
 
 [debug]
@@ -31,3 +39,49 @@ save_game_R1 = 0
 turn_by_turn = 0
 ; bool
 icecream = 0
+
+[asset_24_1920x1080]
+left = 18
+right = 18
+top = 81
+bottom = 17
+smile_y_coord = 40
+allow_noguess = True
+flag = right
+open = left
+nearby = left
+;float Lag for the board to have time to update the image after click the mouse button. Different value for different game realization.
+LAG = 0.1
+
+[asset_vienna]
+; настройки игры для корректной работы
+; Marks (?) - off
+; Flag Analitycs - off (в конце игры показывает некоторые флаги выделенным цветом - хз для чего)
+; Show number - off (показывает дашборд в конце игры)
+; Middle Button = F2 - off
+; Tenths - off
+; Counter Windows
+; NF - off
+left = 13
+right = 9
+top = 104
+bottom = 27
+# float Lag for the board to have time to update the image after click the mouse button. Different value for different game realization.
+LAG = 0.01
+allow_noguess = False
+smile_y_coord = 80
+flag = 'right'
+open = 'left'
+nearby = 'both'
+
+[asset_28_2560x1440]
+left = 18
+right = 18
+top = 81
+bottom = 17
+smile_y_coord = 52
+allow_noguess = True
+LAG = 0.1
+flag = 'right'
+open = 'left'
+nearby = 'left'
