@@ -288,15 +288,8 @@ class Matrix(object):
 
     @property
     def bomb_counter(self):
-        """
-        3 - плохо
-        4 - плохо
-        5 - 0.99
-        6 - 1.0
-        7 - 1.0
-        9 - 0.89 (((
-        :return:
-        """
+        # DEPRECATED
+
         precision = 0.9
         image = self.get_image()
         # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
@@ -322,29 +315,41 @@ class Matrix(object):
 
         # best_match = sorted(list_patterns, key=lambda x: x.similarity, reverse=True)[0]
 
-
         bombs = 0
         print('REST BOMBS:', bombs)
         exit()
         return bombs
 
-    def bomb_counter2(self):
+    def bomb_counter2(self) -> int:
+        """
+        Возвращает число, которое на счетчике бомб
+        :return:
+        """
         image = self.get_image()
         # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
         crop_img = image[0:Asset.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
+
         precision = 0.94
-        # for patt in red_digits[::-1]:  # list_patterns imported from cell_pattern
+        found_digits = []
         for patt in red_digits:  # list_patterns imported from cell_pattern
             template = patt.raster
-            crop_img = image[0:Asset.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
 
             # result = util.find_templates(template, crop_img, precision)
-            # print(patt.name, result)
-
             result = util.search_pattern_in_image(template, crop_img, precision)
-            print(patt.name, result)
 
-        return result
+            # `result` - это list of tuple
+            # каждый кортеж содержит список из трех числ:
+            # координаты найденной цифры - x и y, и с какой точностью определилась цифра. Напр.
+            # [(19, 66, 1.0), (32, 66, 0.998)]
+            for r in result:
+                found_digits.append((r[0], patt.value))
+
+        # сортируем найденные цифры по координате X
+        digits = sorted(found_digits, key=lambda a: a[0])
+
+        _, num_list = zip(*digits)
+        bomb_qty: int = int(''.join(map(str, num_list)))
+        return bomb_qty
 
     def cell_by_abs_coords(self, point):
         """

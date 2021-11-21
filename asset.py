@@ -48,13 +48,17 @@ class Asset(object):
     # ПОЭТОМУ ТУТ НЕ МОЖЕТ БЫТЬ СВОЙСТВ ШИРИНА-ВЫСОТА
     # ----
 
+    # TODO У нас кадлый экземпряр Asset имеет несвойственные для него поля,
+    #      например, Clock0 имеет поля LAG, border и так далее
+
     border = {}  # граница поля сапера в пикселях, от ячеек до края; скриншот каждый раз делается по этой области
     smile_y_coord = 0  # координата Y для клика по смайлу
     name = ''
     filename = ''
     similarity = 0
     raster = ''
-    open_digit_action = ''
+    # deprecated
+    # open_digit_action = ''
 
     def __init__(self, name, filename):
         self.name = name
@@ -97,6 +101,7 @@ pics = ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', 
 if Asset.allow_noguess:
     pics.append('noguess.png')
 for f in pics:
+    # Проверяем, все ли есть файлы ассета; если нет, возникнет эксепшн.
     pathlib.Path(pathlib.PurePath(directory, f)).open()
 
 # Создаем список patterns - который содержит все изображения клеток. Его тип - SimpleNamespace
@@ -133,4 +138,8 @@ list_patterns.insert(0, patterns.closed)
 
 
 # Список цифр, используемых на поле в подсчете бомб и секунд
-red_digits = [Asset(f'clock{i}', f'{directory}/clock_{i}.png') for i in range(10)]
+red_digits = []
+for i in range(10):
+    obj = Asset(f'clock{i}', f'{directory}/clock_{i}.png')
+    obj.value = i
+    red_digits.append(obj)

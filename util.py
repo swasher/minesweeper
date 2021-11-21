@@ -55,7 +55,7 @@ def human_mouse_speed(distance):
     x = [30, 280, 660]
     y = [1.47, 0.4, 0.17]
     per100px = np.interp(distance, x, y)
-    t = distance * per100px / 100 / 2
+    t = distance * per100px / 100 / 3.5
     return t
 
 
@@ -274,6 +274,7 @@ def cell_coordinates(cells):
 
 def gauss_duration():
     """
+    NOT USED
     Testing gaussian function for randomize time beetween clicks
 
     Look at action there:
