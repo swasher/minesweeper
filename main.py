@@ -22,6 +22,7 @@ from matrix import Matrix
 
 from solver import solver_R1
 from solver import solver_R1_corner
+from solver import solver_R1_smart
 from solver import solver_B1
 from solver import solver_E1
 from solver import solver_E2
@@ -137,7 +138,6 @@ def clicking_cells(cells, button):
     for cell in cells:
         matrix.lastclicked = cell
         cell.click(button)
-        print(matrix.bomb_counter2())
 
 
 def do_strategy(strategy):
@@ -291,8 +291,9 @@ if __name__ == '__main__':
     # debug - test perfomance
     # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
 
-    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_corner]
+    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_smart]
     # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
     config.human = False

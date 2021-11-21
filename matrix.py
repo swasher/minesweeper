@@ -287,7 +287,7 @@ class Matrix(object):
         return False
 
     @property
-    def bomb_counter(self):
+    def bomb_counter_(self):
         # DEPRECATED
 
         precision = 0.9
@@ -320,7 +320,8 @@ class Matrix(object):
         exit()
         return bombs
 
-    def bomb_counter2(self) -> int:
+    @property
+    def bomb_qty(self) -> int:
         """
         Возвращает число, которое на счетчике бомб
         :return:
