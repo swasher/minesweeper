@@ -1,7 +1,10 @@
 from asset import Asset
 from pynput import mouse
-from datetime import datetime
+from threading import Timer
 
+
+def exists(var):
+    return var in globals()
 
 
 def on_click(x, y, button, pressed):
@@ -39,7 +42,7 @@ def win32_event_filter(msg, data):
         listener.suppress_event()
 
 
-mouse_listener = mouse.Listener(
+listener = mouse.Listener(
         on_move=on_move,
         on_click=on_click,
         on_scroll=on_scroll,
@@ -65,29 +68,56 @@ def wait_func(t=5):
     #     while not k:
     #         k = msvcrt.kbhit()
 
-import threading
-def solver_human(matrix) -> (list, str):
+
+def solver_human(matrix):
     """
     Передает управление человеку, если нет ходов
     :param matrix:
     :return:
     """
 
-    x = threading.Thread(target=wait_func(), args=(), daemon=True)
-    x.start()
+    # x = threading.Thread(target=wait_func(), args=(), daemon=True)
+    # x.start()
 
     print('Start mouse listen')
 
-    with mouse_listener as listener:
+    with listener:
+        t = Timer(5, listener.stop)
+        t.start()
         listener.join()
+        print('`with` ended')
 
-    listener.stop()
+    t.cancel()
+
     print('Stop mouse listen')
-    print(f'{xx}, {yy}, {bb}')
+    if exists('xx'):
 
-    # exit()
-    point = (xx, yy)
-    cell = matrix.cell_by_abs_coords(point)
-    button = Asset.open
-    button = Asset.flag
-    return [cell], Asset.open
+        print('User click mouse')
+
+        print(f'{xx}, {yy}, {bb}')
+
+        point = (xx, yy)
+        cell = matrix.cell_by_abs_coords(point)
+
+        if bb == mouse.Button.left:
+            button = Asset.open
+        elif bb == mouse.Button.right:
+            button = Asset.flag
+        else:
+            exit('Error: That mouse button is not assigned.')
+        return [cell], button
+
+    else:
+
+        print('No action from human')
+        from .solver_R1 import solver_R1
+        return solver_R1(matrix)
+
+
+
+        # exit()
+        # return [], None
+
+
+
+
