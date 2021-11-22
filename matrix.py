@@ -361,6 +361,8 @@ class Matrix(object):
         for cell in self.table.flat:
             if cell.point_in_cell(point):
                 return cell
+        else:
+            return None
 
     def reset(self):
         """

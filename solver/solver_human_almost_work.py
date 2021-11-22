@@ -4,7 +4,6 @@ import threading
 from asset import Asset
 from pynput import mouse
 from threading import Timer
-from datetime import datetime
 
 
 def exists(var):
@@ -35,12 +34,10 @@ def solver_human(matrix):
     :param matrix:
     :return:
     """
-    cell = None
+
 
     def on_click(x, y, button, pressed):
         nonlocal t
-        nonlocal cell
-        nonlocal start_time
         # pressed = True при нажатии кнопики мыщи и
         # pressed = False при отпускании
         if not pressed:
@@ -51,14 +48,14 @@ def solver_human(matrix):
             yy = y
             bb = button
 
+            print('User click mouse', f'{xx}, {yy}, {bb}')
+
             point = (xx, yy)
             cell = matrix.cell_by_abs_coords(point)
-            print('\nUser click mouse', f'{xx}, {yy}, {bb}, cell is: {cell}')
             if cell:
                 return False
             else:
-                print('Clicked out of field')
-                start_time = datetime.now()
+                print('Click out of field')
                 t.cancel()
                 t = Timer(5, mouse_thread.stop)
                 t.start()
@@ -85,8 +82,7 @@ def solver_human(matrix):
     # x = threading.Thread(target=wait_func(), args=(), daemon=True)
     # x.start()
 
-    print('\nStart mouse listen: wait your move 5 sec')
-
+    print('Start mouse listen: wait your move 5 sec')
 
     mouse_thread = mouse.Listener(
         on_move=on_move,
@@ -95,26 +91,21 @@ def solver_human(matrix):
         win32_event_filter=win32_event_filter
     )
 
-    t = Timer(5, mouse_thread.stop)
+    def showing():
+        print('.')
+
+    my_thread = threading.Thread(target=showing, args=())
+    with mouse_thread:
+        t = Timer(5, mouse_thread.stop)
+        t.start()
+        mouse_thread.join()
+        my_thread.start()
 
 
-    start_time = datetime.now()
-    t.start()
-    mouse_thread.start()
 
 
-    while True:
-        time.sleep(0.1)
-        now_time = datetime.now()
-        delta = (now_time - start_time).total_seconds()
-        out_str = f'{delta:.2f}'
-        print('\b'*len(out_str) + out_str, end='')
-        if cell or not t.is_alive():
-            break
 
-    t.cancel()
-    mouse_thread.stop()
-
+    # t.cancel()
 
     if exists('xx'):
 
@@ -135,6 +126,15 @@ def solver_human(matrix):
 
     else:
 
-        print('\nNo action from human')
+        print('No action from human')
         from .solver_R1 import solver_R1
         return solver_R1(matrix)
+
+
+
+        # exit()
+        # return [], None
+
+
+
+

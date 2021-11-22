@@ -10,4 +10,6 @@ medium 1000 50%
 
 Algorithm r1 e1 b1 e2 b2
 professional 10 10%
-professional 1000 4.23t%
+professional 1000 4.23%
+professional 1000 4.30%
+professional 1000 5.90%

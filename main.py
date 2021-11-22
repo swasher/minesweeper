@@ -292,6 +292,7 @@ if __name__ == '__main__':
     # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
 
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_corner]
     strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_human]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_smart]
@@ -306,7 +307,7 @@ if __name__ == '__main__':
     recursive_wrapper(strategies)
 
 
-# самое-самое начало
+# - самое-самое начало
 # some logic
 #
 # - самое начало
