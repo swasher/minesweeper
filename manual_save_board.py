@@ -2,7 +2,7 @@
 Сначала нужно выполнить manual_save_board.py scan -
 когда еще поле пустое, эта команда запомнит геометрию поля.
 
-Затем manual_save_board.py save -
+Затем в процессе игры manual_save_board.py save -
 эта команда запишет в файл pickle объект Matrix,
 который содержит "снимок" текущего поля
 
@@ -19,8 +19,8 @@ from datetime import datetime
 
 from matrix import Matrix
 # from patterns import patterns
-from patterns import patterns
-from patterns import Asset
+from asset import patterns
+from asset import Asset
 from main import find_board
 
 

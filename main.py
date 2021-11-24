@@ -156,6 +156,7 @@ def do_strategy(strategy):
     # TODO Пример, как это можно реализовать через потоки - keyboard_in_thread.py
 
     name = strategy.__name__
+    print(name)
 
     # debug
     # if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
