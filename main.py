@@ -156,7 +156,6 @@ def do_strategy(strategy):
     # TODO Пример, как это можно реализовать через потоки - keyboard_in_thread.py
 
     name = strategy.__name__
-    print(name)
 
     # debug
     # if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
@@ -284,17 +283,18 @@ def recursive_wrapper(strategies):
 
 import manual_save_board
 if __name__ == '__main__':
-    dir = 'game_SAVE_24-Nov-2021--18.26.12.489928'
-    matrix = manual_save_board.load(dir)
-    s = matrix.find_cells_sets()
-    print(s)
-
-    for cellset in s:
-        color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
-        for c in cellset:
-            c.mark_cell_debug(color)
-
-    exit()
+    time.sleep(3)
+    # dir = 'game_SAVE_24-Nov-2021--18.26.12.489928'
+    # matrix = manual_save_board.load(dir)
+    # s = matrix.find_cells_sets()
+    # print(s)
+    #
+    # for cellset in s:
+    #     color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
+    #     for c in cellset:
+    #         c.mark_cell_debug(color)
+    #
+    # exit()
 
     col_values, row_values, region = find_board(patterns, Asset)
     matrix = Matrix(row_values, col_values, region)

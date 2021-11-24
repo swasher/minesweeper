@@ -273,7 +273,7 @@ class Matrix(object):
         """
         bombs = self.get_bomb_cells()
         if bool(len(bombs)):
-            print('You lose!')
+            # print('You lose!')
             return True
         return False
 
@@ -291,7 +291,7 @@ class Matrix(object):
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
         if max_val > precision:
-            print('You WIN!\n')
+            # print('You WIN!\n')
             return True
 
         return False
