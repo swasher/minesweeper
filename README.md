@@ -165,13 +165,13 @@ Search the screen for a specific element
 [Minesweeper and NP-completeness](http://web.mat.bham.ac.uk/R.W.Kaye/minesw/ordmsw.htm)  
 [Algorithmic Approaches to Playing Minesweeper PDF](https://pdfhost.io/v/uvgsPGU7Y_Algorithmic_Approaches_to_Playing_Minesweeper)  
 [reddit](https://www.reddit.com/r/Minesweeper/comments/8b3b30/odds_of_winning_at_minesweeper/)  
-[Официальное сообщество Minesweeper](https://www.reddit.com/r/Minesweeper/)
-[Minesweeper and Hypothetical Thinking Action Research & Pilot Study PDF](https://files.eric.ed.gov/fulltext/ED509464.pdf)
-[Авторитетный сапер](http://www.minesweeper.info/)
-[Вероятности закрытых ячеек](https://docs.google.com/document/d/10YxF7QWxqVcl2Cgxo_mu6Q33uUjKxb9Q0F5gmp3r74c/edit)
-[Algorithms for Minesweeper Game Grid Generation](https://dspace.cvut.cz/bitstream/handle/10467/68632/F3-BP-2017-Cicvarek-Jan-Algorithms%20for%20Minesweeper%20Game%20Grid%20Generation.pdf)
+[Официальное сообщество Minesweeper](https://www.reddit.com/r/Minesweeper/)  
+[Minesweeper and Hypothetical Thinking Action Research & Pilot Study PDF](https://files.eric.ed.gov/fulltext/ED509464.pdf)  
+[Авторитетный сапер](http://www.minesweeper.info/)  
+[Вероятности закрытых ячеек](https://docs.google.com/document/d/10YxF7QWxqVcl2Cgxo_mu6Q33uUjKxb9Q0F5gmp3r74c/edit)  
+[Algorithms for Minesweeper Game Grid Generation](https://dspace.cvut.cz/bitstream/handle/10467/68632/F3-BP-2017-Cicvarek-Jan-Algorithms%20for%20Minesweeper%20Game%20Grid%20Generation.pdf)  
 
-[Большое сборник статей по мат. алгоритмам](https://minesweepergame.com/math-papers.php)
+[Большое сборник статей по мат. алгоритмам](https://minesweepergame.com/math-papers.php)  
 
 Minesweeper boards
 -------------------------
