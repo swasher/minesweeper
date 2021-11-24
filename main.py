@@ -284,7 +284,7 @@ def recursive_wrapper(strategies):
 
 import manual_save_board
 if __name__ == '__main__':
-    dir = 'game_SAVE_24-Nov-2021--16.23.22.264359'
+    dir = 'game_SAVE_24-Nov-2021--18.26.12.489928'
     matrix = manual_save_board.load(dir)
     s = matrix.find_cells_sets()
     print(s)
