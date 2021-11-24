@@ -148,9 +148,10 @@ Search the screen for a specific element
  [How to easily image search with python](https://brokencode.io/how-to-easily-image-search-with-python/)  
 
 [How to Write your own Minesweeper AI](https://luckytoilet.wordpress.com/2012/12/23/2125/)  
-[and it's reddit thread](https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/)    
-[Logic solver aka PROLOG](https://dev.to/krlove/creating-advanced-minesweeper-solver-using-logic-programming-2ppd)
-[Solving Minesweeper with Matrices](https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/)  
+[-- and it's reddit thread](https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/)    
+[Logic solver aka PROLOG](https://dev.to/krlove/creating-advanced-minesweeper-solver-using-logic-programming-2ppd)  
+[Solving Minesweeper with Matrices](https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/)
+[Another matrix solution](https://quantum-p.livejournal.com/19616.html)
 [Minesweeper: Advanced Tactics](http://www.nothings.org/games/minesweeper/)  
 [Strategy wiki](http://www.minesweeper.info/wiki/Strategy)  
 [Minesweeper Strategy](https://minesweepergame.com/strategy.php)
@@ -160,8 +161,11 @@ Search the screen for a specific element
 [Официальное сообщество Minesweeper](https://www.reddit.com/r/Minesweeper/)  
 [Minesweeper and Hypothetical Thinking Action Research & Pilot Study PDF](https://files.eric.ed.gov/fulltext/ED509464.pdf)  
 [Авторитетный сапер](http://www.minesweeper.info/)  
+[-- Почти все саперы скачать](https://www.minesweeper.info/downloads/SuperMinesweeper.html)
 [Вероятности закрытых ячеек](https://docs.google.com/document/d/10YxF7QWxqVcl2Cgxo_mu6Q33uUjKxb9Q0F5gmp3r74c/edit)  
 [Algorithms for Minesweeper Game Grid Generation](https://dspace.cvut.cz/bitstream/handle/10467/68632/F3-BP-2017-Cicvarek-Jan-Algorithms%20for%20Minesweeper%20Game%20Grid%20Generation.pdf)  
+[Puzzling StackExchange](https://puzzling.stackexchange.com/search?page=1&tab=Relevance&q=minesweeper)  
+[Minesweeper Board Museum](https://mzrg.com/js/mbm/index.html)  
 
 [Большое сборник статей по мат. алгоритмам](https://minesweepergame.com/math-papers.php)  
 

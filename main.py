@@ -283,18 +283,20 @@ def recursive_wrapper(strategies):
 
 import manual_save_board
 if __name__ == '__main__':
-    time.sleep(3)
-    # dir = 'game_SAVE_24-Nov-2021--18.26.12.489928'
-    # matrix = manual_save_board.load(dir)
-    # s = matrix.find_cells_sets()
-    # print(s)
-    #
-    # for cellset in s:
-    #     color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
-    #     for c in cellset:
-    #         c.mark_cell_debug(color)
-    #
-    # exit()
+    # time.sleep(3)
+
+    dir = 'game_SAVE_24-Nov-2021--19.30.04.683185'
+    matrix = manual_save_board.load(dir)
+    matrix.update()
+    s = matrix.find_cells_sets()
+    print(s)
+
+    for cellset in s:
+        color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
+        for c in cellset:
+            c.mark_cell_debug(color)
+
+    exit()
 
     col_values, row_values, region = find_board(patterns, Asset)
     matrix = Matrix(row_values, col_values, region)
