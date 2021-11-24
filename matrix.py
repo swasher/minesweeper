@@ -1,4 +1,7 @@
+import itertools
 import math
+import random
+
 import numpy
 import mss
 import numpy as np
@@ -6,6 +9,9 @@ import cv2 as cv
 import util
 import time
 from icecream import ic
+import operator
+import functools
+import win32api
 
 import cell
 from config import config
@@ -49,8 +55,12 @@ class Matrix(object):
 
         for row, coordy in enumerate(row_values):  # cell[строка][столбец]
             for col, coordx in enumerate(col_values):
-                c = cell.Cell(row, col, coordx, coordy, w, h)
-                c.image = self.image_cell(c)
+                abscoordx = coordx + self.region_x1
+                abscoordy = coordy + self.region_y1
+                c = cell.Cell(row, col, coordx, coordy, abscoordx, abscoordy, w, h)
+                image_cell = self.image_cell(c)
+                c.image = image_cell
+                c.update_cell(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу их Pickle, нужно ячейки распознавать.
                 c.hash = c.hashing()
                 self.table[row, col] = c
 
@@ -96,7 +106,7 @@ class Matrix(object):
             image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
         return image
 
-    def get_around_cells(self, cell):
+    def around_cells(self, cell):
         """
         Возвращает список ячеек, расположенных вокруг (вкл. диагонали) заданой. Проблема в том, что нельзя просто
         вернуть "минус одна ячейка вправо, плюс одна влево", потому что у крайних ячеек возникнет IndexError.
@@ -204,7 +214,7 @@ class Matrix(object):
         :param cell: instance of Cell class
         :return: closed_cells - array of Cell instances
         """
-        cells = self.get_around_cells(cell)
+        cells = self.around_cells(cell)
         closed_cells = []
         for cell in cells:
             if cell.is_closed and cell.is_not_flag:
@@ -217,7 +227,7 @@ class Matrix(object):
         :param cell: instance of Cell class
         :return: flagged_cells - array of Cell instances
         """
-        cells = self.get_around_cells(cell)
+        cells = self.around_cells(cell)
         flagged_cells = []
         for cell in cells:
             if cell.is_flag:
@@ -287,40 +297,6 @@ class Matrix(object):
         return False
 
     @property
-    def bomb_counter_(self):
-        # DEPRECATED
-
-        precision = 0.9
-        image = self.get_image()
-        # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
-        crop_img = image[0:Asset.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
-
-        # cv.imshow("cropped", crop_img)
-        # cv.waitKey(0)
-
-        # for patt in red_digits:
-        #     cells_coord_x, cells_coord_y = util.scan_image(crop_img, patt.raster)
-        #     if len(cells_coord_x)+len(cells_coord_y):
-        #         print('---', patt.name)
-        #         print('x:', cells_coord_x)
-        #         print('y:', cells_coord_y)
-
-        for patt in red_digits:  # list_patterns imported from cell_pattern
-            template = patt.raster
-            res = cv.matchTemplate(crop_img, template, cv.TM_CCOEFF_NORMED)
-            min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-            # print(f'Cell {self.row}:{self.col} compared with {pattern} with result {max_val}')
-            patt.similarity = max_val
-            print(patt.name, patt.similarity)
-
-        # best_match = sorted(list_patterns, key=lambda x: x.similarity, reverse=True)[0]
-
-        bombs = 0
-        print('REST BOMBS:', bombs)
-        exit()
-        return bombs
-
-    @property
     def bomb_qty(self) -> int:
         """
         Возвращает число, которое на счетчике бомб
@@ -386,3 +362,57 @@ class Matrix(object):
         #      vienne
         time.sleep(config.reset_pause)
 
+
+    def flat_list(l):
+        return functools.reduce(operator.concat, l)
+
+    def find_cells_sets(self):
+
+        # def glue_digit_around_into_clusters(arr):
+        #     for a1, a2 in itertools.combinations(arr, 2):
+        #         if bool(set(a1).intersection(a2)):
+        #             a1 и a2 имеют общие элементы
+        #             объединяем и выкидываем дубликаты:
+        #             set(a1).union(set(a2))
+        #
+        #             Теперь надо из arr удалить a1 и a2, добавить объедененный и запустить рекурсию:
+        #             arr = new_arr
+        #             glue_digit_around_into_clusters(arr)
+        #     else:
+        #         Если не нашлось общих элементов, останавливаем рекурсию
+        #         break
+
+        def glue_digit_around_into_clusters(arr):
+            lenght = len(arr)
+            colors = ['red', 'green', 'blue', 'yellow', 'cyan', 'magenta']
+            for i in range(lenght):
+                for j in range(lenght):
+                    item_i, item_j = arr[i], arr[j]
+                    if bool(item_i.intersection(item_j)) and i!=j:
+                        new_entry = item_j.union(item_i)
+                        arr.remove(item_i)
+                        arr.remove(item_j)
+                        arr.insert(0, new_entry)
+
+                        # for cellset in arr:
+                        #     color = random.choice(colors)
+                        #     for c in cellset:
+                        #         c.mark_cell_debug(color)
+
+                        return glue_digit_around_into_clusters(arr)
+            return arr
+
+        digits_around_cells = []
+        registered_groups = []
+
+        for cell in self.get_digit_cells():
+            closed_around = self.around_closed_cells(cell)
+            digits_around_cells.append(set(closed_around))
+
+        clusters = glue_digit_around_into_clusters(digits_around_cells)
+        return clusters
+
+
+
+            # Если какая-то ячейка содержится в неком уже существующем registered_set, то добавить все ячейки в этот registered_set
+            # Иначе создать из наборы ячеек group новый registered_set

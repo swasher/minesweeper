@@ -12,12 +12,18 @@ from util import point_in_rect
 
 class Cell(object):
 
-    ident_right = 0  # class property
-    ident_top = 0    # class property
+    # deprecated
+    # ident_right = 0  # class property
+    # deprecated
+    # ident_top = 0    # class property
     col = 0
     row = 0
+    # coordinates from game board; need it because we take screenshot only game board
     coordx = 0
     coordy = 0
+    # coordinates from screen; use it for draw on screen, for example
+    abscoordx = 0
+    abscoordy = 0
     w = 0
     h = 0
     status = ''
@@ -25,7 +31,7 @@ class Cell(object):
     image = None  # Current image of cell; ndarray
     hash = 0
 
-    def __init__(self, row, col, coordx, coordy, w, h):
+    def __init__(self, row, col, coordx, coordy, abscoordx, abscoordy, w, h):
         """
         :param col: номер ячейки в строке, начиная с 0. Т.е. это СТОЛБЕЦ. Левая ячейка - номер 0 - cell[строка][столбец]
         :param row: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
@@ -48,13 +54,14 @@ class Cell(object):
         self.row = row
         self.coordx = coordx
         self.coordy = coordy
+        self.abscoordx = abscoordx
+        self.abscoordy = abscoordy
         self.w = w
         self.h = h
         self.status = 'closed'
         # self.type = patterns.closed
 
     def __repr__(self):
-
         return f'{self.status} ({self.row}:{self.col})'
 
     def cell_pict(self):
@@ -82,13 +89,15 @@ class Cell(object):
         return slot
         # return slot+f'{self.row}:{self.col}'
 
-    @property
-    def abscoordx(self):
-        return self.coordx + self.ident_right
-
-    @property
-    def abscoordy(self):
-        return self.coordy + self.ident_top
+    # deprecated
+    # now, we have explicit property from matrix __init__
+    # @property
+    # def abscoordx(self):
+    #     return self.coordx + self.ident_right
+    #
+    # @property
+    # def abscoordy(self):
+    #     return self.coordy + self.ident_top
 
     @property
     def is_closed(self):
@@ -151,9 +160,10 @@ class Cell(object):
         if config.mouse_randomize_xy:
             x, y = self.cell_random_coordinates()
         else:
-            x, y = self.coordx + self.w//2, self.coordy + self.h//2
-        x += Cell.ident_right
-        y += Cell.ident_top
+            x, y = self.abscoordx + self.w//2, self.abscoordy + self.h//2
+        # deprecated
+        # x += Cell.ident_right
+        # y += Cell.ident_top
         util.click(x, y, button)
 
     """
@@ -190,9 +200,9 @@ class Cell(object):
         :return: None
         """
         self.image = crop
-        hash = self.hashing()
-        if self.hash != hash:
-            self.hash = hash
+        new_hash = self.hashing()
+        if self.hash != new_hash:
+            self.hash = new_hash
 
             precision = 0.8
 

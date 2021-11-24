@@ -33,12 +33,16 @@ def scan():
 
 
 def save():
+    # todo move to config
+    picklefile = 'obj.pickle'
+    image_file = 'image.png'
+
     with shelve.open('shelve') as d:
         col_values = d['col_values']
         row_values = d['row_values']
         region = d['region']
 
-    matrix = Matrix(row_values, col_values, region, patterns)
+    matrix = Matrix(row_values, col_values, region)
     matrix.update()
     matrix.display()
 
@@ -54,17 +58,20 @@ def save():
     image = matrix.get_image()
     cv.imwrite(os.path.join(dir, image_file), image)
 
+    print(f'Saved: {dir}')
+
 
 def load(dir):
+    # todo move to config
+    picklefile = 'obj.pickle'
+    image_file = 'image.png'
+
     with open(os.path.join(dir, picklefile), 'rb') as inp:
         matrix = pickle.load(inp)
     return matrix
 
 
 if __name__ == '__main__':
-    picklefile = 'obj.pickle'
-    image_file = 'image.png'
-
     action = sys.argv[1]
     if action == 'scan':
         scan()

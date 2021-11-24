@@ -282,20 +282,31 @@ def recursive_wrapper(strategies):
     print(f'FAIL: {total-win}')
     print(f'WIN PERCENT: {win*100/total:.2f}')
 
-
+import manual_save_board
 if __name__ == '__main__':
+    dir = 'game_SAVE_24-Nov-2021--18.26.12.489928'
+    matrix = manual_save_board.load(dir)
+    s = matrix.find_cells_sets()
+    print(s)
+
+    for cellset in s:
+        color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
+        for c in cellset:
+            c.mark_cell_debug(color)
+
+    exit()
+
     col_values, row_values, region = find_board(patterns, Asset)
     matrix = Matrix(row_values, col_values, region)
 
-    # matrix.bomb_counter2()
 
     # debug - test perfomance
     # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
 
-    # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
 
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_corner]
-    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_human]
+    # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_human]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_smart]
     # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
