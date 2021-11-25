@@ -147,12 +147,15 @@ Search the screen for a specific element
  [Easy Image recognition for automation with python](https://medium.com/@martin.lees/image-recognition-for-automation-with-python-711ac617b4e5)  
  [How to easily image search with python](https://brokencode.io/how-to-easily-image-search-with-python/)  
 
+Крутая статья по вероятностям в эндшпиле
+[Minesweeper: Advanced Tactics](http://www.nothings.org/games/minesweeper/)  
+
 [How to Write your own Minesweeper AI](https://luckytoilet.wordpress.com/2012/12/23/2125/)  
 [-- and it's reddit thread](https://www.reddit.com/r/programming/comments/15c4e1/how_to_write_your_own_minesweeper_ai_very/)    
 [Logic solver aka PROLOG](https://dev.to/krlove/creating-advanced-minesweeper-solver-using-logic-programming-2ppd)  
 [Solving Minesweeper with Matrices](https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/)  
 [Another matrix solution](https://quantum-p.livejournal.com/19616.html)  
-[Minesweeper: Advanced Tactics](http://www.nothings.org/games/minesweeper/)  
+
 [Strategy wiki](http://www.minesweeper.info/wiki/Strategy)  
 [Minesweeper Strategy](https://minesweepergame.com/strategy.php)
 [Minesweeper and NP-completeness](http://web.mat.bham.ac.uk/R.W.Kaye/minesw/ordmsw.htm)  

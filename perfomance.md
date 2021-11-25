@@ -17,3 +17,4 @@ professional 10 10%
 professional 1000 4.23%
 professional 1000 4.30%
 professional 1000 5.90%
+professional 1000 4.40%
