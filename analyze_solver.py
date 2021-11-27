@@ -1,6 +1,8 @@
 import os
 import pickle
-import solve
+
+import solver
+
 
 # TODO добавить описание, что это и как этим юзать
 
@@ -11,11 +13,11 @@ def load(dir):
 
 
 if __name__ == '__main__':
-    engine = solve.solver_E2
+    engine = solver.solver_B1E1
 
     picklefile = 'obj.pickle'
     image_file = 'image.png'
-    dir = 'game_SAVE_01-Nov-2021--23.24.55.976936'
+    dir = 'game_SAVE_24-Nov-2021--16.23.22.264359'
     matrix = load(dir)
     matrix.display()
 
