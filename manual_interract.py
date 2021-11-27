@@ -23,6 +23,14 @@ from asset import patterns
 from asset import Asset
 from main import find_board
 
+from solver import solver_R1
+from solver import solver_R1_corner
+from solver import solver_R1_smart
+from solver import solver_B1
+from solver import solver_E1
+from solver import solver_E2
+from solver import solver_B2
+from solver import solver_B1E1
 
 def scan():
     board = find_board(patterns, Asset)
@@ -62,6 +70,11 @@ def save():
 
 
 def load(dir):
+    """
+    Demo load matrix from pickle
+    :param dir:
+    :return:
+    """
     # todo move to config
     picklefile = 'obj.pickle'
     image_file = 'image.png'
@@ -69,6 +82,25 @@ def load(dir):
     with open(os.path.join(dir, picklefile), 'rb') as inp:
         matrix = pickle.load(inp)
     return matrix
+
+
+def solve():
+    """
+    Test solve engine on saved board
+    :return:
+    """
+    engine = solver_B1E1
+
+    picklefile = 'obj.pickle'
+    image_file = 'image.png'
+    dir = 'game_SAVE_24-Nov-2021--16.23.22.264359'
+
+    matrix = load(dir)
+    matrix.display()
+
+    cells, button = engine(matrix)
+    print('Cells', cells)
+    print('Button', button)
 
 
 if __name__ == '__main__':
@@ -80,6 +112,5 @@ if __name__ == '__main__':
     elif action == 'load':
         matrix = load(sys.argv[2])
         matrix.display()
-
-
-
+    elif action == 'solve':
+        solve()
