@@ -43,6 +43,21 @@ def pause(t=5):
             k = msvcrt.kbhit()
 
 
+def random_point_in_square(x, y, w, h):
+    """
+    x, y - координаты левого верхнего угла в пикселях
+    w, h - ширина и высота прямоугольника
+    :return: Случайную точку в этом прямоугольнике, с учетом безопасных полей.
+    """
+    safe_x, safe_y = int(w*0.2), int(h*0.2)
+
+    x1, x2 = x + safe_x, x + w - safe_x
+    y1, y2 = y + safe_y, y + h - safe_y
+    xx = random.randint(x1, x2)
+    yy = random.randint(y1, y2)
+    return xx, yy
+
+
 def get_screen_size():
     user32 = ctypes.windll.user32
     user32.SetProcessDPIAware()

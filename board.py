@@ -17,5 +17,3 @@ board.border['right'] = config.right
 # Y координата для клика по смайлу
 board.smile_y_coord = config.smile_y_coord
 
-# Разрешить для ассета режим No guess (без отгадывания, первый ход по зеленому кресту)
-board.allow_noguess = config.allow_noguess

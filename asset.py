@@ -78,7 +78,7 @@ directory = config.asset
 
 # Проверяем наличие всех изображений ассета - получаем эксепшн при отсутствии файла
 pics = ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', 'bomb.png', 'clock_0.png', 'clock_1.png', 'clock_2.png', 'clock_3.png', 'clock_4.png', 'clock_5.png', 'clock_6.png', 'clock_7.png', 'clock_8.png', 'clock_9.png', 'closed.png', 'error_bomb.png', 'fail.png', 'flag.png', 'red_bomb.png', 'smile.png', 'win.png']
-if board.allow_noguess:
+if config.allow_noguess:
     # потому что не во всех наборах есть такое изображение - пока только в Minesweeper online
     pics.append('noguess.png')
 for f in pics:

@@ -1,5 +1,3 @@
-import random
-
 import cv2 as cv
 import win32api
 import win32gui
@@ -9,6 +7,7 @@ import asset
 import maus
 from config import config
 from util import point_in_rect
+from util import random_point_in_square
 
 
 class Cell(object):
@@ -54,34 +53,6 @@ class Cell(object):
     def __repr__(self):
         return f'{self.type.name} ({self.row}:{self.col})'
 
-    """
-    deprecated
-    def cell_pict(self):
-        # TODO Сделать еще одно поле - TYPE с типом Pattern, и здесь
-        # TODO возвращать просто self.type.represent
-        # TODO в общем, нужно ВСЕ проверки self.status как строки заменить на проверки
-        # TODO self.type как объекта
-        if self.status == 'closed':
-            slot = '·'  # ·ᐧ    # more bad ․⋅
-        elif self.status == 'flag':
-            slot = '⚑'
-        elif self.status == 'bomb':
-            slot = '⚹'
-        elif self.status == 'red_bomb':
-            slot = '✱'
-        elif self.status == 'noguess':
-            slot = 'x'
-        elif self.status.isnumeric():
-            if self.status == '0':
-                slot = ' '  # ⨯·
-            else:
-                slot = self.status
-        else:
-            return 'e'  # error
-        return slot
-        # return slot+f'{self.row}:{self.col}'
-    """
-
     def cell_pict(self):
         return self.type.repr
 
@@ -117,36 +88,16 @@ class Cell(object):
     def set_flag(self):
         self.type = asset.flag
 
-    def cell_random_coordinates(self):
-        """
-        :return: Координаты для клика с учетом рандомизации внутри ячейки
-        """
-        # TODO переписать эту муть
-        xstart = self.coordx
-        xend = xstart + self.w
-        edge_x = int(self.w*0.2)
-        coord_x = random.randint(xstart + edge_x, xend - edge_x)
-
-        ystart = self.coordy
-        yend = ystart + self.h
-        edge_y = int(self.h*0.2)
-        coord_y = random.randint(ystart + edge_y, yend - edge_y)
-        return coord_x, coord_y
-
     def click(self, button):
         """
         Нажимает на ячейку.
-        Если randomize_mouse, то каждый раз немного рандомно
+        Если mouse_randomize_xy = true, то каждый раз немного рандомные координаты
         :return:
         """
-        # TODO уродский код - и тут и в cell_random_coordinates, надо переделать!
         if config.mouse_randomize_xy:
-            x, y = self.cell_random_coordinates()
+            x, y = random_point_in_square(self.abscoordx, self.abscoordy, self.w, self.h)
         else:
             x, y = self.abscoordx + self.w//2, self.abscoordy + self.h//2
-        # deprecated
-        # x += Cell.ident_right
-        # y += Cell.ident_top
         maus.click(x, y, button)
 
     @property
@@ -202,16 +153,16 @@ class Cell(object):
             # но по сути все совпадения имеют индекс более 0,9999 или 1,0, так что нет смысла заморачиваться
             # best_match = sorted(list_patterns, key=lambda x: x.similarity, reverse=True)[0]
             # print(best_match.similarity)
-
             # if best_match.similarity > precision:
             #     self.status = best_match.name
+
             else:
                 print(f'Cell {self.row}x{self.col} do not match anything. Exit')
                 exit()
 
     def point_in_cell(self, point):
         """
-        Проверяет, входит ли точка point в данную ячейку
+        Проверяет, входит ли точка с координатами на экране (point) в данную ячейку
         :param point: tuple (x, y)
         :return: bool
         """
@@ -222,8 +173,9 @@ class Cell(object):
 
     def mark_cell_debug(self, color, dist=6, size=8):
         """
-        Draw small square on current cell right on Minesweeper board.
-        Use it for debug purpose (mark cell)
+        Used for debug.
+        Draw small square on current cell right on Minesweeper board,
+        with edge `size` px and distance from top left corner `dist`.
         :return:
         """
         select = {

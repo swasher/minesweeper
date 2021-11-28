@@ -56,7 +56,7 @@ class Matrix(object):
 
         self.lastclicked = self.table[0, 0]
 
-    def cell_distance(self, cell1, cell2):
+    def cell_distance(self, cell1, cell2) -> float:
         d = math.hypot(cell1.row - cell2.row, cell1.col - cell2.col)
         return d
 
@@ -82,15 +82,13 @@ class Matrix(object):
         """
         with mss.mss() as sct:
             """
-            Чтобы уже раз и на всегда решить вопрос:
+            Чтобы уже раз и на всегда закрыть вопрос:
             sct.grab отдает в формате BGRA.
             Мы его конвертим просто в BGR. Никаких RGB не нужно!
-            Планин pycharm'а показывает цвет правильно, только и когда он в BGR !!!
+            Плагин pycharm'а показывает цвет правильно, только и когда он в BGR !!!
             А RGB показывает инвертно!
             Можно убедиться наведя пипетку на красный цвет и посмотрев, где R - 255
             """
-
-            # from screen
             screenshot = sct.grab(self.region)
             raw = np.array(screenshot)
             image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
@@ -142,10 +140,7 @@ class Matrix(object):
         Возвращает все закрытые ячейки (которые закрыты и НЕ отмечены флагом)
         :return: array of Cell objects
         """
-        cells = []
-        for cell in self.table.flat:
-            if cell.is_closed:
-                cells.append(cell)
+        cells = list([x for x in self.table.flat if x.is_closed])
         return cells
 
     def get_flag_cells(self):
@@ -153,11 +148,6 @@ class Matrix(object):
         Возвращает список закрытых ячеек, уже помеченных флагами
         :return: array of Cell objects
         """
-        # deprecated
-        # cells = []
-        # for cell in self.table.flat:
-        #     if cell.is_flag:
-        #         cells.append(cell)
         cells = list([x for x in self.table.flat if x.is_flag])
         return cells
 
@@ -166,11 +156,6 @@ class Matrix(object):
         Возвращает список открытых ячеек (отличных от 0)
         :return: array of Cell objects
         """
-        # deprecated
-        # cells = []
-        # for cell in self.table.flat:
-        #     if cell.is_digit:
-        #         cells.append(cell)
         cells = list([x for x in self.table.flat if x.is_digit])
         return cells
 
@@ -237,7 +222,7 @@ class Matrix(object):
         Запускает обновление всех ячеек в соответствии с полем Minesweeper
         :return:
         """
-        # This is very important setting! After click, website has a lag for refresh game board.
+        # This is very important string! After click, website has a lag for refresh game board.
         # If we do not waiting at this point, we do not see any changes after mouse click.
         time.sleep(config.LAG)
 
@@ -284,7 +269,7 @@ class Matrix(object):
         :return:
         """
         image = self.get_image()
-        # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера.
+        # TODO нарушена логика - это должно быть в абстракции конкретной реализаии сапера.
         #      перенести это в board
         crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
 
@@ -306,8 +291,8 @@ class Matrix(object):
         # сортируем найденные цифры по координате X
         digits = sorted(found_digits, key=lambda a: a[0])
 
-        _, num_list = zip(*digits)
-        bomb_qty: int = int(''.join(map(str, num_list)))
+        _, numbers = zip(*digits)
+        bomb_qty: int = int(''.join(map(str, numbers)))
         return bomb_qty
 
     def cell_by_abs_coords(self, point):
