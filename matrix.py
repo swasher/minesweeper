@@ -2,6 +2,7 @@ import functools
 import math
 import operator
 import time
+from collections import namedtuple
 
 import cv2 as cv
 import mss
@@ -99,8 +100,7 @@ class Matrix(object):
         Возвращает список ячеек, расположенных вокруг (вкл. диагонали) заданой. Проблема в том, что нельзя просто
         вернуть "минус одна ячейка вправо, плюс одна влево", потому что у крайних ячеек возникнет IndexError.
         Поэтому есть вспомогательная функция get_slice, которая возвращаем "правильный" отрезок по оси.
-        :param col:
-        :param row:
+        :param cell: instance of Cell class
         :return: array of Cell objects
         """
 
@@ -135,6 +135,34 @@ class Matrix(object):
                     cells.append(self.table[row, col])
         return cells
 
+    def around_closed_cells(self, cell):
+        """
+        Возвращает список закрытых ячеек вокруг ячейки cell.
+        Флаги не считаются закрытыми ячейками.
+        :param cell: instance of Cell class
+        :return: array of Cell instances
+        """
+        closed_cells = list([x for x in self.around_cells(cell) if x.is_closed])
+        return closed_cells
+
+    def around_flagged_cells(self, cell):
+        """
+        Возвращает список ячеек-флагов вокруг ячейки cell
+        :param cell: instance of Cell class
+        :return: array of Cell instances
+        """
+        flagged_cells = list([x for x in self.around_cells(cell) if x.is_flag])
+        return flagged_cells
+
+    def around_digit_cells(self, cell):
+        """
+        Возвращает список ячеек-цифр вокруг ячейки cell
+        :param cell: instance of Cell class
+        :return: array of Cell instances
+        """
+        flagged_cells = list([x for x in self.around_cells(cell) if x.is_digit])
+        return flagged_cells
+
     def get_closed_cells(self):
         """
         Возвращает все закрытые ячейки (которые закрыты и НЕ отмечены флагом)
@@ -153,18 +181,10 @@ class Matrix(object):
 
     def get_digit_cells(self):
         """
-        Возвращает список открытых ячеек (отличных от 0)
+        Возвращает список открытых ячеек (без нулевых ячеек)
         :return: array of Cell objects
         """
         cells = list([x for x in self.table.flat if x.is_digit])
-        return cells
-
-    def get_bomb_cells(self):
-        """
-        Возвращает список бомб. Используется в game_over
-        :return: array of Cell objects
-        """
-        cells = list([x for x in self.table.flat if x.is_bomb])
         return cells
 
     def get_open_cells(self):
@@ -175,6 +195,14 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_open])
         return cells
 
+    def get_bomb_cells(self):
+        """
+        Возвращает список бомб. Используется в game_over
+        :return: array of Cell objects
+        """
+        cells = list([x for x in self.table.flat if x.is_bomb])
+        return cells
+
     def get_noguess_cell(self):
         """
         Первый ход для no-guess игр. Возвращает отмеченную крестиком клетку.
@@ -182,25 +210,6 @@ class Matrix(object):
         """
         cell = list([x for x in self.table.flat if x.is_noguess])
         return cell
-
-    def around_closed_cells(self, cell):
-        """
-        Возвращает число закрытых ячеек вокруг ячейки cell.
-        Флаги не считаются закрытыми ячейками.
-        :param cell: instance of Cell class
-        :return: closed_cells - array of Cell instances
-        """
-        closed_cells = list([x for x in self.around_cells(cell) if x.is_closed])
-        return closed_cells
-
-    def around_flagged_cells(self, cell):
-        """
-        Возвращает число флагов вокруг ячейки cell
-        :param cell: instance of Cell class
-        :return: flagged_cells - array of Cell instances
-        """
-        flagged_cells = list([x for x in self.around_cells(cell) if x.is_flag])
-        return flagged_cells
 
     @property
     def region(self):
@@ -330,57 +339,9 @@ class Matrix(object):
         #      vienne
         time.sleep(config.reset_pause)
 
-
     def flat_list(l):
+        """
+        NOT USED
+        """
         return functools.reduce(operator.concat, l)
 
-    def find_cells_sets(self):
-
-        # def glue_digit_around_into_clusters(arr):
-        #     for a1, a2 in itertools.combinations(arr, 2):
-        #         if bool(set(a1).intersection(a2)):
-        #             a1 и a2 имеют общие элементы
-        #             объединяем и выкидываем дубликаты:
-        #             set(a1).union(set(a2))
-        #
-        #             Теперь надо из arr удалить a1 и a2, добавить объедененный и запустить рекурсию:
-        #             arr = new_arr
-        #             glue_digit_around_into_clusters(arr)
-        #     else:
-        #         Если не нашлось общих элементов, останавливаем рекурсию
-        #         break
-
-        def glue_digit_around_into_clusters(arr):
-            lenght = len(arr)
-            colors = ['red', 'green', 'blue', 'yellow', 'cyan', 'magenta']
-            for i in range(lenght):
-                for j in range(lenght):
-                    item_i, item_j = arr[i], arr[j]
-                    if bool(item_i.intersection(item_j)) and i!=j:
-                        new_entry = item_j.union(item_i)
-                        arr.remove(item_i)
-                        arr.remove(item_j)
-                        arr.insert(0, new_entry)
-
-                        # for cellset in arr:
-                        #     color = random.choice(colors)
-                        #     for c in cellset:
-                        #         c.mark_cell_debug(color)
-
-                        return glue_digit_around_into_clusters(arr)
-            return arr
-
-        digits_around_cells = []
-        registered_groups = []
-
-        for cell in self.get_digit_cells():
-            closed_around = self.around_closed_cells(cell)
-            digits_around_cells.append(set(closed_around))
-
-        clusters = glue_digit_around_into_clusters(digits_around_cells)
-        return clusters
-
-
-
-            # Если какая-то ячейка содержится в неком уже существующем registered_set, то добавить все ячейки в этот registered_set
-            # Иначе создать из наборы ячеек group новый registered_set

@@ -31,6 +31,7 @@ from solver import solver_E2
 from solver import solver_B2
 from solver import solver_B1E1
 from solver import solver_human
+from solver import solver_gauss
 from solver import solver_noguess
 from solver import noguess_finish
 
@@ -143,7 +144,7 @@ def clicking_cells(cells, button):
         matrix.lastclicked = cell
         n = datetime.now()
         prev = q.get()
-        print('real sec:', (n-prev).total_seconds(), '\n')
+        # print('real sec:', (n-prev).total_seconds(), '\n')
         q.put(n)
         cell.click(button)
 
@@ -291,21 +292,6 @@ def recursive_wrapper(strategies):
 
 import manual_interract
 if __name__ == '__main__':
-    # time.sleep(3)
-
-    # dir = 'game_SAVE_24-Nov-2021--19.30.04.683185'
-    # matrix = manual_interract.load(dir)
-    # matrix.update()
-    # s = matrix.find_cells_sets()
-    # print(s)
-    #
-    # for cellset in s:
-    #     color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
-    #     for c in cellset:
-    #         c.mark_cell_debug(color)
-    #
-    # exit()
-
     col_values, row_values, region = find_board(asset.closed, board.board)
     matrix = Matrix(row_values, col_values, region)
 
@@ -318,7 +304,9 @@ if __name__ == '__main__':
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_corner]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_human]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_smart]
-    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
+    # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_gauss, solver_R1]
+
 
     config.human = False
     if config.human:  # режим 'human'

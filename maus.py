@@ -36,9 +36,8 @@ def human_mouse_speed(distance):
     # per100px = np.interp(distance, x, timeper100)
     # t = distance * per100px / 100
 
-    t = np.interp(distance, x, y)/2
+    t = np.interp(distance, x, y)/10
 
-    print('time:', t, 'px:', distance)
     return t
 
 
