@@ -18,9 +18,8 @@ import cv2 as cv
 from datetime import datetime
 
 from matrix import Matrix
-# from patterns import patterns
-from asset import patterns
-from asset import Asset
+import asset
+from board import board
 from main import find_board
 
 from solver import solver_R1
@@ -32,12 +31,13 @@ from solver import solver_E2
 from solver import solver_B2
 from solver import solver_B1E1
 
+
 def scan():
-    board = find_board(patterns, Asset)
+    col_values, row_values, region = find_board(asset.closed, board)
     with shelve.open('shelve') as d:
-        d['col_values'] = board[0]
-        d['row_values'] = board[1]
-        d['region'] = board[2]
+        d['col_values'] = col_values
+        d['row_values'] = row_values
+        d['region'] = region
 
 
 def save():

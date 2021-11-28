@@ -15,8 +15,10 @@ ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 from config import config
 from util import pause
 from util import cell_coordinates
-from asset import patterns
-from asset import Asset
+
+import asset
+import board
+
 from util import search_pattern_in_image
 from matrix import Matrix
 
@@ -70,7 +72,7 @@ s
 """
 
 
-def find_board(pattern, asset):
+def find_board(closedcell, board):
     """
     Находит поле сапера
 
@@ -89,7 +91,7 @@ def find_board(pattern, asset):
     image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
     precision = 0.8
 
-    cells = search_pattern_in_image(pattern.closed.raster, image, precision)
+    cells = search_pattern_in_image(closedcell.raster, image, precision)
     cells_coord_x, cells_coord_y = cell_coordinates(cells)
 
     if not len(cells_coord_x + cells_coord_y):
@@ -97,14 +99,14 @@ def find_board(pattern, asset):
         exit()
     print(f' - found, {len(cells_coord_x)}x{len(cells_coord_y)}')
 
-    template = pattern.closed.raster
+    template = closedcell.raster
     h, w = template.shape[:2]
 
     # Это поля "игрового поля" в дополнение к самим клеткам в пикселях
-    left = asset.border['left']
-    right = asset.border['right']
-    top = asset.border['top']
-    bottom = asset.border['bottom']
+    left = board.border['left']
+    right = board.border['right']
+    top = board.border['top']
+    bottom = board.border['bottom']
 
     region_x1 = cells_coord_x[0] - left
     region_x2 = cells_coord_x[-1] + right + w
@@ -271,7 +273,7 @@ def recursive_wrapper(strategies):
             break
         matrix.reset()
         if config.arena:
-            col_values, row_values, region = find_board(patterns, Asset)
+            col_values, row_values, region = find_board(asset.closed, board.board)
             matrix = Matrix(row_values, col_values, region)
         matrix.update()
 
@@ -281,36 +283,36 @@ def recursive_wrapper(strategies):
     print(f'FAIL: {total-win}')
     print(f'WIN PERCENT: {win*100/total:.2f}')
 
-import manual_save_board
+import manual_interract
 if __name__ == '__main__':
     # time.sleep(3)
 
-    dir = 'game_SAVE_24-Nov-2021--19.30.04.683185'
-    matrix = manual_save_board.load(dir)
-    matrix.update()
-    s = matrix.find_cells_sets()
-    print(s)
+    # dir = 'game_SAVE_24-Nov-2021--19.30.04.683185'
+    # matrix = manual_interract.load(dir)
+    # matrix.update()
+    # s = matrix.find_cells_sets()
+    # print(s)
+    #
+    # for cellset in s:
+    #     color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
+    #     for c in cellset:
+    #         c.mark_cell_debug(color)
+    #
+    # exit()
 
-    for cellset in s:
-        color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
-        for c in cellset:
-            c.mark_cell_debug(color)
-
-    exit()
-
-    col_values, row_values, region = find_board(patterns, Asset)
+    col_values, row_values, region = find_board(asset.closed, board.board)
     matrix = Matrix(row_values, col_values, region)
 
 
     # debug - test perfomance
     # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
 
-    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
 
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_corner]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_human]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_smart]
-    # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
     config.human = False
     if config.human:  # режим 'human'

@@ -1,7 +1,5 @@
-import numpy as np
-from asset import Asset
 from random import randrange
-
+import maus
 
 def solver_R1_smart(matrix):
     """
@@ -45,4 +43,4 @@ def solver_R1_smart(matrix):
     #     random_cell.mark_cell_debug()
     #     input("Press Enter to mouse moving")
 
-    return [random_cell], Asset.open
+    return [random_cell], maus.OPEN

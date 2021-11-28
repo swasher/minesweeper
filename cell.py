@@ -1,35 +1,31 @@
 import random
+
 import cv2 as cv
-import util
-import win32gui
 import win32api
+import win32gui
 import xxhash
 
-from asset import patterns, list_patterns
+import asset
+import maus
 from config import config
 from util import point_in_rect
 
 
 class Cell(object):
 
-    # deprecated
-    # ident_right = 0  # class property
-    # deprecated
-    # ident_top = 0    # class property
     col = 0
     row = 0
     # coordinates from game board; need it because we take screenshot only game board
     coordx = 0
     coordy = 0
-    # coordinates from screen; use it for draw on screen, for example
+    # coordinates from screen; for example used for draw on screen
     abscoordx = 0
     abscoordy = 0
     w = 0
     h = 0
-    status = ''
-    # type = None  # Pattern instance
+    type = None  # Pattern instance
     image = None  # Current image of cell; ndarray
-    hash = 0
+    hash = 0  # hash of image
 
     def __init__(self, row, col, coordx, coordy, abscoordx, abscoordy, w, h):
         """
@@ -37,18 +33,13 @@ class Cell(object):
         :param row: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
         :param coordx: коор. на экране X от левого верхнего угла ДОСКИ в пикселях
         :param coordy: коор. на экране Y от левого верхнего угла ДОСКИ в пикселях
+        :param abscoordx: коор. на экране X от левого верхнего угла ЭКРАНА в пикселях
+        :param abscoordy: коор. на экране Y от левого верхнего угла ЭКРАНА в пикселях
         :param w: ширина ячейки в пикселях
         :param h: высота ячейки в пикселях
-        :param status: (str) 'closed' закрыто / 'opened' открыто / 'flag' флаг / digit(str)
+        :param type: instance of Asset - что содержится в ячейке
         :param image: ndarray - текущее изображение ячейки
         :param hash: int - хэш изображения ячейки
-
-        POSSIBLE STATUS:
-        str - closed (default)
-        str - flag
-        str - bomb (for reflect endgame)
-        str - digit, represent digit of around bomb
-
         """
         self.col = col
         self.row = row
@@ -58,12 +49,13 @@ class Cell(object):
         self.abscoordy = abscoordy
         self.w = w
         self.h = h
-        self.status = 'closed'
-        # self.type = patterns.closed
+        # self.status = 'closed'
 
     def __repr__(self):
-        return f'{self.status} ({self.row}:{self.col})'
+        return f'{self.type.name} ({self.row}:{self.col})'
 
+    """
+    deprecated
     def cell_pict(self):
         # TODO Сделать еще одно поле - TYPE с типом Pattern, и здесь
         # TODO возвращать просто self.type.represent
@@ -88,16 +80,10 @@ class Cell(object):
             return 'e'  # error
         return slot
         # return slot+f'{self.row}:{self.col}'
+    """
 
-    # deprecated
-    # now, we have explicit property from matrix __init__
-    # @property
-    # def abscoordx(self):
-    #     return self.coordx + self.ident_right
-    #
-    # @property
-    # def abscoordy(self):
-    #     return self.coordy + self.ident_top
+    def cell_pict(self):
+        return self.type.repr
 
     @property
     def is_closed(self):
@@ -106,39 +92,36 @@ class Cell(object):
         возращаем False для более ясной логики solver-ов
         :return:
         """
-        return True if self.status == 'closed' else False
+        return True if self.type == asset.closed else False
 
     @property
     def is_flag(self):
-        return True if self.status == 'flag' else False
-
-    @property
-    def is_not_flag(self):
-        return not self.is_flag
+        return True if self.type == asset.flag else False
 
     @property
     def is_bomb(self):
-        return True if self.status in ['bomb', 'red_bomb'] else False
+        return True if self.type in asset.bombs else False
 
     @property
     def is_digit(self):
-        return True if self.status in ['1', '2', '3', '4', '5', '6', '7', '8'] else False
+        return True if self.type in asset.digits else False
 
     @property
     def is_open(self):
-        return True if self.status in ['0', '1', '2', '3', '4', '5', '6', '7', '8'] else False
+        return True if self.type in asset.open_cells else False
 
     @property
     def is_noguess(self):
-        return True if self.status == 'noguess' else False
+        return True if self.type == asset.noguess else False
 
     def set_flag(self):
-        self.status = 'flag'
+        self.type = asset.flag
 
     def cell_random_coordinates(self):
         """
         :return: Координаты для клика с учетом рандомизации внутри ячейки
         """
+        # TODO переписать эту муть
         xstart = self.coordx
         xend = xstart + self.w
         edge_x = int(self.w*0.2)
@@ -164,16 +147,7 @@ class Cell(object):
         # deprecated
         # x += Cell.ident_right
         # y += Cell.ident_top
-        util.click(x, y, button)
-
-    """
-    possible depricated
-    def setflag(self):
-        self.click('right')
-
-    def setclear(self):
-        self.click('left')
-    """
+        maus.click(x, y, button)
 
     @property
     def digit(self):
@@ -181,12 +155,17 @@ class Cell(object):
         Возвращает цифру ячейки в виде int. Иначе возвращает -1
         :return: int
         """
-        if self.status.isnumeric():
-            return int(self.status)
+        if self.type in asset.digits:
+            return int(self.type.value)
         else:
             return -1
 
     def hashing(self):
+        """
+        Возвращает хэш изображения ячейки.
+        Используется при сканировании поля, чтобы понять, изменилась ли ячейка.
+        :return:
+        """
         c = self.image.copy(order='C')
         h = xxhash.xxh64()
         h.update(c)
@@ -206,14 +185,16 @@ class Cell(object):
 
             precision = 0.8
 
-            for patt in list_patterns:  # list_patterns imported from cell_pattern
-                template = patt.raster
+            for pattern in asset.all_cell_types:  # list_patterns imported from cell_pattern
+                template = pattern.raster
                 res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
                 # print(f'Cell {self.row}:{self.col} compared with {patt.name} with result {max_val}')
-                patt.similarity = max_val
+                pattern.similarity = max_val
                 if max_val > precision:
-                    self.status = patt.name
+                    self.type = pattern
+                    # deprecated
+                    # self.status = pattern.name
                     break
 
             # deprecated

@@ -1,7 +1,6 @@
-import math
 import util
 from config import config
-from asset import Asset
+import maus
 
 
 def solver_B1E1(matrix):
@@ -35,7 +34,7 @@ def solver_B1E1(matrix):
     #
 
     cells_b1 = []
-    button_b1 = Asset.flag
+    action_b1 = maus.FLAG
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
@@ -66,7 +65,7 @@ def solver_B1E1(matrix):
     #
 
     cells_e1 = []
-    button_e1 = Asset.nearby
+    action_e1 = maus.NEARBY
 
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
@@ -88,7 +87,7 @@ def solver_B1E1(matrix):
             # todo тут говно код... Завязана логика поиска решений на тип игры (noflag)
             solution_e1 = matrix.around_closed_cells(solution_e1[0])
             dist_e1 = matrix.cell_distance(solution_e1[0], matrix.lastclicked)
-            button_e1 = Asset.open
+            action_e1 = maus.OPEN
 
         # if config.turn_by_turn:
         #     ic('------ E1')
@@ -117,13 +116,13 @@ def solver_B1E1(matrix):
     if dist_b1 == 0 and dist_e1 == 0:
         c, b = [], None
     elif dist_b1 > 0 and dist_e1 == 0:
-        c, b = cells_b1[0:1], button_b1
+        c, b = cells_b1[0:1], action_b1
     elif dist_b1 == 0 and dist_e1 > 0:
-        c, b = solution_e1, button_e1
+        c, b = solution_e1, action_e1
     elif dist_b1 > dist_e1:
-        c, b = solution_e1, button_e1
+        c, b = solution_e1, action_e1
     else:
-        c, b = cells_b1[0:1], button_b1
+        c, b = cells_b1[0:1], action_b1
 
     # if c:
     #     c[0].mark_cell_debug('green', dist=12, size=12)

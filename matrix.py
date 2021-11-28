@@ -1,26 +1,18 @@
-import itertools
-import math
-import random
-
-import numpy
-import mss
-import numpy as np
-import cv2 as cv
-import util
-import time
-from icecream import ic
-import operator
 import functools
-import win32api
+import math
+import operator
+import time
 
+import cv2 as cv
+import mss
+import numpy
+import numpy as np
+
+import asset
 import cell
+import util
+from board import board
 from config import config
-from asset import Asset
-from asset import patterns
-from asset import red_digits
-from util import point_in_rect
-
-
 
 """
 Соглашения:
@@ -41,8 +33,6 @@ class Matrix(object):
         :param num_cols:
         """
         self.region_x1, self.region_y1, self.region_x2, self.region_y2 = region
-        cell.Cell.ident_right = self.region_x1
-        cell.Cell.ident_top = self.region_y1
 
         self.image = self.get_image()
         self.height = len(row_values)
@@ -50,7 +40,7 @@ class Matrix(object):
 
         self.table = numpy.full((self.height, self.width), cell.Cell)
 
-        template = patterns.closed.raster
+        template = asset.closed.raster
         h, w = template.shape[:2]
 
         for row, coordy in enumerate(row_values):  # cell[строка][столбец]
@@ -163,12 +153,12 @@ class Matrix(object):
         Возвращает список закрытых ячеек, уже помеченных флагами
         :return: array of Cell objects
         """
-        cells = []
-        for cell in self.table.flat:
-            if cell.is_flag:
-                cells.append(cell)
-        # TODO функции get_какая_то_ячейка похожи, их надо объеденить в одну
-        # TODO c передаваемам параметром типа get_cells(bomb)
+        # deprecated
+        # cells = []
+        # for cell in self.table.flat:
+        #     if cell.is_flag:
+        #         cells.append(cell)
+        cells = list([x for x in self.table.flat if x.is_flag])
         return cells
 
     def get_digit_cells(self):
@@ -176,6 +166,7 @@ class Matrix(object):
         Возвращает список открытых ячеек (отличных от 0)
         :return: array of Cell objects
         """
+        # deprecated
         # cells = []
         # for cell in self.table.flat:
         #     if cell.is_digit:
@@ -214,11 +205,7 @@ class Matrix(object):
         :param cell: instance of Cell class
         :return: closed_cells - array of Cell instances
         """
-        cells = self.around_cells(cell)
-        closed_cells = []
-        for cell in cells:
-            if cell.is_closed and cell.is_not_flag:
-                closed_cells.append(cell)
+        closed_cells = list([x for x in self.around_cells(cell) if x.is_closed])
         return closed_cells
 
     def around_flagged_cells(self, cell):
@@ -227,12 +214,7 @@ class Matrix(object):
         :param cell: instance of Cell class
         :return: flagged_cells - array of Cell instances
         """
-        cells = self.around_cells(cell)
-        flagged_cells = []
-        for cell in cells:
-            if cell.is_flag:
-                flagged_cells.append(cell)
-
+        flagged_cells = list([x for x in self.around_cells(cell) if x.is_flag])
         return flagged_cells
 
     @property
@@ -257,8 +239,7 @@ class Matrix(object):
         """
         # This is very important setting! After click, website has a lag for refresh game board.
         # If we do not waiting at this point, we do not see any changes after mouse click.
-        if Asset.LAG:
-            time.sleep(Asset.LAG)
+        time.sleep(config.LAG)
 
         self.image = self.get_image()
         for cell in self.get_closed_cells():
@@ -285,7 +266,7 @@ class Matrix(object):
         """
         precision = 0.9
         image = self.get_image()
-        template = patterns.win.raster
+        template = asset.win.raster
 
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
@@ -303,13 +284,14 @@ class Matrix(object):
         :return:
         """
         image = self.get_image()
-        # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера
-        crop_img = image[0:Asset.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
+        # TODO нарушена логика - это должно быть в абстракции конкретеной реализаии минера.
+        #      перенести это в board
+        crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
 
         precision = 0.94
         found_digits = []
-        for patt in red_digits:  # list_patterns imported from cell_pattern
-            template = patt.raster
+        for pattern in asset.red_digits:  # list_patterns imported from cell_pattern
+            template = pattern.raster
 
             # result = util.find_templates(template, crop_img, precision)
             result = util.search_pattern_in_image(template, crop_img, precision)
@@ -319,7 +301,7 @@ class Matrix(object):
             # координаты найденной цифры - x и y, и с какой точностью определилась цифра. Напр.
             # [(19, 66, 1.0), (32, 66, 0.998)]
             for r in result:
-                found_digits.append((r[0], patt.value))
+                found_digits.append((r[0], pattern.value))
 
         # сортируем найденные цифры по координате X
         digits = sorted(found_digits, key=lambda a: a[0])
@@ -352,11 +334,12 @@ class Matrix(object):
         """
 
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
-        face_coord_y = self.region_y1 + Asset.smile_y_coord
+        face_coord_y = self.region_y1 + board.smile_y_coord
         util.click(face_coord_x, face_coord_y, 'left')
         for c in self.table.flat:
-            c.status = 'closed'
-            c.type = patterns.closed
+            # deprecated
+            # c.status = 'closed'
+            c.type = asset.closed
         # todo тут прибито гвоздями. Нужно ждать некоторое время, пока поле обновится.
         #      онлайну подходит 0,1*3
         #      vienne

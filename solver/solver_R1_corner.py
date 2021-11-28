@@ -1,7 +1,5 @@
-import numpy as np
-from asset import Asset
 from random import randrange
-
+import maus
 
 def solver_R1_corner(matrix):
     """
@@ -19,12 +17,12 @@ def solver_R1_corner(matrix):
 
     for cell in corner_cells:
         if len(matrix.around_closed_cells(cell)) == 3 and cell.is_closed:
-            return [cell], Asset.open
+            return [cell], maus.OPEN
     else:
         cells = matrix.get_closed_cells()
         qty = len(cells)
         random_cell = cells[randrange(qty)]
-        return [random_cell], Asset.open
+        return [random_cell], maus.OPEN
 
     # if config.turn_by_turn:
     #     ic('------ R1-corner')

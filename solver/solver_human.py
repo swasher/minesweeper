@@ -1,10 +1,11 @@
 import time
 import msvcrt
 import threading
-from asset import Asset
 from pynput import mouse
 from threading import Timer
 from datetime import datetime
+
+import maus
 
 
 def exists(var):
@@ -124,12 +125,12 @@ def solver_human(matrix):
         cell = matrix.cell_by_abs_coords(point)
         if cell:
             if bb == mouse.Button.left:
-                button = Asset.open
+                action = maus.OPEN
             elif bb == mouse.Button.right:
-                button = Asset.flag
+                action = maus.FLAG
             else:
                 exit('Error: That mouse button is not assigned.')
-            return [cell], button
+            return [cell], action
         else:
             print('Нажато за пределами поля')
 

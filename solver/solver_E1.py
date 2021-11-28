@@ -1,5 +1,5 @@
 from config import config
-from asset import Asset
+import maus
 
 
 def solver_E1(matrix):
@@ -21,7 +21,7 @@ def solver_E1(matrix):
     КРОМЕ режима noflag - тогда отдаем все нужные ячейки
     """
     cells = []
-    button = Asset.nearby
+    action = maus.NEARBY
 
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
@@ -37,7 +37,7 @@ def solver_E1(matrix):
         if config.noflag:
             # todo тут говно год... Завязана логика поиска решений на тип игры (noflag)
             solution = matrix.around_closed_cells(solution[0])
-            button = Asset.open
+            action = maus.OPEN
 
         # if config.turn_by_turn:
         #     ic('------ E1')
@@ -47,7 +47,7 @@ def solver_E1(matrix):
         # если ни у одной клетки нет решения, возвращаем пустой список
         solution = []
 
-    return solution, button
+    return solution, action
 
 
 

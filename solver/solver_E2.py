@@ -1,8 +1,7 @@
 import itertools
 from solver.classes import create_roots
 
-from asset import Asset
-
+import maus
 
 def solver_E2(matrix):
     """
@@ -35,10 +34,10 @@ def solver_E2(matrix):
                 # return empties, 'left'
                 # -- debug
 
-                return empties, Asset.open
+                return empties, maus.OPEN
                 # VAR1 - return all found solution
                 #solution += empties
 
     # VAR1 - return all found solution
     # return solution, Asset.open
-    return [], Asset.open
+    return [], maus.OPEN

@@ -8,6 +8,7 @@ import numpy as np
 import cv2 as cv
 import ctypes
 import mouse
+import maus
 import msvcrt
 import random
 import time
@@ -15,44 +16,6 @@ import win32gui
 
 from itertools import groupby
 from config import config
-
-
-def human_mouse_speed(distance):
-    """
-    Возвращает время в секундах, за которое человек проведет мышью расстояние distance (в пикселях).
-    Замеры смотри в track_mouse_when_man_playing.py
-    :param distance: int
-    :return: float
-    """
-    x = [30, 280, 660]
-    y = [1.47, 0.4, 0.17]
-    per100px = np.interp(distance, x, y)
-    t = distance * per100px / 100 / 3.5
-    return t
-
-
-def click(x, y, button):
-    oldx, oldy = mouse.get_position()
-
-    dist = math.hypot(oldx - x, oldy - y)
-    # print(dist)
-    # time.sleep(1)
-    # mouse.move(x, y, absolute=True, duration=gauss_duration())
-    duration = human_mouse_speed(dist)
-    if duration < 0 or config.mouse_duration == 0:
-        duration = 0
-    mouse.move(x, y, absolute=True, duration=duration)
-
-    if button in ['left', 'right']:
-        mouse.click(button=button)
-    elif button == 'both':
-        mouse.press(button='left')
-        mouse.press(button='right')
-        mouse.release(button='left')
-        mouse.release(button='right')
-
-    if config.turn_by_turn:
-        mouse.move(oldx, oldy)
 
 
 def pause(t=5):

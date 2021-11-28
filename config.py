@@ -30,6 +30,7 @@ class Configuration(object):
         time - время перемещения мыши
         pause - пуза между солверами
         icecream debug messages
+        LAG - Лаг обновления экрана после клика мышки
 
         string_val = config.get('section_a', 'string_val')
         bool_val = config.getboolean('section_a', 'bool_val')

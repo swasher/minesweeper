@@ -1,6 +1,7 @@
 import math
+
 import util
-from asset import Asset
+import maus
 
 
 def solver_B1(matrix):
@@ -29,16 +30,19 @@ def solver_B1(matrix):
             for c in closed:
                 cells.append(c)
 
-
     # В список cells одна и та же ячейка может попасть несколько раз (при анализе разных "цифр"). Убираем дубликаты.
     cells = util.remove_dup(cells)
 
+    """
+    DEPRECATED
+    Алгоритм сортировки сделан в e1b1, а в будующем будет общий для всех алгоритмов
     # Алгоритм B1 выдает серию клеток; сортировать их в порядке "близости" на поле, а то он помечает их в хаотичном порядке
     # Сделано довольно топорно - от сортирует в порядке возрастания расстояния от центра достки.
     # В принцепе работает, но по феншую нужно сделать "ближайшее к текущей позиции", а затем к "новой текущей", типа рекурсии
     center_x = matrix.region_x1 + (matrix.region_x2 - matrix.region_x1)/2
     center_y = matrix.region_y1 + (matrix.region_y2 - matrix.region_y1)/2
     cells = sorted(cells, key=lambda c: math.hypot(center_x - c.coordx, center_y - c.coordy))
+    """
 
     # ic('------ B1')
     # for cell in cells:
@@ -46,4 +50,4 @@ def solver_B1(matrix):
         # cell.mark_cell_debug()
     # input('wait...')
 
-    return cells, Asset.flag
+    return cells, maus.FLAG

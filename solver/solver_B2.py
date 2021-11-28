@@ -1,7 +1,7 @@
 import itertools
-from solver.classes import create_roots
 
-from asset import Asset
+import maus
+from solver.classes import create_roots
 
 
 def solver_B2(matrix):
@@ -42,6 +42,5 @@ def solver_B2(matrix):
                 # r2.ancestor.mark_cell_debug()
                 # print('COMPARE', r1.ancestor, r2.ancestor)
                 # print(bombs)
-                return bombs, 'right'
-    return [], Asset.flag
-
+                return bombs, maus.FLAG
+    return [], maus.FLAG
