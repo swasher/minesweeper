@@ -3,23 +3,48 @@ Util for analyze human mouse use - time and distance.
 
 Results:
 
-Online, size 28 (big cells). 30 clicks per run. 3 runs every test.
----------------------------
+Minesweeper Online, size 28 (big cells). 30 clicks per run. 3 runs every test.
+============================
+
 Рядом стоящие клетки
+-------------------
 Distance 30.72, Time: 0.43, Time per 100 px: 1.47
 Distance 31.89, Time: 0.41, Time per 100 px: 1.35
 Distance 31.03, Time: 0.40, Time per 100 px: 1.36
 
 Средне расположенные клетки (треть - две трети высоты поля)
+--------------------
 Distance 299.88, Time: 0.96, Time per 100 px: 0.37
 Distance 286.46, Time: 0.89, Time per 100 px: 0.42
 Distance 254.39, Time: 0.88, Time per 100 px: 0.39
 
 Отдаленно стоящие клетки
+------------------------
 Distance 663.85, Time: 1.08, Time per 100 px: 0.18
 Distance 691.21, Time: 0.97, Time per 100 px: 0.15
 Distance 690.31, Time: 1.03, Time per 100 px: 0.16
 
+
+Vienna (home)
+=================================
+
+Рядом стоящие клетки
+-------------------
+Distance 16.59, Time: 0.46, Time per 100 px: 2.88
+Distance 15.44, Time: 0.44, Time per 100 px: 2.90
+Distance 15.62, Time: 0.46, Time per 100 px: 3.02
+
+Средне расположенные клетки (треть - две трети высоты поля)
+--------------------
+Distance 154.83, Time: 1.05, Time per 100 px: 0.72
+Distance 144.12, Time: 1.03, Time per 100 px: 0.74
+Distance 152.89, Time: 1.08, Time per 100 px: 0.78
+
+Отдаленно стоящие клетки
+------------------------
+Distance 320.75, Time: 1.06, Time per 100 px: 0.36
+Distance 316.51, Time: 1.05, Time per 100 px: 0.35
+Distance 308.79, Time: 1.09, Time per 100 px: 0.39
 """
 import time
 import math

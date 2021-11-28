@@ -135,10 +135,16 @@ def draw():
         cv.imshow("Display window", image)
         k = cv.waitKey(0)
 
-
+import queue
+q = queue.Queue()
+q.put(datetime.now())
 def clicking_cells(cells, button):
     for cell in cells:
         matrix.lastclicked = cell
+        n = datetime.now()
+        prev = q.get()
+        print('real sec:', (n-prev).total_seconds(), '\n')
+        q.put(n)
         cell.click(button)
 
 

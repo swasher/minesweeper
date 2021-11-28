@@ -69,8 +69,6 @@ class Asset(object):
 
 
 directory = config.asset
-# asset = config.asset
-
 
 # deprecated
 # asset_data = importlib.import_module(f'{directory}.asset', package='.minesweeper')
@@ -85,17 +83,8 @@ for f in pics:
     # Проверяем, все ли есть файлы ассета; если нет, возникнет эксепшн.
     pathlib.Path(pathlib.PurePath(directory, f)).open()
 
-"""
-# Создаем список patterns - который содержит все изображения клеток. Его тип - SimpleNamespace
-# К нему можно обращаться patterns.bomb или patterns.n3
-# Так же делаем list_patterns - это просто tuple всех паттернов.
-# Цифры на игровом поле - от 1-цы до 8-ки, а ноль - это пустая открытая клетка
-keys = ['n' + str(x) for x in range(9)]
-numbered_cells = [Asset(f'{i}', f'{directory}/{i}.png') for i in range(9)]
-d = dict(zip(keys, numbered_cells))
-patterns = SimpleNamespace(**d)
-"""
 
+# digits
 n0 = Asset('0', f'{directory}/0.png', 0, ' ')
 n1 = Asset('1', f'{directory}/1.png', 1, '1')
 n2 = Asset('2', f'{directory}/2.png', 2, '2')
@@ -105,15 +94,6 @@ n5 = Asset('5', f'{directory}/5.png', 5, '5')
 n6 = Asset('6', f'{directory}/6.png', 6, '6')
 n7 = Asset('7', f'{directory}/7.png', 7, '7')
 n8 = Asset('8', f'{directory}/8.png', 8, '8')
-
-# patterns.closed = Asset('closed', f'{directory}/closed.png')
-# patterns.bomb = Asset('bomb', f'{directory}/bomb.png')
-# patterns.red_bomb = Asset('red_bomb', f'{directory}/red_bomb.png')
-# patterns.flag = Asset('flag', f'{directory}/flag.png')
-# patterns.fail = Asset('fail', f'{directory}/fail.png')
-# patterns.win = Asset('win', f'{directory}/win.png')
-# patterns.smile = Asset('smile', f'{directory}/smile.png')
-#
 
 # cells
 closed = Asset('closed', f'{directory}/closed.png', None, '·')
@@ -127,31 +107,16 @@ fail = Asset('fail', f'{directory}/fail.png')
 win = Asset('win', f'{directory}/win.png')
 smile = Asset('smile', f'{directory}/smile.png')
 
-digits = [n1, n2, n3, n4, n5, n6, n7, n8]
-open_cells = [n0, n1, n2, n3, n4, n5, n6, n7, n8]
-bombs = [bomb, red_bomb]
-all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, red_bomb]
-
-"""
-# TODO Если асет для "minesweeper online" то добавлять иначе нет
-if board.allow_noguess:
-    noguess = Asset(f'{directory}/noguess.png')
-
-# конвертируем объект SimpleNamespace, который по сути обертка для dict, в список.
-# Потому что dict не итерируемый, а в cell.py нам нужен перебор `for` циклом
-list_patterns = []
-for name, obj in patterns.__dict__.items():
-    list_patterns.append(obj)
-
-# TODO говногод
-#      но я хз как сделать красиво. Суть в том, что дальше мы будем очень часто итерировать этот список.
-#      и для увеличения производительности самые часто встечающиеся элементы должны быть в начале списка. Это 0 и closed
-list_patterns.remove(patterns.closed)
-list_patterns.insert(0, patterns.closed)
-"""
-
 # Список цифр, используемых на поле в подсчете бомб и секунд
 red_digits = []
 for i in range(10):
     obj = Asset(f'clock_{i}', f'{directory}/clock_{i}.png', i)
     red_digits.append(obj)
+
+
+digits = [n1, n2, n3, n4, n5, n6, n7, n8]
+open_cells = [n0, n1, n2, n3, n4, n5, n6, n7, n8]
+bombs = [bomb, red_bomb]
+all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, red_bomb]
+
+
