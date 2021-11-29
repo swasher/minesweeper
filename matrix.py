@@ -2,7 +2,6 @@ import functools
 import math
 import operator
 import time
-from collections import namedtuple
 
 import cv2 as cv
 import mss
@@ -11,6 +10,7 @@ import numpy as np
 
 import asset
 import cell
+import maus
 import util
 from board import board
 from config import config
@@ -329,7 +329,7 @@ class Matrix(object):
 
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
         face_coord_y = self.region_y1 + board.smile_y_coord
-        util.click(face_coord_x, face_coord_y, 'left')
+        maus.click(face_coord_x, face_coord_y, maus.OPEN)
         for c in self.table.flat:
             # deprecated
             # c.status = 'closed'
