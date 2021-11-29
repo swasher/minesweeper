@@ -33,8 +33,6 @@ from solver import solver_B1E1
 from solver import solver_human
 from solver import solver_gauss
 from solver import solver_noguess
-from solver import noguess_finish
-
 
 
 """

@@ -19,8 +19,6 @@ def human_mouse_speed(distance):
     """ # mine online
     # distance
     x = [30, 280, 660]
-    # time per 100 px
-    y = [1.47, 0.4, 0.17]
     # time
     tim = [0.41, 0.92, 1.03]
     """
@@ -28,15 +26,13 @@ def human_mouse_speed(distance):
     # VIENNA
     # distance
     x = [18.88, 150.6, 315.35]
-    # time per 100 px
-    timeper100 = [2.93, 0.74, 0.36]
     # time
     y = [0.45, 1.05, 1.05]
 
     # per100px = np.interp(distance, x, timeper100)
     # t = distance * per100px / 100
 
-    t = np.interp(distance, x, y)/10
+    t = np.interp(distance, x, y)/5
 
     return t
 
