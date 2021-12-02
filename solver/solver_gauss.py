@@ -82,14 +82,14 @@ def make_clusters(matrix, registered_groups):
     самой матрицы, а цифры - для вектора матрицы.
     """
     clusters = []
-    Cluster = namedtuple('Cluster', ['matrice', 'vector'])
+    Cluster = namedtuple('Cluster', ['body', 'vector'])
     for group in registered_groups:
         vector = set()
         for cell in group:
             around_digits = matrix.around_digit_cells(cell)
             vector = vector.union(set(around_digits))
         vector = list(vector)
-        cluster = Cluster(matrice=group, vector=vector)
+        cluster = Cluster(body=group, vector=vector)
         clusters.append(cluster)
     return clusters
 
@@ -101,38 +101,60 @@ def solver_gauss(matrix):
     if clusters:
         for cluster in clusters:
             color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
-            for c in cluster.matrice:
+            for c in cluster.body:
                 c.mark_cell_debug(color)
 
-        for cluster in clusters:
-            m = np.array()
-            v = []
-            for d in cluster.vector:
-                v.append(d)
 
-            #     Тут нужно как то добавть в numpy.array массив типа:
-            #     x1*0, x2*1, x3*0, x4*1
-            #     где x - это все ячейки в кластере, а 0 или 1 - входид ячейка в текущий вектор или нет
-            #     таким образом получим матрицу.
-            #
-            #     Идея:
-            #     у каждой Cell сделать property - взаимодействует она с цифрой Cell_digig (1) или нет (0).
-            #     Тогда создать матрицу так:
-            #     cell1(digit1), cell2(digit1), cell3(digit1) | digit1
-            #     cell1(digit2), cell2(digit2), cell3(digit2) | digit2
-            #
-            #
-            # Ссылки матрица объектов
-            # # https://stackoverflow.com/a/55872235/1334825
-            # # https://stackoverflow.com/questions/4877624/numpy-array-of-objects
+# Тут нужно как то добавть в numpy.array массив типа:
+# x1*0, x2*1, x3*0, x4*1
+# где x - это все ячейки в кластере, а 0 или 1 - входид ячейка в текущий вектор или нет
+# таким образом получим матрицу.
+#
+# Идея:
+# у каждой Cell сделать property - взаимодействует она с цифрой Cell_digig (1) или нет (0).
+# Тогда создать матрицу так:
+# cell1(digit1), cell2(digit1), cell3(digit1) | digit1
+# cell1(digit2), cell2(digit2), cell3(digit2) | digit2
+#
+#
+# Ссылки матрица объектов
+# # https://stackoverflow.com/a/55872235/1334825
+# # https://stackoverflow.com/questions/4877624/numpy-array-of-objects
+
+
+        for cluster in clusters:
+            """
+            На этом месте мы работаем с кластером cluster,
+            у которого есть cluster.vector - это цифры и cluster.body - это закрытые ячейки.
+            Нам нужно построить матрицу - по строке на каждую цифру. Для каждой ячейки написать 
+            0 если ячейка не взаимодействует с цифрой, иначе 1.
+            """
+            matrice = []
+            matrice_vector = []
+
+            for digit in cluster.vector:
+
+                matrice_row = []
+
+                for cell in list(cluster.body):
+                    if cell in matrix.around_closed_cells(digit):
+                        matrice_row.append(1)
+                    else:
+                        matrice_row.append(0)
+
+                matrice.append(matrice_row)
+                matrice_vector.append(digit.type.value)
 
 
             """
             На этом этапе мы уже должны смочь решить матрицу
             """
-            m = np.array(m)
-            v = np.array(v)
-            np.linalg.solve(m, v)
+            m = np.array(matrice)
+            v = np.array(matrice_vector)
+            try:
+                np.linalg.solve(m, v)
+            except np.linalg.LinAlgError:
+                pass  # no solution
 
 
     return [], maus.OPEN

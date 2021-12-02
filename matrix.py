@@ -339,9 +339,5 @@ class Matrix(object):
         #      vienne
         time.sleep(config.reset_pause)
 
-    def flat_list(l):
-        """
-        NOT USED
-        """
-        return functools.reduce(operator.concat, l)
+
 

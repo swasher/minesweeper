@@ -156,13 +156,13 @@ Search the screen for a specific element
 [Solving Minesweeper with Matrices](https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/)  
 [Another matrix solution](https://quantum-p.livejournal.com/19616.html)  
 
-[Strategy wiki](http://www.minesweeper.info/wiki/Strategy)  
-[Minesweeper Strategy](https://minesweepergame.com/strategy.php)
+[First click probability](https://minesweepergame.com/website/tim-kostka/firstclick.html)
+[TLM Theory](https://minesweepergame.com/website/tim-kostka/tlmtheory.html)
+  
 [Minesweeper and NP-completeness](http://web.mat.bham.ac.uk/R.W.Kaye/minesw/ordmsw.htm)  
 [Algorithmic Approaches to Playing Minesweeper PDF](https://pdfhost.io/v/uvgsPGU7Y_Algorithmic_Approaches_to_Playing_Minesweeper)  
 [reddit](https://www.reddit.com/r/Minesweeper/comments/8b3b30/odds_of_winning_at_minesweeper/)  
 [Официальное сообщество Minesweeper](https://www.reddit.com/r/Minesweeper/)  
-[Minesweeper and Hypothetical Thinking Action Research & Pilot Study PDF](https://files.eric.ed.gov/fulltext/ED509464.pdf)  
 [Авторитетный сапер](http://www.minesweeper.info/)  
 [-- Почти все саперы скачать](https://www.minesweeper.info/downloads/SuperMinesweeper.html)
 [Вероятности закрытых ячеек](https://docs.google.com/document/d/10YxF7QWxqVcl2Cgxo_mu6Q33uUjKxb9Q0F5gmp3r74c/edit)  
@@ -172,6 +172,15 @@ Search the screen for a specific element
 
 [Большое сборник статей по мат. алгоритмам](https://minesweepergame.com/math-papers.php)  
 
+Human strategy
+-----------------------
+[Strategy wiki](http://www.minesweeper.info/wiki/Strategy)  
+[Minesweeper Strategy](https://minesweepergame.com/strategy.php)
+
+Non algorithm articles
+-------------------------
+[Minesweeper and Hypothetical Thinking Action Research](https://files.eric.ed.gov/fulltext/ED509464.pdf)  
+
 Minesweeper boards
 -------------------------
 
@@ -180,6 +189,6 @@ Minesweeper boards
 [Arbiter](https://minesweepergame.com/download/arbiter.php)  
 [Viennasweeper](https://minesweepergame.com/download/viennasweeper.php)  
 [minesweeper.online](https://minesweeper.online/)  
-[Google minesweeper](https://www.google.com/fbx?fbx=minesweeper) 
-[minesweeperonline.com](https://minesweeperonline.com/)
-[Analize bot](https://davidnhill.github.io/JSMinesweeper/)
+[Google minesweeper](https://www.google.com/fbx?fbx=minesweeper)  
+[minesweeperonline.com](https://minesweeperonline.com/)  
+[Analize bot](https://davidnhill.github.io/JSMinesweeper/)  

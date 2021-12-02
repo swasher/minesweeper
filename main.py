@@ -288,7 +288,7 @@ def recursive_wrapper(strategies):
     print(f'FAIL: {total-win}')
     print(f'WIN PERCENT: {win*100/total:.2f}')
 
-import manual_interract
+import save_load
 if __name__ == '__main__':
     col_values, row_values, region = find_board(asset.closed, board.board)
     matrix = Matrix(row_values, col_values, region)
@@ -302,8 +302,8 @@ if __name__ == '__main__':
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_corner]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_human]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_smart]
-    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
-    # strategies = [solver_gauss, solver_R1]
+    # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_gauss, solver_R1]
 
 
     config.human = False

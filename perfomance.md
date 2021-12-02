@@ -21,3 +21,15 @@ professional 1000 4.23%
 professional 1000 4.30%
 professional 1000 5.90%
 professional 1000 4.40%
+
+
+Online
+=========================
+
+Algorithm r1 E1B1 e2 b2
+----------------------------
+Small
+TOTALS: 138 WIN: 72.46%
+Medium
+TOTALS: 100 WIN: 56.00%
+TOTALS: 100 WIN: 54.00%
