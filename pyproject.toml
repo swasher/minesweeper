@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "minesweeper"
+version = "0.1.0"
+description = ""
+authors = ["Alexey <mr.swasher@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^2.2.0"
+mss = "^10.0.0"
+pywin32 = "^308"
+mouse = "^0.7.1"
+pynput = "^1.7.7"
+icecream = "^2.1.3"
+xxhash = "^3.5.0"
+opencv-python = "^4.10.0.84"
+pillow = "^11.0.0"
+pytesseract = "^0.3.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

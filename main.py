@@ -17,10 +17,12 @@ from util import pause
 from util import cell_coordinates
 
 import asset
-import board
+from board import board
 
 from util import search_pattern_in_image
 from matrix import Matrix
+import save_load
+
 
 from solver import solver_R1
 from solver import solver_R1_corner
@@ -30,10 +32,9 @@ from solver import solver_E1
 from solver import solver_E2
 from solver import solver_B2
 from solver import solver_B1E1
-from solver import solver_human
+from solver import solver_human, solver_human_almost_work
 from solver import solver_gauss
 from solver import solver_noguess
-
 
 """
 RULES FOR COORDINATES
@@ -71,10 +72,11 @@ s
 """
 
 
-def find_board(closedcell, board):
+def find_board(closedcell):
     """
     Находит поле сапера
 
+    :param board: global variable
     :param pattern: объект Pattern, который содержит изображения клеток; мы будем искать на экране закрытую клетку (pattern.closed)
     :param asset: класс (не инстанс!) Asset, в котором содержится информация о "доске" - а именно размер полей в пикселях,
             от клеток до края "доски". Именно это поле (region), а не весь экран, мы в дальнейшем будем "сканировать".
@@ -134,6 +136,9 @@ def draw():
         cv.imshow("Display window", image)
         k = cv.waitKey(0)
 
+#
+#  Скорее всего, этот кусочек я делал для анализа реального времени между кликами при реальной игре человека
+#
 import queue
 q = queue.Queue()
 q.put(datetime.now())
@@ -278,7 +283,7 @@ def recursive_wrapper(strategies):
             break
         matrix.reset()
         if config.arena:
-            col_values, row_values, region = find_board(asset.closed, board.board)
+            col_values, row_values, region = find_board(asset.closed, board)
             matrix = Matrix(row_values, col_values, region)
         matrix.update()
 
@@ -288,10 +293,20 @@ def recursive_wrapper(strategies):
     print(f'FAIL: {total-win}')
     print(f'WIN PERCENT: {win*100/total:.2f}')
 
-import save_load
+
 if __name__ == '__main__':
-    col_values, row_values, region = find_board(asset.closed, board.board)
+    col_values, row_values, region = find_board(asset.closed)
     matrix = Matrix(row_values, col_values, region)
+
+    # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.
+    # x = 1.0
+    # while x > 0.7:
+    #     bombs = matrix.bomb_qty(x)
+    #     if bombs == 87:
+    #         print(f"{x:.3f}", bombs)
+    #     x -= 0.001
+    #
+    # exit()
 
 
     # debug - test perfomance
@@ -302,8 +317,12 @@ if __name__ == '__main__':
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_corner]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_human]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_smart]
+    # strategies = [solver_gauss, solver_R1]
+
+    # рабочий
     # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
-    strategies = [solver_gauss, solver_R1]
+
+    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1_smart]
 
 
     config.human = False

@@ -102,7 +102,10 @@ def solver_gauss(matrix):
         for cluster in clusters:
             color = random.choice(['red', 'green', 'blue', 'yellow', 'cyan', 'magenta'])
             for c in cluster.body:
-                c.mark_cell_debug(color)
+                # В реальной игре мы не можем маркировать ячейки цветом, потому что при следующем сканировании
+                # они не будут совпадать с "образцами"
+                # c.mark_cell_debug(color)
+                pass
 
 
 # Тут нужно как то добавть в numpy.array массив типа:

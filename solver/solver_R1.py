@@ -12,6 +12,7 @@ def solver_R1(matrix):
     """
     cells = matrix.get_closed_cells()
     qty = len(cells)
+    print(f'click random [from {qty}]')
     random_cell = cells[randrange(qty)]
 
     # if config.turn_by_turn:

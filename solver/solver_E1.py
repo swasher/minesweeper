@@ -4,7 +4,7 @@ import maus
 
 def solver_E1(matrix):
     """
-    E1 значит Empty - ищем потенчиально пустые ячейки алгоритмом "один"
+    E1 значит Empty - ищем потенциально пустые ячейки алгоритмом "один"
 
     :param matrix:
     :return solution: list, пустой или содержащий 1 объект Cell

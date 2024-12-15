@@ -32,6 +32,7 @@ def solver_B1(matrix):
 
     # В список cells одна и та же ячейка может попасть несколько раз (при анализе разных "цифр"). Убираем дубликаты.
     cells = util.remove_dup(cells)
+    print('alg B1:', cells)
 
     """
     DEPRECATED

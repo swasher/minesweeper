@@ -33,7 +33,6 @@ import pathlib
 from types import SimpleNamespace
 import cv2 as cv
 from config import config
-from board import board
 
 
 class Asset(object):
@@ -100,6 +99,7 @@ closed = Asset('closed', f'{directory}/closed.png', None, '·')
 bomb = Asset('bomb', f'{directory}/bomb.png', None, '⚹')
 red_bomb = Asset('red_bomb', f'{directory}/red_bomb.png', None, '✱')
 flag = Asset('flag', f'{directory}/flag.png', None, '⚑')
+# if config.allow_noguess:
 noguess = Asset('noguess', f'{directory}/noguess.png', None, 'x')
 
 # smile

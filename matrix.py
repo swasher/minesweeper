@@ -2,9 +2,11 @@ import functools
 import math
 import operator
 import time
-
+import win32gui
+import win32con
 import cv2 as cv
 import mss
+import mss.tools
 import numpy
 import numpy as np
 
@@ -228,11 +230,12 @@ class Matrix(object):
 
     def update(self):
         """
-        Запускает обновление всех ячеек в соответствии с полем Minesweeper
+        Запускает обновление всех ячеек, считывая их с экрана (поле Minesweeper'а)
         :return:
         """
-        # This is very important string! After click, website has a lag for refresh game board.
-        # If we do not waiting at this point, we do not see any changes after mouse click.
+        # This is very important string! After click, website (and browser, or even Vienna program) has a lag
+        # beetween click and refreshing screen.  If we do not waiting at this point, our code do not see any changes
+        # after mouse click.
         time.sleep(config.LAG)
 
         self.image = self.get_image()
@@ -274,7 +277,7 @@ class Matrix(object):
     @property
     def bomb_qty(self) -> int:
         """
-        Возвращает число, которое на счетчике бомб
+        Возвращает число, которое на игровом поле на счетчике бомб (сколько еще спрятанных бомб на поле)
         :return:
         """
         image = self.get_image()
@@ -282,13 +285,21 @@ class Matrix(object):
         #      перенести это в board
         crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
 
-        precision = 0.94
+        # precision = 0.94
+        # precision = 0.837
+
+        # для Minesweeper online я подбирал значения;
+        # дома, на 1920х1080 (zoom 24) работает 0,837 (до сотых).
+        # Если больше (0,84) - он не "узнает" паттерны. Если меньше (0,8) - возникают ложные срабатывания,
+        # например, 7 может распознать как 1.
+        # НА САМОМ ДЕЛЕ, PRECISION ПОДОБРАН В search_pattern_in_image_for_red_bombs
+
         found_digits = []
         for pattern in asset.red_digits:  # list_patterns imported from cell_pattern
             template = pattern.raster
 
             # result = util.find_templates(template, crop_img, precision)
-            result = util.search_pattern_in_image(template, crop_img, precision)
+            result = util.search_pattern_in_image_for_red_bombs(template, crop_img)
 
             # `result` - это list of tuple
             # каждый кортеж содержит список из трех числ:
@@ -299,6 +310,10 @@ class Matrix(object):
 
         # сортируем найденные цифры по координате X
         digits = sorted(found_digits, key=lambda a: a[0])
+
+        if not digits:
+            # raise Exception('Не удалось прочитать кол-во бомб на поле.')
+            return None
 
         _, numbers = zip(*digits)
         bomb_qty: int = int(''.join(map(str, numbers)))
@@ -339,5 +354,23 @@ class Matrix(object):
         #      vienne
         time.sleep(config.reset_pause)
 
+    def show_debug_text(self):
+        """
+        Показывает текст на ячейках, который содержится в каждой ячейке в debug_text.
+        Убирает текст после нажатия любой клавиши.
+        :return:
+        """
+        dc = win32gui.GetDC(0)
+        for row in self.table:
+            for cell in row:
+                if cell.debug_text is not None:
+                    rect = (cell.abscoordx, cell.abscoordy, cell.abscoordx+cell.w, cell.abscoordy+cell.h)
+                    win32gui.DrawText(dc, cell.debug_text, -1, rect, win32con.DT_LEFT)
+                cell.debug_text = None
 
+        im = self.get_image()
+        cv.imwrite('screenshot2.png', im)
 
+        input("Press Enter to continue")
+
+        win32gui.ReleaseDC(0, dc)

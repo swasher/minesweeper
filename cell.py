@@ -1,6 +1,7 @@
 import cv2 as cv
 import win32api
 import win32gui
+import win32con
 import xxhash
 
 import asset
@@ -140,7 +141,7 @@ class Cell(object):
                 template = pattern.raster
                 res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-                # print(f'Cell {self.row}:{self.col} compared with {patt.name} with result {max_val}')
+                # print(f'Cell {self.row}:{self.col} compared with <{pattern.name}> with result {max_val}')
                 pattern.similarity = max_val
                 if max_val > precision:
                     self.type = pattern
@@ -156,7 +157,7 @@ class Cell(object):
             # if best_match.similarity > precision:
             #     self.status = best_match.name
 
-            else:
+            else:  # если перебор for не дал результатов
                 print(f'Cell {self.row}x{self.col} do not match anything. Exit')
                 exit()
 

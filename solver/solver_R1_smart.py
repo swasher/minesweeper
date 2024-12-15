@@ -1,5 +1,9 @@
+import random
 from random import randrange
 import maus
+import config
+import icecream as ic
+from util import pause
 
 def solver_R1_smart(matrix):
     """
@@ -8,6 +12,7 @@ def solver_R1_smart(matrix):
     :param matrix:
     :return:
     """
+    action = maus.OPEN
 
     common_risk = matrix.bomb_qty / len(matrix.get_closed_cells())
     closed_cells = matrix.get_closed_cells()
@@ -30,17 +35,20 @@ def solver_R1_smart(matrix):
     for cell in closed_cells:
         cell.risk = max(cell.risk)
 
-    cell = min(closed_cells, key=lambda r: r.risk)
+    debug = True
+    if debug:
+        for cell in closed_cells:
+            cell.debug_text = f"{cell.risk:.2f}".lstrip("0")
+        matrix.show_debug_text()
 
-
-    cells = matrix.get_closed_cells()
-    qty = len(cells)
-    random_cell = cells[randrange(qty)]
+    min_risk = min(closed_cells, key=lambda r: r.risk).risk
+    filtered_objects = [cell for cell in closed_cells if cell.risk == min_risk]
+    cell = random.choice(filtered_objects)
 
     # if config.turn_by_turn:
     #     ic('------ R1')
-    #     ic(random_cell)
-    #     random_cell.mark_cell_debug()
+    #     ic(cell)
+    #     cell.mark_cell_debug()
     #     input("Press Enter to mouse moving")
 
-    return [random_cell], maus.OPEN
+    return [cell], action

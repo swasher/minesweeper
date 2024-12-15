@@ -10,7 +10,7 @@ NEARBY = config.nearby  # action `open all nearest by both click
 import time
 def human_mouse_speed(distance):
     """
-    Возвращает время в секундах, за которое человек проведет мышью расстояние distance (в пикселях).
+    Возвращает время в секундах, за которое человек провел бы мышью расстояние distance (в пикселях).
     Замеры смотри в track_mouse_when_man_playing.py
     :param distance: int
     :return: float
