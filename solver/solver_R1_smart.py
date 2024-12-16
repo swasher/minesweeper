@@ -26,7 +26,11 @@ def solver_R1_smart(matrix):
     for digit in matrix.get_digit_cells():
         around_closed = matrix.around_closed_cells(digit)
         for cell in around_closed:
-            qty_around_flagged = len(matrix.around_flagged_cells(cell))
+
+            # qty_around_flagged = len(matrix.around_flagged_cells(cell))
+            # мне кажется, что тут надо поменять cell на digit:
+            qty_around_flagged = len(matrix.around_flagged_cells(digit))
+
             qty_around_closed = len(around_closed)
             risk_factor = (digit.digit - qty_around_flagged) / qty_around_closed
             cell.risk.append(risk_factor)

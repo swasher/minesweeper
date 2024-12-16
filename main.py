@@ -195,10 +195,13 @@ def do_strategy(strategy):
 
     cells, button = strategy(matrix)
     have_a_move = bool(len(cells))
-    if have_a_move:
-        # print(f'- do strategy')
-        # print(f'- click {button} on:', cells)
 
+    if have_a_move:
+        print(f'Alg {name}: {cells}')
+    else:
+        print(f'Alg {name}: pass')
+
+    if have_a_move:
         # debug
         # if config.turn_by_turn:
         #     for c in cells:
@@ -233,10 +236,10 @@ def do_strategy(strategy):
 
 
 def recusive_strategy(i):
-    have_a_move, win_or_fail = do_strategy(strategies[i])
+    move_happened, win_or_fail = do_strategy(strategies[i])
     if win_or_fail:
         return win_or_fail
-    if have_a_move:
+    if move_happened:
         return recusive_strategy(0)
     else:
         i += 1
@@ -322,7 +325,7 @@ if __name__ == '__main__':
     # рабочий
     # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
-    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1_smart]
+    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_smart]
 
 
     config.human = False

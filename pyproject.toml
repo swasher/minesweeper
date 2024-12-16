@@ -17,6 +17,7 @@ xxhash = "^3.5.0"
 opencv-python = "^4.10.0.84"
 pillow = "^11.0.0"
 pytesseract = "^0.3.13"
+keyboard = "^0.13.5"
 
 
 [build-system]
