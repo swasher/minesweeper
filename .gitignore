@@ -7,4 +7,4 @@ test/
 shelve.*
 game_*/
 settings.ini
-screenshot2.png
+!/screenshot2.png

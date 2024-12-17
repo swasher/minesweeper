@@ -277,8 +277,7 @@ class Matrix(object):
 
         return False
 
-    @property
-    def bomb_qty(self) -> int:
+    def bomb_qty(self, precision=0) -> int:
         """
         Возвращает число, которое на игровом поле на счетчике бомб (сколько еще спрятанных бомб на поле)
         :return:
@@ -302,7 +301,7 @@ class Matrix(object):
             template = pattern.raster
 
             # result = util.find_templates(template, crop_img, precision)
-            result = util.search_pattern_in_image_for_red_bombs(template, crop_img)
+            result = util.search_pattern_in_image_for_red_bombs(template, crop_img, precision)
 
             # `result` - это list of tuple
             # каждый кортеж содержит список из трех числ:

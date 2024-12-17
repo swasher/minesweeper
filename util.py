@@ -189,7 +189,7 @@ def search_pattern_in_image(pattern: npt.NDArray, image: npt.NDArray, precision:
 
     cells = []
     # debug - view found cells
-    dc = win32gui.GetDC(0)
+    # dc = win32gui.GetDC(0)
 
     while max_val > precision:
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
@@ -214,14 +214,14 @@ def search_pattern_in_image(pattern: npt.NDArray, image: npt.NDArray, precision:
     #     y = c[0]
     #     cv.putText(image, str(x), (y + 11, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
     #     cv.putText(image, str(y), (y + 19, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-    # # cv.imwrite('output.png', image)
+    # cv.imwrite('output.png', image)
     # cv.imshow("Display window", image)
     # k = cv.waitKey(0)
 
     return cells
 
 
-def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArray):
+def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArray, precision: float=0):
     """
     Это немного тюнингованная версия search_pattern_in_image.
     Отличается настройками распознавания, заточенными под большие красные цифры (бомбы).
@@ -273,7 +273,7 @@ def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArr
     # 088 - 0.935 - 0.947
     # 087 - 0.933 - 0.947
 
-    precision = 0.940
+    # precision = 0.940
     res = cv.matchTemplate(image, pattern, method)
 
     # fake out max_val for first run through loop
