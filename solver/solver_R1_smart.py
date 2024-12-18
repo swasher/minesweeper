@@ -14,7 +14,7 @@ def solver_R1_smart(matrix):
     """
     action = maus.OPEN
 
-    common_risk = matrix.bomb_qty / len(matrix.get_closed_cells())
+    common_risk = matrix.bomb_qty() / len(matrix.get_closed_cells())
     closed_cells = matrix.get_closed_cells()
 
     for cell in closed_cells:

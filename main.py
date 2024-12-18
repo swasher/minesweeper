@@ -302,10 +302,14 @@ if __name__ == '__main__':
     matrix = Matrix(row_values, col_values, region)
 
     # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.
+    # bombs = matrix.bomb_qty(0.87)
+    # print(bombs)
+    # exit()
+
     # x = 1.0
     # while x > 0.7:
     #     bombs = matrix.bomb_qty(x)
-    #     if bombs == 87:
+    #     if bombs == 10:
     #         print(f"{x:.3f}", bombs)
     #     x -= 0.001
     #
@@ -325,7 +329,7 @@ if __name__ == '__main__':
     # рабочий
     # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
-    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_smart]
+    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
 
 
     config.human = False

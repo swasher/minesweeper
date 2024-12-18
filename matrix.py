@@ -301,7 +301,8 @@ class Matrix(object):
             template = pattern.raster
 
             # result = util.find_templates(template, crop_img, precision)
-            result = util.search_pattern_in_image_for_red_bombs(template, crop_img, precision)
+            # result = util.search_pattern_in_image_for_red_bombs(template, crop_img, precision)
+            result = util.search_pattern_in_image_for_red_bombs_on_work(template, crop_img, precision)
 
             # `result` - это list of tuple
             # каждый кортеж содержит список из трех числ:

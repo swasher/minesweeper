@@ -296,8 +296,8 @@ def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArr
             # cv.putText(image, '1', (max_loc[0]+3, max_loc[1]+10), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
 
             # debug - view found cells
-            x, y = max_loc[0], max_loc[1]
-            win32gui.Rectangle(dc, x + 3, y + 3, x + 8, y + 8)
+            # x, y = max_loc[0], max_loc[1]
+            # win32gui.Rectangle(dc, x + 3, y + 3, x + 8, y + 8)
 
     # # DEBUG; YOU CAN SEE WHAT GRABBING
     # # draw at each cell it's row and column number
@@ -311,6 +311,103 @@ def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArr
     # k = cv.waitKey(0)
 
     return cells
+
+
+
+
+def search_pattern_in_image_for_red_bombs_on_work__(pattern: npt.NDArray, image: npt.NDArray, precision=0) -> tuple[int, int]:
+    """
+    Поиск шаблона в изображении с использованием метода cv.TM_SQDIFF.
+    Автоматически конвертирует цветные изображения в черно-белые.
+
+    Parameters:
+        pattern (npt.NDArray): Шаблон (цветной или черно-белый массив изображения).
+        image (npt.NDArray): Исходное изображение (цветной или черно-белый массив изображения).
+
+    Returns:
+        tuple[int, int]: Координаты верхнего левого угла найденного шаблона.
+    """
+    # Проверка на пустые входные данные
+    if pattern is None or image is None:
+        raise ValueError("Шаблон или изображение не могут быть None")
+
+    # Конвертация цветного изображения в градации серого, если нужно
+    if len(image.shape) == 3:  # Цветное изображение
+        image_gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    else:
+        image_gray = image  # Уже черно-белое изображение
+
+    if len(pattern.shape) == 3:  # Цветной шаблон
+        pattern_gray = cv.cvtColor(pattern, cv.COLOR_BGR2GRAY)
+    else:
+        pattern_gray = pattern  # Уже черно-белый шаблон
+
+    # Применяем метод matchTemplate
+    result = cv.matchTemplate(image_gray, pattern_gray, cv.TM_SQDIFF)
+
+    # Находим минимальное значение и координаты
+    min_val, _, min_loc, _ = cv.minMaxLoc(result)
+
+    # Визуализация
+    print(f"min_val: {min_val}, Координаты: {min_loc}")
+    h, w, _ = pattern.shape
+    if min_val < 10000:  # Порог
+        cv.rectangle(image, min_loc, (min_loc[0] + w, min_loc[1] + h), 255, 2)
+    cv.imshow("Match Result", image)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+
+    # Возвращаем координаты верхнего левого угла совпадения
+    return [min_loc + (min_val,)]
+
+
+
+def search_pattern_in_image_for_red_bombs_on_work(
+    pattern: npt.NDArray,
+    image: npt.NDArray,
+    threshold: float
+) -> list[tuple[int, int]]:
+    """
+    Поиск всех вхождений шаблона в изображении с использованием метода cv.TM_SQDIFF.
+    Автоматически конвертирует цветные изображения в черно-белые.
+    Возвращает все совпадения, где точность ниже заданного порога.
+
+    Parameters:
+        pattern (npt.NDArray): Шаблон (цветной или черно-белый массив изображения).
+        image (npt.NDArray): Исходное изображение (цветной или черно-белый массив изображения).
+        threshold (float): Пороговое значение для фильтрации совпадений.
+
+    Returns:
+        list[tuple[int, int]]: Список координат (x, y) верхнего левого угла совпадений.
+    """
+    # Проверка на пустые входные данные
+    if pattern is None or image is None:
+        raise ValueError("Шаблон или изображение не могут быть None")
+
+    # Конвертация в черно-белый формат, если изображение цветное
+    if len(image.shape) == 3:
+        image_gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    else:
+        image_gray = image
+
+    if len(pattern.shape) == 3:
+        pattern_gray = cv.cvtColor(pattern, cv.COLOR_BGR2GRAY)
+    else:
+        pattern_gray = pattern
+
+    # Применяем метод matchTemplate
+    result = cv.matchTemplate(image_gray, pattern_gray, cv.TM_SQDIFF)
+
+    # Находим все совпадения, которые ниже порога
+    locations = np.where(result < threshold)
+    locations = list(zip(*locations[::-1]))  # Преобразуем индексы в (x, y)
+
+    # Возвращаем список координат
+    return locations
+
+
+
+
 
 
 
