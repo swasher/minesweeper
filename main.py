@@ -6,6 +6,7 @@ import cv2 as cv
 import mss
 import numpy as np
 import pickle
+from pynput.keyboard import Key, Listener
 import timeit
 import secrets
 from datetime import datetime
@@ -197,9 +198,9 @@ def do_strategy(strategy):
     have_a_move = bool(len(cells))
 
     if have_a_move:
-        print(f'Alg {name}: {cells}')
+        print(f'{name}: {cells}')
     else:
-        print(f'Alg {name}: pass')
+        print(f'{name}: pass')
 
     if have_a_move:
         # debug
@@ -248,10 +249,6 @@ def recusive_strategy(i):
 
 def recursive_wrapper(strategies):
     global matrix
-    if config.noguess:  # режим 'без отгадывания'
-        strategies.remove(solver_R1)
-        strategies.append(noguess_finish)
-        matrix.update()
 
     need_win = config.need_win_parties
     need_total = config.need_total_parties
@@ -262,8 +259,11 @@ def recursive_wrapper(strategies):
         print('-new round')
         i = 0
         before = datetime.now()
-        if config.noguess:
+
+        if config.noguess:  # режим 'первый ход без отгадывания'
             do_strategy(solver_noguess)
+            matrix.update()
+
         win_or_fail = recusive_strategy(i)
         after = datetime.now()
 
@@ -297,7 +297,25 @@ def recursive_wrapper(strategies):
     print(f'WIN PERCENT: {win*100/total:.2f}')
 
 
+# # Флаг для управления основным циклом
+# running = True
+# def on_press(key):
+#     # if str(key).replace("'", "") == '0':
+#     global running
+#     print(f'pressed {key}')
+#     if key == Key.esc:
+#         print('EXIT!!!')
+#         listener.stop()
+#         # raise Exception()
+
+
+
 if __name__ == '__main__':
+
+    # listener = Listener(on_press=on_press)
+    # listener.start()  # Запускаем слушатель в отдельном потоке
+
+
     col_values, row_values, region = find_board(asset.closed)
     matrix = Matrix(row_values, col_values, region)
 
@@ -329,7 +347,7 @@ if __name__ == '__main__':
     # рабочий
     # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
-    strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
 
     config.human = False
@@ -338,7 +356,10 @@ if __name__ == '__main__':
         strategies.append(solver_human)
         matrix.update()
 
+
+
     recursive_wrapper(strategies)
+
 
 
 # - самое-самое начало

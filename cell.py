@@ -158,7 +158,7 @@ class Cell(object):
             #     self.status = best_match.name
 
             else:  # если перебор for не дал результатов
-                print(f'Cell {self.row}x{self.col} do not match anything. Exit')
+                print(f'Update board: Cell {self.row}x{self.col} do not match anything. Exit')
                 exit()
 
     def point_in_cell(self, point):

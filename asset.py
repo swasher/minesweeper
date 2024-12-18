@@ -117,6 +117,6 @@ for i in range(10):
 digits = [n1, n2, n3, n4, n5, n6, n7, n8]
 open_cells = [n0, n1, n2, n3, n4, n5, n6, n7, n8]
 bombs = [bomb, red_bomb]
-all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, red_bomb]
+all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, red_bomb, noguess]
 
 

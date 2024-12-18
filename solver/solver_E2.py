@@ -27,12 +27,11 @@ def solver_E2(matrix):
                 empties = tuple(set(r1.closed) ^ set(r2.closed))
 
                 # -- debug
-                # r1.ancestor.mark_cell_debug()
-                # r2.ancestor.mark_cell_debug()
+                # r1.ancestor.mark_cell_debug('yellow')
+                # r2.ancestor.mark_cell_debug('yellow')
                 # print('-----')
                 # print('COMPARE:', r1.ancestor, 'and', r2.ancestor)
                 # print('EMPTIES:', empties)
-                # return empties, 'left'
                 # -- debug
 
                 return empties, maus.OPEN
