@@ -26,6 +26,7 @@ from board import board
 
 from util import search_pattern_in_image
 from matrix import Matrix
+from classes import Action
 import save_load
 
 
@@ -150,14 +151,14 @@ def draw():
 import queue
 q = queue.Queue()
 q.put(time.perf_counter())
-def clicking_cells(cells: [Cell], button):
+def clicking_cells(cells: [Cell], action: Action):
     for cell in cells:
         matrix.lastclicked = cell
         n = time.perf_counter()
         prev = q.get()
         # print('real sec:', n-prev, '\n')
         q.put(n)
-        cell.click(button)
+        cell.click(action.button)
 
 
 def do_strategy(strategy):
@@ -172,11 +173,13 @@ def do_strategy(strategy):
     :return: win_or_fail: [string] - 'win', если ход закончил игру выигрышем, 'fail' если ход закончил игру проигрышем, и None если игра после хода не закончилась
     """
 
-    # TODO Сделать, чтобы можно было прервать процесс с клавиатуры
-    # TODO Пример, как это можно реализовать через потоки - keyboard_in_thread.py
-
     name = strategy.__name__
 
+    # ===========================
+    #
+    # ЭТОМУ КУСКУ ТУТ НЕ МЕСТО
+    # сохранение состояния игры в файл
+    #
     # if move is random click - save board to PNG and Pickle file (board object)
     # todo move it to separate file
     if name == 'solver_R1' and config.save_game_R1 and len(matrix.get_open_cells()) > 15:
@@ -193,10 +196,12 @@ def do_strategy(strategy):
 
         image = matrix.get_image()
         cv.imwrite(os.path.join(dir, image_file), image)
+    # ===========================
+
 
     win_or_fail = None
 
-    cells, button = strategy(matrix)
+    cells, action = strategy(matrix)
 
     # смотрим, нашла ли Стратегия доступные для выполнения ходы
     have_a_move = bool(len(cells))
@@ -221,14 +226,14 @@ def do_strategy(strategy):
             for cell in cells:
                 cell.set_flag()
         else:
-            clicking_cells(cells, button)
+            clicking_cells(cells, action)
 
         matrix.update()
         # matrix.display()
 
-        if button in ['left', 'both']:
-            # Если в strategy использовалась правая кнопка, т.е. ставились флажки, то игра не могла закончиться.
-            # Проверяем только если использовалась левая - т.е. открывались клетки.
+        if action in [Action.open_cell, Action.open_digit]:
+            # Если в strategy мы помечали бомбы, то игра не могла закончиться.
+            # Проверяем только если открывались клетки.
             if matrix.you_win:
                 win_or_fail = 'win'
             if matrix.you_fail:
@@ -340,6 +345,7 @@ if __name__ == '__main__':
     # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
 
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_B1, solver_E1, solver_R1]
 
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_corner]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_human]
@@ -348,8 +354,6 @@ if __name__ == '__main__':
 
     # рабочий
     # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
-
-    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
 
     config.human = False

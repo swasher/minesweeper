@@ -56,6 +56,7 @@ class Configuration(object):
         self.icecream = conf.getboolean('debug', 'icecream')
         self.extra_pause_between_clicks = conf.getfloat('debug', 'extra_pause_between_clicks')
 
+        # implementation
         self.left = conf.getint(self.asset, 'left')
         self.right = conf.getint(self.asset, 'right')
         self.top = conf.getint(self.asset, 'top')
@@ -63,9 +64,16 @@ class Configuration(object):
         self.smile_y_coord = conf.getint(self.asset, 'smile_y_coord')
         self.allow_noguess = conf.getboolean(self.asset, 'allow_noguess')
         self.LAG = conf.getfloat(self.asset, 'LAG')
-        self.flag = conf.get(self.asset, 'flag')
-        self.open = conf.get(self.asset, 'open')
-        self.nearby = conf.get(self.asset, 'nearby')
+
+        # self.flag = conf.get(self.asset, 'flag')
+        self.flag_button = conf.get(self.asset, 'flag')
+
+        # self.open = conf.get(self.asset, 'open')
+        self.open_button = conf.get(self.asset, 'open')
+
+        # self.nearby = conf.get(self.asset, 'nearby')
+        self.nearby_button = conf.get(self.asset, 'nearby')
+
         self.reset_pause = conf.getfloat(self.asset, 'reset_pause')
         self.measured_distance = list(map(float, conf.get(self.asset, 'measured_distance').split(",")))
         self.measured_duration = list(map(float, conf.get(self.asset, 'measured_duration').split(",")))

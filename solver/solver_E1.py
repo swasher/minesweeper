@@ -1,8 +1,10 @@
 from config import config
+from cell import Cell
 import maus
+from classes import Action
 
 
-def solver_E1(matrix):
+def solver_E1(matrix) -> ([Cell], Action):
     """
     E1 значит Empty - ищем потенциально пустые ячейки алгоритмом "один"
 
@@ -21,7 +23,8 @@ def solver_E1(matrix):
     КРОМЕ режима noflag - тогда отдаем все нужные ячейки
     """
     cells = []
-    action = maus.NEARBY
+    # action = maus.NEARBY
+    action = Action.open_digit
 
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)

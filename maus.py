@@ -3,10 +3,11 @@ import mouse
 import math
 from config import config
 import numpy as np
+from classes import MouseButtons as mb
 
-FLAG = config.flag      # action `flag cell`
-OPEN = config.open      # action `open cell`
-NEARBY = config.nearby  # action `open all nearest by both click
+# FLAG = config.flag      # action `flag cell`
+# OPEN = config.open      # action `open cell`
+# NEARBY = config.nearby  # action `open all nearest by both click
 
 
 def human_mouse_speed(distance):
@@ -17,19 +18,9 @@ def human_mouse_speed(distance):
     :return: float
     """
 
-
-    # # MINESWEEPER_ONLINE
-    # # distance
-    # measured_distance = [30, 280, 660]
-    # # time
-    # measured_duration = [0.41, 0.92, 1.03]
-    #
-    #
-    # # VIENNA
-    # # distance
-    # measured_distance = [18.88, 150.6, 315.35]
-    # # time
-    # measured_duration = [0.45, 1.05, 1.05]
+    # пример значений для MINESWEEPER_ONLINE
+    # дистанция - measured_distance = [30, 280, 660]
+    # время - measured_duration = [0.41, 0.92, 1.03]
 
     measured_distance = config.measured_distance
     measured_duration = config.measured_duration
@@ -42,7 +33,7 @@ def human_mouse_speed(distance):
     return t
 
 
-def click(x, y, action):
+def click(x, y, button: mb):
     oldx, oldy = mouse.get_position()
 
     dist = math.hypot(oldx - x, oldy - y)
@@ -56,9 +47,9 @@ def click(x, y, action):
         duration = config.minimum_delay_between_clicks
     mouse.move(x, y, absolute=True, duration=duration)
 
-    if action in ['left', 'right']:
-        mouse.click(button=action)
-    elif action == 'both':
+    if button in [mb.left, mb.right]:
+        mouse.click(button=button.name)
+    elif button == mb.both:
         mouse.press(button='left')
         mouse.press(button='right')
         mouse.release(button='left')

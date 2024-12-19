@@ -1,10 +1,10 @@
-import math
-
 import util
 import maus
+from classes import Action
+from cell import Cell
 
 
-def solver_B1(matrix):
+def solver_B1(matrix) -> ([Cell], Action):
     """
     B1 - значит ищем Bомбы алгоритомом "один"
     :param matrix:
@@ -15,6 +15,7 @@ def solver_B1(matrix):
     Если цифра в ячейке равно кол-ву соседних закрытых клеток (включая клетки с флагами),
     ТО все оставшиеся неоткрытые клетки - бомбы
     """
+    action = Action.set_flag
     cells = []
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
@@ -50,4 +51,4 @@ def solver_B1(matrix):
         # cell.mark_cell_debug()
     # input('wait...')
 
-    return cells, maus.FLAG
+    return cells, action
