@@ -40,7 +40,7 @@ def solver_E1(matrix) -> ([Cell], Action):
         if config.noflag:
             # todo тут говно год... Завязана логика поиска решений на тип игры (noflag)
             solution = matrix.around_closed_cells(solution[0])
-            action = maus.OPEN
+            action = Action.open_cell
 
         # if config.turn_by_turn:
         #     ic('------ E1')

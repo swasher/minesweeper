@@ -17,6 +17,7 @@ import maus
 import util
 from board import board
 from config import config
+from classes import MouseButtons as mb
 
 """
 Соглашения:
@@ -345,7 +346,7 @@ class Matrix(object):
 
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
         face_coord_y = self.region_y1 + board.smile_y_coord
-        maus.click(face_coord_x, face_coord_y, maus.OPEN)
+        maus.click(face_coord_x, face_coord_y, mb.left)
         for c in self.table.flat:
             # deprecated
             # c.status = 'closed'

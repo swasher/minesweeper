@@ -197,6 +197,8 @@ def do_strategy(strategy):
         image = matrix.get_image()
         cv.imwrite(os.path.join(dir, image_file), image)
     # ===========================
+    # -
+    # ===========================
 
 
     win_or_fail = None
@@ -269,14 +271,14 @@ def recursive_wrapper(strategies):
     while True:
         print('-new round')
         i = 0
-        before = datetime.now()
+        before = time.perf_counter()
 
         if config.noguess:  # режим 'первый ход без отгадывания'
             do_strategy(solver_noguess)
             matrix.update()
 
         win_or_fail = recusive_strategy(i)
-        after = datetime.now()
+        after = time.perf_counter()
 
         total += 1
         if win_or_fail == 'win':
@@ -284,7 +286,7 @@ def recursive_wrapper(strategies):
         elif win_or_fail == 'fail':
             pass
 
-        print(f'{win_or_fail} in', (after-before).seconds, 'sec')
+        print(f'{win_or_fail} in', after-before, 'sec')
         print(f'Total: {total}, win: {win}, fail: {total - win} (need {need_win} win and {need_total} total)\n')
 
         # пауза примерно `beetwen_games` секунд, если оно не ноль (с разбросом sigma=1.5)
@@ -378,7 +380,6 @@ if __name__ == '__main__':
             recursive_wrapper(strategies)
 
         def get_id(self):
-
             # returns id of the respective thread
             if hasattr(self, '_thread_id'):
                 return self._thread_id
@@ -388,8 +389,7 @@ if __name__ == '__main__':
 
         def raise_exception(self):
             thread_id = self.get_id()
-            res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
-                  ctypes.py_object(SystemExit))
+            res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit))
             if res > 1:
                 ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
                 print('Exception raise failure')

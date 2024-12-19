@@ -61,4 +61,3 @@ def click(x, y, button: mb):
 
     if config.extra_pause_between_clicks:
         time.sleep(config.extra_pause_between_clicks)
-        print('SLEEP!')
