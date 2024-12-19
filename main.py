@@ -17,6 +17,10 @@ from config import config
 from util import pause
 from util import cell_coordinates
 
+import threading
+import ctypes
+import time
+
 import asset
 from board import board
 
@@ -170,10 +174,6 @@ def do_strategy(strategy):
 
     name = strategy.__name__
 
-    # debug
-    # if name in ['solver_R1', 'solver_B2', 'solver_E2'] and len(matrix.get_open_cells()) > 15:
-    #     print(name)
-
     # if move is random click - save board to PNG and Pickle file (board object)
     # todo move it to separate file
     if name == 'solver_R1' and config.save_game_R1 and len(matrix.get_open_cells()) > 15:
@@ -192,15 +192,18 @@ def do_strategy(strategy):
         cv.imwrite(os.path.join(dir, image_file), image)
 
     win_or_fail = None
-    # print(f'\nCalc {name} strategy')
 
     cells, button = strategy(matrix)
+
+    # смотрим, нашла ли Стратегия доступные для выполнения ходы
     have_a_move = bool(len(cells))
 
-    if have_a_move:
-        print(f'{name}: {cells}')
-    else:
-        print(f'{name}: pass')
+    DEBUG_PRINT_EVERY_MOVE = False
+    if DEBUG_PRINT_EVERY_MOVE:
+        if have_a_move:
+            print(f'{name}: {cells}')
+        else:
+            print(f'{name}: pass')
 
     if have_a_move:
         # debug
@@ -297,23 +300,18 @@ def recursive_wrapper(strategies):
     print(f'WIN PERCENT: {win*100/total:.2f}')
 
 
-# # Флаг для управления основным циклом
-# running = True
-# def on_press(key):
-#     # if str(key).replace("'", "") == '0':
-#     global running
-#     print(f'pressed {key}')
-#     if key == Key.esc:
-#         print('EXIT!!!')
-#         listener.stop()
-#         # raise Exception()
-
+def on_press(key):
+    print(f'pressed {key}')
+    if key == Key.esc:
+        print('EXIT!!!')
+        listener.stop()
+        t1.raise_exception()
 
 
 if __name__ == '__main__':
 
-    # listener = Listener(on_press=on_press)
-    # listener.start()  # Запускаем слушатель в отдельном потоке
+    listener = Listener(on_press=on_press)
+    listener.start()  # Запускаем слушатель в отдельном потоке
 
 
     col_values, row_values, region = find_board(asset.closed)
@@ -357,10 +355,42 @@ if __name__ == '__main__':
         matrix.update()
 
 
+    # recursive_wrapper - это основная точка входа в запуск стратегий, теперь выполняется в отдельном потоке, для того
+    # чтобы его можно было остановить по нажатию клавиши
+    # recursive_wrapper(strategies)
 
-    recursive_wrapper(strategies)
 
+    class thread_with_exception(threading.Thread):
 
+        def __init__(self, name):
+            threading.Thread.__init__(self)
+            self.name = name
+
+        def run(self):
+            recursive_wrapper(strategies)
+
+        def get_id(self):
+
+            # returns id of the respective thread
+            if hasattr(self, '_thread_id'):
+                return self._thread_id
+            for id, thread in threading._active.items():
+                if thread is self:
+                    return id
+
+        def raise_exception(self):
+            thread_id = self.get_id()
+            res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
+                  ctypes.py_object(SystemExit))
+            if res > 1:
+                ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
+                print('Exception raise failure')
+
+    t1 = thread_with_exception('Thread 1')
+    t1.start()
+    # остановка потока по нажатию Esc выполняется в колбеке on_press(key):
+    t1.join()
+    listener.stop()
 
 # - самое-самое начало
 # some logic

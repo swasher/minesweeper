@@ -3,10 +3,8 @@ import math
 import operator
 import time
 import win32gui
-import win32api
 import win32ui
 import win32con
-import keyboard
 import cv2 as cv
 import mss
 import mss.tools
