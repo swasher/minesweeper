@@ -1,10 +1,11 @@
 import itertools
 
-import maus
 from solver.classes import create_roots
+from classes import Action
+from cell import Cell
 
 
-def solver_B2(matrix):
+def solver_B2(matrix) -> ([Cell], Action):
     """
     - Для каждой цифры делаем список закрытых ячеек.
     - Сравниваем их попароно два корня (каждый с каждым).
@@ -23,6 +24,7 @@ def solver_B2(matrix):
 
     r1.union(r2) => set содержащий все элементы обоих множеств (без дублирования) (OR)
     """
+    action = Action.set_flag
     roots = create_roots(matrix)
     for r1, r2 in itertools.combinations(roots, 2):
 
@@ -42,5 +44,5 @@ def solver_B2(matrix):
                 # r2.ancestor.mark_cell_debug()
                 # print('COMPARE', r1.ancestor, r2.ancestor)
                 # print(bombs)
-                return bombs, maus.FLAG
-    return [], maus.FLAG
+                return bombs, action
+    return [], action

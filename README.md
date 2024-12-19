@@ -188,25 +188,6 @@ MBF file format
 It's a file format for holding boards by listing the mines used by MinesweeperX.  If I remember correctly; 2 bytes for # of mines, 1 byte for width, 1 byte for height then for each mine: 1 bytes for X and 1 byte for Y.
 
 
-Installation
-=====================
-
-Numpy
-------------
-
-Для винды нужны прекомпилированные пакеты, иначе придется их либо через conda устанавливать (что ведет к ебле с 
-окружением, ибо у конды свое), либо нужно тянуть 4-6 гигов майкрасофтовских компиляторов. Брал отсюда
-https://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
-
-Opencv
--------------
-
-аналогично
-
-для установки opencv нужно установить это:  
-[Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-160)
-
-
 Libraries
 ========================
 
@@ -237,6 +218,25 @@ mouse
 -----------
 Controlled mouse (at 100 times faster of pyautogui)
  [github](https://github.com/boppreh/mouse)
+
+pynput
+----------
+Еще одна библиотека для контроля клавиатуры и мыши. С ее помощью получилось разделить на разные потоки
+прослушиватель клавиатуры и основной процесс.
+
+
+mss
+---------
+
+An ultra fast cross-platform multiple screenshots module in pure python using ctypes.
+
+pywin32
+----------
+
+Низкоуровневые привязки для Window's win32 GUI API. Позволяет рисовать прямо на экране, что удобно для визуального 
+дебага алгоритмов.
+
+
 
 Articles and Algorithms
 ==================

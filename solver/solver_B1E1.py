@@ -1,14 +1,15 @@
 import util
 from config import config
-import maus
+from classes import Action
+from cell import Cell
 
 
-def solver_B1E1(matrix):
+def solver_B1E1(matrix) -> ([Cell], Action):
     """
     Объедененный алгоритм E1+B1.
     Нужен для более "человеческой" игры - чтобы нажатия на клетки совершались кучно, а не вразброс по всему полю
 
-    B1 - значит ищем Bомбы алгоритомом "один"
+    B1 - значит Bomb - ищем Бомбы алгоритомом "один"
 
     Алгоритм:
     Проверяем все ячейки с цифрами.
@@ -34,7 +35,8 @@ def solver_B1E1(matrix):
     #
 
     cells_b1 = []
-    action_b1 = maus.FLAG
+    action_b1 = Action.set_flag
+
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
@@ -56,16 +58,16 @@ def solver_B1E1(matrix):
         # Алгоритм B1 выдает серию клеток; сортируем их в порядке "близости" к последней нажатой клетке
         cells_b1 = sorted(cells_b1, key=lambda c: matrix.cell_distance(c, matrix.lastclicked))
 
-        dist_b1 = matrix.cell_distance(cells_b1[0], matrix.lastclicked)
+        distance_b1 = matrix.cell_distance(cells_b1[0], matrix.lastclicked)
     else:
-        dist_b1 = 0
+        distance_b1 = 0
 
     #
     # E1 part
     #
 
     cells_e1 = []
-    action_e1 = maus.NEARBY
+    action_e1 = Action.open_digit
 
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
@@ -81,13 +83,13 @@ def solver_B1E1(matrix):
         #      С другой, мы хотим нажать максимально близко к последнему нажатию.
         solution_e1 = [max(cells_e1, key=lambda item: item.nearby_closed)]
 
-        dist_e1 = matrix.cell_distance(solution_e1[0], matrix.lastclicked)
+        distance_e1 = matrix.cell_distance(solution_e1[0], matrix.lastclicked)
 
         if config.noflag:
             # todo тут говно код... Завязана логика поиска решений на тип игры (noflag)
             solution_e1 = matrix.around_closed_cells(solution_e1[0])
-            dist_e1 = matrix.cell_distance(solution_e1[0], matrix.lastclicked)
-            action_e1 = maus.OPEN
+            distance_e1 = matrix.cell_distance(solution_e1[0], matrix.lastclicked)
+            action_e1 = Action.open_cell
 
         # if config.turn_by_turn:
         #     ic('------ E1')
@@ -96,7 +98,7 @@ def solver_B1E1(matrix):
     else:
         # если ни у одной клетки нет решения, возвращаем пустой список
         solution_e1 = []
-        dist_e1 = 0
+        distance_e1 = 0
 
     #
     # Выбираем, что возвращать
@@ -113,13 +115,13 @@ def solver_B1E1(matrix):
     # - end debug
 
     # todo говно код, но лучше ничего не придумал.
-    if dist_b1 == 0 and dist_e1 == 0:
+    if distance_b1 == 0 and distance_e1 == 0:
         c, b = [], None
-    elif dist_b1 > 0 and dist_e1 == 0:
+    elif distance_b1 > 0 and distance_e1 == 0:
         c, b = cells_b1[0:1], action_b1
-    elif dist_b1 == 0 and dist_e1 > 0:
+    elif distance_b1 == 0 and distance_e1 > 0:
         c, b = solution_e1, action_e1
-    elif dist_b1 > dist_e1:
+    elif distance_b1 > distance_e1:
         c, b = solution_e1, action_e1
     else:
         c, b = cells_b1[0:1], action_b1

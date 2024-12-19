@@ -1,10 +1,11 @@
 import itertools
 from solver.classes import create_roots
 
-import maus
+from classes import Action
+from cell import Cell
 
 
-def solver_E2(matrix):
+def solver_E2(matrix, debug=False) -> ([Cell], Action):
     """
     - Для каждой цифры делаем список закрытых ячеек вокруг (Root.closed)
     - При этом нужно из цифры вычесть кол-во имеющихся вокруг флагов  (Root.rest_bomb)
@@ -15,6 +16,7 @@ def solver_E2(matrix):
     :param matrix:
     :return:
     """
+    action = Action.open_cell
     roots = create_roots(matrix)
     solution = []
 
@@ -27,17 +29,18 @@ def solver_E2(matrix):
                 empties = tuple(set(r1.closed) ^ set(r2.closed))
 
                 # -- debug
-                # r1.ancestor.mark_cell_debug('yellow')
-                # r2.ancestor.mark_cell_debug('yellow')
-                # print('-----')
-                # print('COMPARE:', r1.ancestor, 'and', r2.ancestor)
-                # print('EMPTIES:', empties)
+                if debug:
+                    r1.ancestor.mark_cell_debug('yellow')
+                    r2.ancestor.mark_cell_debug('green')
+                    print('-----')
+                    print('COMPARE:', r1.ancestor, 'and', r2.ancestor)
+                    print('EMPTIES:', empties)
                 # -- debug
 
-                return empties, maus.OPEN
+                return empties, action
                 # VAR1 - return all found solution
                 #solution += empties
 
     # VAR1 - return all found solution
     # return solution, Asset.open
-    return [], maus.OPEN
+    return [], action

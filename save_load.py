@@ -20,7 +20,7 @@ from datetime import datetime
 from matrix import Matrix
 import asset
 from board import board
-from main import find_board
+# from main import find_board
 
 from solver import solver_R1
 from solver import solver_R1_corner
@@ -89,11 +89,11 @@ def solve():
     Test solve engine on saved board
     :return:
     """
-    engine = solver_B1E1
+    engine = solver_E2
 
     picklefile = 'obj.pickle'
     image_file = 'image.png'
-    dir = 'game_SAVE_24-Nov-2021--16.23.22.264359'
+    dir = 'game_R1_19-Dec-2024--20.28.53.526313_e74a'
 
     matrix = load(dir)
     matrix.display()

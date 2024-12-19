@@ -163,10 +163,10 @@ def clicking_cells(cells: [Cell], action: Action):
 
 def do_strategy(strategy):
     """
-    Обертка для выполнения "стратегии" - после того как алгоритм `strategy` найдет, что нажимать, эта функция нажимает
-    нужные клетки, обновляет matrix, пишет лог и так далее.
+    Результат работы любой Стратегии - список клеток, которые нужно нажать правой или левой кнопкой.
 
-    Результат работы любой стратегии - список клеток, которые нужно нажать правой или левой кнопкой.
+    Эта функция - обертка для выполнения "стратегии", по результатам выполнения Стретегии она нажимает
+    нужные клетки, обновляет matrix, пишет лог и так далее.
 
     :param strategy: [function] Одна из функий из модуля solve, напр. можно передать сюда стратегию solver_E1 или solver_R1
     :return: have_a_move: [boolean] - True, если стратегия выполнила ходы
@@ -182,7 +182,7 @@ def do_strategy(strategy):
     #
     # if move is random click - save board to PNG and Pickle file (board object)
     # todo move it to separate file
-    if name == 'solver_R1' and config.save_game_R1 and len(matrix.get_open_cells()) > 15:
+    if name == 'solver_E2':
         random_string = secrets.token_hex(2)
         date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
         picklefile = 'obj.pickle'
@@ -200,7 +200,6 @@ def do_strategy(strategy):
     # -
     # ===========================
 
-
     win_or_fail = None
 
     cells, action = strategy(matrix)
@@ -210,10 +209,11 @@ def do_strategy(strategy):
 
     DEBUG_PRINT_EVERY_MOVE = True
     if DEBUG_PRINT_EVERY_MOVE:
+        print(action, name)
         if have_a_move:
-            print(f'{name}: {cells}')
+            print(f'{name}: [{action.name}] {cells}')
         else:
-            print(f'{name}: pass')
+            print(f'{name}: [{action}] pass')
 
     if have_a_move:
         # debug
@@ -222,7 +222,7 @@ def do_strategy(strategy):
         #         c.mark_cell_debug()
         #     input("Press Enter to mouse moving")
 
-        if config.noflag and name in ['solver_B1', 'solver_B2', 'solver_E1B1']:
+        if config.noflag and action == Action.set_flag:
             # в этом режиме мы должны только "запомнить", т.е. пометить в матрице, где флаги,
             # вместо того, чтобы реально отмечать их на поле
             for cell in cells:
@@ -260,7 +260,12 @@ def recusive_strategy(i):
         return recusive_strategy(i)
 
 
-def recursive_wrapper(strategies):
+def recursive_wrapper():
+    """
+    Самая внешняя обертка, которая работает над "играми" - запускает, подсчитывает, останавливает, etc.
+    :param strategies:
+    :return:
+    """
     global matrix
 
     need_win = config.need_win_parties
@@ -324,7 +329,6 @@ if __name__ == '__main__':
     listener = Listener(on_press=on_press)
     listener.start()  # Запускаем слушатель в отдельном потоке
 
-
     col_values, row_values, region = find_board(asset.closed)
     matrix = Matrix(row_values, col_values, region)
 
@@ -346,8 +350,10 @@ if __name__ == '__main__':
     # debug - test perfomance
     # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
 
+
+    # Список стратегий не передается как параметр, функции обращаются к нему как к внешней переменной
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
-    strategies = [solver_B1, solver_E1, solver_R1]
+    # strategies = [solver_B1, solver_E1, solver_R1]
 
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1_corner]
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_human]
@@ -355,7 +361,7 @@ if __name__ == '__main__':
     # strategies = [solver_gauss, solver_R1]
 
     # рабочий
-    # strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
 
 
     config.human = False
@@ -369,7 +375,6 @@ if __name__ == '__main__':
     # чтобы его можно было остановить по нажатию клавиши
     # recursive_wrapper(strategies)
 
-
     class thread_with_exception(threading.Thread):
 
         def __init__(self, name):
@@ -377,7 +382,7 @@ if __name__ == '__main__':
             self.name = name
 
         def run(self):
-            recursive_wrapper(strategies)
+            recursive_wrapper()
 
         def get_id(self):
             # returns id of the respective thread

@@ -51,7 +51,6 @@ class Configuration(object):
         self.mouse_randomize_xy = conf.getboolean('mouse', 'mouse_randomize_xy')
 
         # debug
-        self.save_game_R1 = conf.getboolean('debug', 'save_game_R1')
         self.turn_by_turn = conf.getboolean('debug', 'turn_by_turn')
         self.icecream = conf.getboolean('debug', 'icecream')
         self.extra_pause_between_clicks = conf.getfloat('debug', 'extra_pause_between_clicks')

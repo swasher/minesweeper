@@ -1,5 +1,4 @@
 import util
-import maus
 from classes import Action
 from cell import Cell
 
