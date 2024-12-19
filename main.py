@@ -41,6 +41,8 @@ from solver import solver_human, solver_human_almost_work
 from solver import solver_gauss
 from solver import solver_noguess
 
+from cell import Cell
+
 """
 RULES FOR COORDINATES
 Board matrix represented by array of arrays, ie
@@ -142,17 +144,18 @@ def draw():
         k = cv.waitKey(0)
 
 #
-#  Скорее всего, этот кусочек я делал для анализа реального времени между кликами при реальной игре человека
+# Вычисляется время между реальным кликами. Если нет искуственных пауз - это время, ушедшее на
+# вычисления.
 #
 import queue
 q = queue.Queue()
-q.put(datetime.now())
-def clicking_cells(cells, button):
+q.put(time.perf_counter())
+def clicking_cells(cells: [Cell], button):
     for cell in cells:
         matrix.lastclicked = cell
-        n = datetime.now()
+        n = time.perf_counter()
         prev = q.get()
-        # print('real sec:', (n-prev).total_seconds(), '\n')
+        # print('real sec:', n-prev, '\n')
         q.put(n)
         cell.click(button)
 
@@ -198,7 +201,7 @@ def do_strategy(strategy):
     # смотрим, нашла ли Стратегия доступные для выполнения ходы
     have_a_move = bool(len(cells))
 
-    DEBUG_PRINT_EVERY_MOVE = False
+    DEBUG_PRINT_EVERY_MOVE = True
     if DEBUG_PRINT_EVERY_MOVE:
         if have_a_move:
             print(f'{name}: {cells}')
@@ -279,9 +282,9 @@ def recursive_wrapper(strategies):
         print(f'{win_or_fail} in', (after-before).seconds, 'sec')
         print(f'Total: {total}, win: {win}, fail: {total - win} (need {need_win} win and {need_total} total)\n')
 
-        # пауза примерно `beetwen_games` секунд, если оно не ноль
+        # пауза примерно `beetwen_games` секунд, если оно не ноль (с разбросом sigma=1.5)
         if config.beetwen_games:
-            t = abs(random.gauss(config.beetwen_games, 2))
+            t = abs(random.gauss(config.beetwen_games, 1.5))
             pause(t)
 
         contin = (bool(need_win) and win < need_win) or (bool(need_total) and total < need_total)
@@ -289,6 +292,7 @@ def recursive_wrapper(strategies):
             break
         matrix.reset()
         if config.arena:
+            # TODO find_board принимает только 1 аргумент!!!!
             col_values, row_values, region = find_board(asset.closed, board)
             matrix = Matrix(row_values, col_values, region)
         matrix.update()
@@ -301,7 +305,7 @@ def recursive_wrapper(strategies):
 
 
 def on_press(key):
-    print(f'pressed {key}')
+    # print(f'pressed {key}')
     if key == Key.esc:
         print('EXIT!!!')
         listener.stop()

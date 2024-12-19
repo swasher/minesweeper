@@ -40,22 +40,21 @@ class Configuration(object):
 
         # main
         self.beetwen_games = conf.getint('main', 'beetwen_games')
-        self.reset_pause = conf.getfloat('main', 'reset_pause')
         # game
         self.noguess = conf.getboolean('game', 'noguess')
         self.noflag = conf.getboolean('game', 'noflag')
         self.arena = conf.getboolean('game', 'arena')
         self.need_win_parties = conf.getint('game', 'need_win_parties')
         self.need_total_parties = conf.getint('game', 'need_total_parties')
+
         # mouse
         self.mouse_randomize_xy = conf.getboolean('mouse', 'mouse_randomize_xy')
-        self.mouse_duration = conf.getfloat('mouse', 'mouse_duration')
-        self.mouse_gaussian = conf.getfloat('mouse', 'mouse_gaussian')
-        self.minimum_delay = conf.getfloat('mouse', 'minimum_delay')
+
         # debug
         self.save_game_R1 = conf.getboolean('debug', 'save_game_R1')
         self.turn_by_turn = conf.getboolean('debug', 'turn_by_turn')
         self.icecream = conf.getboolean('debug', 'icecream')
+        self.extra_pause_between_clicks = conf.getfloat('debug', 'extra_pause_between_clicks')
 
         self.left = conf.getint(self.asset, 'left')
         self.right = conf.getint(self.asset, 'right')
@@ -67,6 +66,10 @@ class Configuration(object):
         self.flag = conf.get(self.asset, 'flag')
         self.open = conf.get(self.asset, 'open')
         self.nearby = conf.get(self.asset, 'nearby')
+        self.reset_pause = conf.getfloat(self.asset, 'reset_pause')
+        self.measured_distance = list(map(float, conf.get(self.asset, 'measured_distance').split(",")))
+        self.measured_duration = list(map(float, conf.get(self.asset, 'measured_duration').split(",")))
+        self.minimum_delay_between_clicks = conf.getfloat(self.asset, 'minimum_delay_between_clicks')
 
 
 config = Configuration()

@@ -447,6 +447,8 @@ def gauss_duration():
 
     Look at action there:
     https://replit.com/@swasher/Gaussian-distribution-for-Minesweeper-mouse-duration
+
+    В данный момент для скорости мыши используется mouse.human_mouse_speed
     """
     if config.mouse_duration > 0:
         mu = config.mouse_duration      # Значение в "центре" колокола
