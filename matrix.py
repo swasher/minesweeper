@@ -1,3 +1,4 @@
+import os
 import functools
 import math
 import operator
@@ -7,14 +8,16 @@ import win32ui
 import win32con
 import cv2 as cv
 import mss
+import secrets
+import pickle
 import mss.tools
-import numpy
 import numpy as np
 
 import asset
 import cell
-import maus
+import mouse_controller
 import util
+from datetime import datetime
 from board import board
 from config import config
 from classes import MouseButtons as mb
@@ -43,7 +46,7 @@ class Matrix(object):
         self.height = len(row_values)
         self.width = len(col_values)
 
-        self.table = numpy.full((self.height, self.width), cell.Cell)
+        self.table = np.full((self.height, self.width), cell.Cell)
 
         template = asset.closed.raster
         h, w = template.shape[:2]
@@ -238,7 +241,7 @@ class Matrix(object):
         # This is very important string! After click, website (and browser, or even Vienna program) has a lag
         # beetween click and refreshing screen.  If we do not waiting at this point, our code do not see any changes
         # after mouse click.
-        time.sleep(config.LAG)
+        time.sleep(config.screen_refresh_lag)
 
         self.image = self.get_image()
         for cell in self.get_closed_cells():
@@ -333,6 +336,25 @@ class Matrix(object):
         else:
             return None
 
+    def save(self):
+        """
+        Сохраняет текущую игру в папку, создавая два файла - картинку с изображением игры
+        и файл pickle, который потом можно загрузить.
+        """
+        random_string = secrets.token_hex(2)
+        date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
+        picklefile = 'obj.pickle'
+        image_file = 'image.png'
+        dir = 'game_R1_' + date_time_str + '_' + random_string
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+        with open(os.path.join(dir, picklefile), 'wb') as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+        image = self.get_image()
+        cv.imwrite(os.path.join(dir, image_file), image)
+
     def reset(self):
         """
         Нажимает на рожицу, чтобы перезапустить поле
@@ -346,15 +368,12 @@ class Matrix(object):
 
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
         face_coord_y = self.region_y1 + board.smile_y_coord
-        maus.click(face_coord_x, face_coord_y, mb.left)
+        mouse_controller.click(face_coord_x, face_coord_y, mb.left)
         for c in self.table.flat:
             # deprecated
             # c.status = 'closed'
             c.type = asset.closed
-        # todo тут прибито гвоздями. Нужно ждать некоторое время, пока поле обновится.
-        #      онлайну подходит 0,1*3
-        #      vienne
-        time.sleep(config.reset_pause)
+        time.sleep(config.screen_refresh_lag * 10)
 
     def show_debug_text_orig(self):
         """

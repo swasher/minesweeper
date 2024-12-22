@@ -1,5 +1,5 @@
 from random import randrange
-import maus
+import mouse_controller
 from cell import Cell
 from classes import Action
 

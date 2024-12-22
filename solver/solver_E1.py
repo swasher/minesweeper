@@ -1,6 +1,6 @@
 from config import config
 from cell import Cell
-import maus
+import mouse_controller
 from classes import Action
 
 
@@ -23,7 +23,7 @@ def solver_E1(matrix) -> ([Cell], Action):
     КРОМЕ режима noflag - тогда отдаем все нужные ячейки
     """
     cells = []
-    # action = maus.NEARBY
+    # action = mouse_controller.NEARBY
     action = Action.open_digit
 
     for cell in matrix.get_digit_cells():

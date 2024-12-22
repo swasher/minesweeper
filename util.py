@@ -8,8 +8,6 @@ import numpy as np
 import numpy.typing as npt
 import cv2 as cv
 import ctypes
-import mouse
-import maus
 import msvcrt
 import random
 import time

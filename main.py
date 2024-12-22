@@ -5,13 +5,10 @@ import os
 import cv2 as cv
 import mss
 import numpy as np
-import pickle
 from pynput.keyboard import Key, Listener
 import timeit
-import secrets
 from datetime import datetime
 from icecream import ic
-ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
 from config import config
 from util import pause
@@ -29,7 +26,6 @@ from matrix import Matrix
 from classes import Action
 import save_load
 
-
 from solver import solver_R1
 from solver import solver_R1_corner
 from solver import solver_R1_smart
@@ -43,6 +39,8 @@ from solver import solver_gauss
 from solver import solver_noguess
 
 from cell import Cell
+
+ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
 """
 RULES FOR COORDINATES
@@ -175,31 +173,6 @@ def do_strategy(strategy):
 
     name = strategy.__name__
 
-    # ===========================
-    #
-    # ЭТОМУ КУСКУ ТУТ НЕ МЕСТО
-    # сохранение состояния игры в файл
-    #
-    # if move is random click - save board to PNG and Pickle file (board object)
-    # todo move it to separate file
-    if name == 'solver_E2':
-        random_string = secrets.token_hex(2)
-        date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
-        picklefile = 'obj.pickle'
-        image_file = 'image.png'
-        dir = 'game_R1_' + date_time_str + '_' + random_string
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-
-        with open(os.path.join(dir, picklefile), 'wb') as outp:
-            pickle.dump(matrix, outp, pickle.HIGHEST_PROTOCOL)
-
-        image = matrix.get_image()
-        cv.imwrite(os.path.join(dir, image_file), image)
-    # ===========================
-    # -
-    # ===========================
-
     win_or_fail = None
 
     cells, action = strategy(matrix)
@@ -207,13 +180,12 @@ def do_strategy(strategy):
     # смотрим, нашла ли Стратегия доступные для выполнения ходы
     have_a_move = bool(len(cells))
 
-    DEBUG_PRINT_EVERY_MOVE = True
+    DEBUG_PRINT_EVERY_MOVE = False
     if DEBUG_PRINT_EVERY_MOVE:
-        print(action, name)
         if have_a_move:
-            print(f'{name}: [{action.name}] {cells}')
+            print(f'move: {name}: [{action.name}] {cells}')
         else:
-            print(f'{name}: [{action}] pass')
+            print(f'move: {name}: [{action}] pass')
 
     if have_a_move:
         # debug
@@ -221,6 +193,22 @@ def do_strategy(strategy):
         #     for c in cells:
         #         c.mark_cell_debug()
         #     input("Press Enter to mouse moving")
+
+        # --------------------------------
+        # В ЭТОЙ ТОЧКЕ МЫ ДОЛЖНЫ СДЕЛАТЬ ЗАДЕРЖКУ, ИМИТИРУЯ "ДУМАНИЕ" ЧЕЛОВЕКА
+        # ПРОБЛЕМА - клики могут быть набором, но в таком случае можно решить, что внутри набора нет дополнительной задержки.
+        # что мы можем включить в рассчеты:
+        # - мы уже знаем, где будет следующий клик, - и насколько он далеко от текущей позиции.
+        #     если далеко, то, вероятно, человеку нужно было время для размышления.
+        # - если есть большие цифры - 5,6, человеку нужно больше времни чтобы подумать
+        # - если была применена стратегия E2 или B2 - она требовала больше времени на размышления (чем Е1 и Б1)
+        # - отсутствие ходов - заставляет человека думать
+        # - на время думания мы можем не просто останавливать игру, а мадленно перемещать мышь ближе к району следующего клика
+        # - кроме того, нужно ввести задержку между нажатием и отпусканием кнопки мыши - человек не делает это мгновенно.
+        # --------------------------------
+
+        human_thinking = 0
+        time.sleep(human_thinking)
 
         if config.noflag and action == Action.set_flag:
             # в этом режиме мы должны только "запомнить", т.е. пометить в матрице, где флаги,
@@ -232,6 +220,15 @@ def do_strategy(strategy):
 
         matrix.update()
         # matrix.display()
+
+        # --------------------------------
+        # DEBUG PAUSE HERE AFTER EACH MOVE
+        # --------------------------------
+
+        # DEBUG
+        # мы можем после хода сохранить состояние игры в папку
+        # if name == 'solver_E2':
+        #     matrix.save()
 
         if action in [Action.open_cell, Action.open_digit]:
             # Если в strategy мы помечали бомбы, то игра не могла закончиться.
@@ -294,9 +291,9 @@ def recursive_wrapper():
         print(f'{win_or_fail} in', after-before, 'sec')
         print(f'Total: {total}, win: {win}, fail: {total - win} (need {need_win} win and {need_total} total)\n')
 
-        # пауза примерно `beetwen_games` секунд, если оно не ноль (с разбросом sigma=1.5)
-        if config.beetwen_games:
-            t = abs(random.gauss(config.beetwen_games, 1.5))
+        # пауза примерно `seconds_beetwen_games` секунд, если оно не ноль (с разбросом sigma=1.5)
+        if config.seconds_beetwen_games:
+            t = abs(random.gauss(config.seconds_beetwen_games, 1.5))
             pause(t)
 
         contin = (bool(need_win) and win < need_win) or (bool(need_total) and total < need_total)
@@ -322,6 +319,38 @@ def on_press(key):
         print('EXIT!!!')
         listener.stop()
         t1.raise_exception()
+
+
+
+class thread_with_exception(threading.Thread):
+    """
+    Это обертка для основного процесса recursive_wrapper().
+    В другом, параллельном, потоке запускается слушатель клавиатуры.
+    Нужно для того, чтобы мы могли по нажатию Esc остановить игру (убить этот поток).
+    """
+
+    def __init__(self, name):
+        threading.Thread.__init__(self)
+        self.name = name
+
+    def run(self):
+        recursive_wrapper()
+
+    def get_id(self):
+        # returns id of the respective thread
+        if hasattr(self, '_thread_id'):
+            return self._thread_id
+        for id, thread in threading._active.items():
+            if thread is self:
+                return id
+
+    def raise_exception(self):
+        thread_id = self.get_id()
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit))
+        if res > 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
+            print('Exception raise failure')
+
 
 
 if __name__ == '__main__':
@@ -375,29 +404,7 @@ if __name__ == '__main__':
     # чтобы его можно было остановить по нажатию клавиши
     # recursive_wrapper(strategies)
 
-    class thread_with_exception(threading.Thread):
 
-        def __init__(self, name):
-            threading.Thread.__init__(self)
-            self.name = name
-
-        def run(self):
-            recursive_wrapper()
-
-        def get_id(self):
-            # returns id of the respective thread
-            if hasattr(self, '_thread_id'):
-                return self._thread_id
-            for id, thread in threading._active.items():
-                if thread is self:
-                    return id
-
-        def raise_exception(self):
-            thread_id = self.get_id()
-            res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit))
-            if res > 1:
-                ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
-                print('Exception raise failure')
 
     t1 = thread_with_exception('Thread 1')
     t1.start()

@@ -1,9 +1,10 @@
 import random
 from random import randrange
-import maus
+import mouse_controller
 import config
 import icecream as ic
 from util import pause
+from classes import Action
 
 def solver_R1_smart(matrix):
     """
@@ -12,7 +13,7 @@ def solver_R1_smart(matrix):
     :param matrix:
     :return:
     """
-    action = maus.OPEN
+    action = Action.open_cell
 
     common_risk = matrix.bomb_qty() / len(matrix.get_closed_cells())
     closed_cells = matrix.get_closed_cells()

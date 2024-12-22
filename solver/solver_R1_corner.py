@@ -1,5 +1,6 @@
 from random import randrange
-import maus
+import mouse_controller
+from classes import Action
 
 def solver_R1_corner(matrix):
     """
@@ -17,12 +18,12 @@ def solver_R1_corner(matrix):
 
     for cell in corner_cells:
         if len(matrix.around_closed_cells(cell)) == 3 and cell.is_closed:
-            return [cell], maus.OPEN
+            return [cell], Action.open_cell
     else:
         cells = matrix.get_closed_cells()
         qty = len(cells)
         random_cell = cells[randrange(qty)]
-        return [random_cell], maus.OPEN
+        return [random_cell], Action.open_cell
 
     # if config.turn_by_turn:
     #     ic('------ R1-corner')

@@ -5,7 +5,7 @@ import win32con
 import xxhash
 
 import asset
-import maus
+import mouse_controller
 from config import config
 from util import point_in_rect
 from util import random_point_in_square
@@ -99,7 +99,7 @@ class Cell(object):
             x, y = random_point_in_square(self.abscoordx, self.abscoordy, self.w, self.h)
         else:
             x, y = self.abscoordx + self.w//2, self.abscoordy + self.h//2
-        maus.click(x, y, button)
+        mouse_controller.click(x, y, button)
 
     @property
     def digit(self):

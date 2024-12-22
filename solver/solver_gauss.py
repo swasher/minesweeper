@@ -26,8 +26,9 @@ from collections import namedtuple
 
 import numpy as np
 
-import maus
+import mouse_controller
 import random
+from classes import Action
 
 """
 См. pics/clusters.png
@@ -160,4 +161,4 @@ def solver_gauss(matrix):
                 pass  # no solution
 
 
-    return [], maus.OPEN
+    return [], Action.open_cell

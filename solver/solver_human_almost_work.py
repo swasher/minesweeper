@@ -4,7 +4,7 @@ import threading
 from pynput import mouse
 from threading import Timer
 
-import maus
+from classes import Action
 
 
 def exists(var):
@@ -116,9 +116,9 @@ def solver_human(matrix):
         cell = matrix.cell_by_abs_coords(point)
         if cell:
             if bb == mouse.Button.left:
-                action = maus.OPEN
+                action = Action.open_cell
             elif bb == mouse.Button.right:
-                action = maus.FLAG
+                action = Action.set_flag
             else:
                 exit('Error: That mouse button is not assigned.')
             return [cell], action

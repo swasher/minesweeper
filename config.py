@@ -6,6 +6,7 @@ conf.read('settings.ini')
 
 
 # Известные виды сапера. Называние соотв. директории с ассетом.
+# NOT USED (probably)
 assets = {'Asset_24_1920x1080': 'asset_24_1920x1080',
           'Asset_28_2560x1440': 'asset_28_2560x1440',
           'Asset_22_2560x1440': 'asset_22_2560x1440',
@@ -39,7 +40,8 @@ class Configuration(object):
         self.asset = conf.get('main', 'asset')
 
         # main
-        self.beetwen_games = conf.getint('main', 'beetwen_games')
+        self.seconds_beetwen_games = conf.getint('main', 'seconds_beetwen_games')
+
         # game
         self.noguess = conf.getboolean('game', 'noguess')
         self.noflag = conf.getboolean('game', 'noflag')
@@ -49,6 +51,7 @@ class Configuration(object):
 
         # mouse
         self.mouse_randomize_xy = conf.getboolean('mouse', 'mouse_randomize_xy')
+        self.use_neural_mouse = conf.getboolean('mouse', 'use_neural_mouse')
 
         # debug
         self.turn_by_turn = conf.getboolean('debug', 'turn_by_turn')
@@ -62,7 +65,7 @@ class Configuration(object):
         self.bottom = conf.getint(self.asset, 'bottom')
         self.smile_y_coord = conf.getint(self.asset, 'smile_y_coord')
         self.allow_noguess = conf.getboolean(self.asset, 'allow_noguess')
-        self.LAG = conf.getfloat(self.asset, 'LAG')
+        self.screen_refresh_lag = conf.getfloat(self.asset, 'screen_refresh_lag')
 
         # self.flag = conf.get(self.asset, 'flag')
         self.flag_button = conf.get(self.asset, 'flag')
@@ -73,7 +76,6 @@ class Configuration(object):
         # self.nearby = conf.get(self.asset, 'nearby')
         self.nearby_button = conf.get(self.asset, 'nearby')
 
-        self.reset_pause = conf.getfloat(self.asset, 'reset_pause')
         self.measured_distance = list(map(float, conf.get(self.asset, 'measured_distance').split(",")))
         self.measured_duration = list(map(float, conf.get(self.asset, 'measured_duration').split(",")))
         self.minimum_delay_between_clicks = conf.getfloat(self.asset, 'minimum_delay_between_clicks')
