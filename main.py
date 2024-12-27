@@ -9,6 +9,8 @@ from pynput.keyboard import Key, Listener
 import timeit
 from datetime import datetime
 from icecream import ic
+import win32gui
+import win32api
 
 from config import config
 from util import pause
@@ -86,9 +88,9 @@ def find_board(closedcell):
     :param pattern: объект Pattern, который содержит изображения клеток; мы будем искать на экране закрытую клетку (pattern.closed)
     :param asset: класс (не инстанс!) Asset, в котором содержится информация о "доске" - а именно размер полей в пикселях,
             от клеток до края "доски". Именно это поле (region), а не весь экран, мы в дальнейшем будем "сканировать".
-    :return cells_coord_x: [array of int] Координаты строк
-    :return cells_coord_y: [array of int] Координаты столбцов
-    :return region: [x1, y1, x2, y2] координаты доски сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол
+    :return cells_coord_x: [array of int] Координаты строк (верхних левых углов клеток, относительно доски)
+    :return cells_coord_y: [array of int] Координаты столбцов (верхних левых углов клеток, относительно доски)
+    :return region: [x1, y1, x2, y2] координаты доски сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол. Включает всю доску с полями вокруг.
     """
     print('Try finding board...')
     with mss.mss() as sct:
@@ -126,7 +128,13 @@ def find_board(closedcell):
     cells_coord_x = [x-region_x1 for x in cells_coord_x]
     cells_coord_y = [y-region_y1 for y in cells_coord_y]
 
+    dc = win32gui.GetDC(0)
+    red = win32api.RGB(255, 0, 0)
+    win32gui.SetPixel(dc, 0, 0, red)  # draw red at 0,0
+    win32gui.Rectangle(dc, region_x1, region_y1, region_x2, region_y2)
+
     return cells_coord_x, cells_coord_y, region
+
 
 
 def draw():

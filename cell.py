@@ -9,6 +9,7 @@ import mouse_controller
 from config import config
 from util import point_in_rect
 from util import random_point_in_square
+from classes import Color
 
 
 class Cell(object):
@@ -104,7 +105,7 @@ class Cell(object):
     @property
     def digit(self):
         """
-        Возвращает цифру ячейки в виде int. Иначе возвращает -1
+        Возвращает цифру ячейки в виде int. Если ячейка - не цифра, возвращает -1
         :return: int
         """
         if self.type in asset.digits:
@@ -172,21 +173,21 @@ class Cell(object):
         else:
             return False
 
-    def mark_cell_debug(self, color, dist=6, size=8):
+    def mark_cell_debug(self, color: Color, dist=6, size=8):
         """
         Used for debug.
         Draw small square on current cell right on Minesweeper board,
         with edge `size` px and distance from top left corner `dist`.
         :return:
         """
-        select = {
-            'red': win32api.RGB(255, 0, 0),
-            'green': win32api.RGB(0, 255, 0),
-            'blue': win32api.RGB(0, 0, 255),
-            'yellow': win32api.RGB(255, 255, 0),
-            'cyan': win32api.RGB(0, 255, 255),
-            'magenta': win32api.RGB(255, 0, 255),
-        }
+        # select = {
+        #     'red': win32api.RGB(255, 0, 0),
+        #     'green': win32api.RGB(0, 255, 0),
+        #     'blue': win32api.RGB(0, 0, 255),
+        #     'yellow': win32api.RGB(255, 255, 0),
+        #     'cyan': win32api.RGB(0, 255, 255),
+        #     'magenta': win32api.RGB(255, 0, 255),
+        # }
 
         dc = win32gui.GetDC(0)
         rect = (self.abscoordx+dist, self.abscoordy+dist, self.abscoordx+dist+size, self.abscoordy+dist+size)
@@ -194,7 +195,7 @@ class Cell(object):
         # win32gui.SetBkColor(dc, red)
         # win32gui.Rectangle(dc, self.abscoordx+6, self.abscoordy+6, self.abscoordx+18, self.abscoordy+18)
 
-        brush = win32gui.CreateSolidBrush(select[color])
+        brush = win32gui.CreateSolidBrush(color)
         win32gui.FillRect(dc, rect, brush)
 
         # win32gui.MoveToEx(dc, self.abscoordx+9, self.abscoordy+9)

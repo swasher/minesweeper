@@ -2,7 +2,10 @@ import configparser
 import ctypes
 
 conf = configparser.ConfigParser()
-conf.read('settings.ini')
+conf.read('settings.ini', encoding='utf-8')
+
+# Читаем вспомогательный конфигурационный файл
+conf.read('settings.local.ini', encoding='utf-8')
 
 
 # Известные виды сапера. Называние соотв. директории с ассетом.

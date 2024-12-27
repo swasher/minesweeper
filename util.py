@@ -13,6 +13,8 @@ import random
 import time
 import win32gui
 
+from typing import Sequence
+
 from itertools import groupby
 from config import config
 
@@ -248,9 +250,9 @@ def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArr
     h, w = pattern.shape[:2]
 
     # method = cv.TM_CCOEFF
-    # method = cv.TM_CCOEFF_NORMED  # ++
+    method = cv.TM_CCOEFF_NORMED  # ++
     # method = cv.TM_CCORR
-    method = cv.TM_CCORR_NORMED  # ++
+    # method = cv.TM_CCORR_NORMED  # ++
     # method = cv.TM_SQDIFF
     # method = cv.TM_SQDIFF_NORMED
 
@@ -312,61 +314,14 @@ def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArr
 
 
 
-
-def search_pattern_in_image_for_red_bombs_on_work__(pattern: npt.NDArray, image: npt.NDArray, precision=0) -> tuple[int, int]:
-    """
-    Поиск шаблона в изображении с использованием метода cv.TM_SQDIFF.
-    Автоматически конвертирует цветные изображения в черно-белые.
-
-    Parameters:
-        pattern (npt.NDArray): Шаблон (цветной или черно-белый массив изображения).
-        image (npt.NDArray): Исходное изображение (цветной или черно-белый массив изображения).
-
-    Returns:
-        tuple[int, int]: Координаты верхнего левого угла найденного шаблона.
-    """
-    # Проверка на пустые входные данные
-    if pattern is None or image is None:
-        raise ValueError("Шаблон или изображение не могут быть None")
-
-    # Конвертация цветного изображения в градации серого, если нужно
-    if len(image.shape) == 3:  # Цветное изображение
-        image_gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    else:
-        image_gray = image  # Уже черно-белое изображение
-
-    if len(pattern.shape) == 3:  # Цветной шаблон
-        pattern_gray = cv.cvtColor(pattern, cv.COLOR_BGR2GRAY)
-    else:
-        pattern_gray = pattern  # Уже черно-белый шаблон
-
-    # Применяем метод matchTemplate
-    result = cv.matchTemplate(image_gray, pattern_gray, cv.TM_SQDIFF)
-
-    # Находим минимальное значение и координаты
-    min_val, _, min_loc, _ = cv.minMaxLoc(result)
-
-    # Визуализация
-    print(f"min_val: {min_val}, Координаты: {min_loc}")
-    h, w, _ = pattern.shape
-    if min_val < 10000:  # Порог
-        cv.rectangle(image, min_loc, (min_loc[0] + w, min_loc[1] + h), 255, 2)
-    cv.imshow("Match Result", image)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-
-    # Возвращаем координаты верхнего левого угла совпадения
-    return [min_loc + (min_val,)]
-
-
-
-def search_pattern_in_image_for_red_bombs_on_work(
+def search_pattern_in_image_universal(
     pattern: npt.NDArray,
     image: npt.NDArray,
-    threshold: float
-) -> list[tuple[int, int]]:
+    threshold: float,
+    method: int = cv.TM_CCOEFF_NORMED
+) -> tuple[Sequence[int], float]:
     """
-    Поиск всех вхождений шаблона в изображении с использованием метода cv.TM_SQDIFF.
+    Поиск ОДНОГО вхождения шаблона в изображении без использования склеивания найденных изображений.
     Автоматически конвертирует цветные изображения в черно-белые.
     Возвращает все совпадения, где точность ниже заданного порога.
 
@@ -374,6 +329,7 @@ def search_pattern_in_image_for_red_bombs_on_work(
         pattern (npt.NDArray): Шаблон (цветной или черно-белый массив изображения).
         image (npt.NDArray): Исходное изображение (цветной или черно-белый массив изображения).
         threshold (float): Пороговое значение для фильтрации совпадений.
+        method (int): Метод сравнения шаблона и изображения (по умолчанию cv.TM_CCOEFF_NORMED).
 
     Returns:
         list[tuple[int, int]]: Список координат (x, y) верхнего левого угла совпадений.
@@ -394,14 +350,29 @@ def search_pattern_in_image_for_red_bombs_on_work(
         pattern_gray = pattern
 
     # Применяем метод matchTemplate
-    result = cv.matchTemplate(image_gray, pattern_gray, cv.TM_SQDIFF)
+    result = cv.matchTemplate(image_gray, pattern_gray, method)
 
-    # Находим все совпадения, которые ниже порога
-    locations = np.where(result < threshold)
-    locations = list(zip(*locations[::-1]))  # Преобразуем индексы в (x, y)
+    # # Находим все совпадения, которые ниже или выше порога в зависимости от метода
+    # if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
+    #     locations = np.where(result > threshold)
+    #     locations = list(zip(*locations[::-1]))  # Преобразуем индексы в (x, y)
+    # else:
+    #     locations = np.where(result < threshold)
+    #     locations = list(zip(*locations[::-1]))  # Преобразуем индексы в (x, y)
+
+    # Вариант из учебника
+    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
+
+    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+    if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
+        location = min_loc
+        similarity = min_val
+    else:
+        location = max_loc
+        similarity = max_val
 
     # Возвращаем список координат
-    return locations
+    return location, similarity
 
 
 
@@ -419,7 +390,7 @@ def point_in_rect(point, x1, y1, w, h):
 
 def cell_coordinates(cells):
     """
-    Превращает список координат ВСЕХ ячеек поля в список отдельно X и Y координат
+    Превращает список координат ВСЕХ ячеек поля в список отдельно X и Y координат (верхнего левого угла ячейки).
     :param cells: list of tuples (x, y, cv2_max_val)
     :return cells_coord_x: list of int, список координаты по оси X для каждого столбца (в пикселях относительно верха лева экрана)
     :return cells_coord_y: list of int, анал. по оси Y
