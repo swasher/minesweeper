@@ -5,7 +5,7 @@
 class BruteForceGlobal {
 
     // constants used in this processing
-    static PLAY_BFDA_THRESHOLD = 1000;                   // number of remaining solutions for the Brute force analysis to start during play mode
+    static PLAY_BFDA_THRESHOLD = 1000;                   // number of remaining solutions for the Brute force analysis to start during play Mode
     static ANALYSIS_BFDA_THRESHOLD = 5000;               // number of solutions for the Brute force analysis to start when pressing "analyse"
     static BRUTE_FORCE_ANALYSIS_MAX_NODES = 100000000;   // Max number of nodes processed during brute force before we stop
     static BRUTE_FORCE_CYCLES_THRESHOLD = 75000000;      // Max number of cycles used to try and find the remaining solutions

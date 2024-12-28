@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import Button
 from tkinter import filedialog, messagebox, simpledialog
 import json
 import os
@@ -7,7 +6,6 @@ import pickle
 from enum import IntEnum
 from matrix import Matrix
 from cell import Cell
-from PIL import Image, ImageTk
 
 beginner = '9x9'
 intermediate = '16x16'
@@ -48,7 +46,7 @@ class MinesweeperApp:
             "closed": tk.PhotoImage(file="asset_tk/closed.png"),
             "opened": tk.PhotoImage(file="asset_tk/0.png"),
             "mine": tk.PhotoImage(file="asset_tk/bomb.png"),
-            "flag": tk.PhotoImage(file="asset_tk/flag.png"),
+            "flag": tk.PhotoImage(file="asset_tk/flagged.png"),
             "1": tk.PhotoImage(file="asset_tk/1.png"),
             "2": tk.PhotoImage(file="asset_tk/2.png"),
             "3": tk.PhotoImage(file="asset_tk/3.png"),
@@ -87,10 +85,6 @@ class MinesweeperApp:
         play_button = tk.Button(sidebar, text="Play", command=lambda: self.set_mode(Mode.play))
         play_button.grid(row=1, column=0, pady=10)
 
-    def create_status_bar(self):
-        statusbar = tk.Frame(self.root, width=100, bg='lightgrey')
-        statusbar.pack(side=tk.BOTTOM, fill='x')
-
     def update_status_bar(self):
         closed_count = sum(1 for btn in self.buttons.values() if btn.cget("image") == str(self.images["closed"]))
         mine_count = len(self.mines)
@@ -101,7 +95,7 @@ class MinesweeperApp:
 
     def set_mode(self, mode):
         self.mode = mode
-        print(f"Mode set to: {self.mode.name}")
+        print(f"Mode set to: {self.mode}")
 
     def create_grid(self):
         # Clear existing buttons
@@ -177,8 +171,6 @@ class MinesweeperApp:
                 matrix = pickle.load(inp)
                 matrix.display()
 
-            w, h = matrix.width, matrix.height
-            self.set_custom_size(f'{w}x{h}')
             self.update_grid(matrix)
             print("Field loaded successfully!")
 
@@ -209,13 +201,7 @@ class MinesweeperApp:
                         self.buttons[(x, y)].config(image=self.images["opened"])
 
         if matrix:
-            for x in range(self.grid_width):
-                for y in range(self.grid_height):
-                    # тут нужно преобразовать объекьт Cell в объект tk.Button
-                    # self.buttons[(x, y)] = matrix.table[x][y]  # в table - строка, столбец
-                    array = matrix.table[x][y].image
-                    img = ImageTk.PhotoImage(image=Image.fromarray(array))
-                    self.buttons[(x, y)].config(image=img)
+            pass
 
         self.update_status_bar()
 

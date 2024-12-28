@@ -134,9 +134,13 @@ def main():
     mm_sorted = sorted(mousemove, key=lambda mousemove: mousemove.dist)
     per100 = []
     for x in mm_sorted:
-        per100_ = x.tdelta.total_seconds() * 100 / x.dist
-        per100.append(per100_)
-        print(f'dist: {x.dist:.2f}, time: {x.tdelta.total_seconds():.3f}, per 100 px: {per100_:.3f}')
+        try:
+            per100_ = x.tdelta.total_seconds() * 100 / x.dist
+            per100.append(per100_)
+            speed = x.dist / x.tdelta.total_seconds()
+            print(f'dist: {x.dist:.2f}, time: {x.tdelta.total_seconds():.3f}s, per 100 px: {per100_:.3f}s, speed {speed:.2f} px/s')
+        except ZeroDivisionError:
+            pass
     arr = np.array([o.dist for o in mm_sorted])
     dist_mean = np.mean(arr)
     delta_mean = np.mean(np.array([o.tdelta.total_seconds() for o in mm_sorted]))

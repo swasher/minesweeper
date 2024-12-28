@@ -250,7 +250,7 @@ class Board {
 		return result;
 	}
 
-	// optionally treat flags as mines (e.g. in analysis mode but not playing or replay)
+	// optionally treat flags as mines (e.g. in analysis Mode but not playing or replay)
 	// place mines when they are trivially found
 	// The idea is to get the board into a state as pobability engine friendly as possible
 	// If an invalid tile is found returns it to be reported

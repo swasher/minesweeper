@@ -214,7 +214,7 @@ async function solver(board, options) {
 
         let result = [];
 
-        // if we are in flagged mode then flag any mines currently unflagged
+        // if we are in flagged Mode then flag any mines currently unflagged
         if (options.playStyle != PLAY_STYLE_EFFICIENCY && options.playStyle != PLAY_STYLE_NOFLAGS_EFFICIENCY) {
             for (let tile of unflaggedMines) {
                 result.push(new Action(tile.getX(), tile.getY(), 0, ACTION_FLAG));

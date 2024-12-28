@@ -50,7 +50,8 @@ def save():
         row_values = d['row_values']
         region = d['region']
 
-    matrix = Matrix(row_values, col_values, region)
+    matrix = Matrix()
+    matrix.initialize_from_screen(row_values, col_values, region)
     matrix.update()
     matrix.display()
 

@@ -34,11 +34,19 @@ class Matrix(object):
     height = 0  # height of matrix (number of rows)
     width = 0  # width of matrix (number of cols)
 
-    def __init__(self, row_values, col_values, region):
+    def __init__(self, width: int = 0, height: int = 0):
+        self.width = width
+        self.height = height
+        self.table = np.full((self.height, self.width), cell.Cell)
+
+    def initialize_from_screen(self, row_values, col_values, region):
         """
-        Заполняет Matrix пустыми объектами Cell
-        :param num_rows:
-        :param num_cols:
+        Заполняет Matrix пустыми объектами Cell с экрана,
+        настраивая взаимосвязь между экраном и Matrix.
+        Каждый объект Cell при этом становится привязан к конкретному месту на экране.
+        :param row_values: list[int] - список координат верхнего левого угла строк
+        :param col_values: list[int] - список координат верхнего левого угла столбцов
+        :param region: list[int, int, int, int] - четыре координаты окна
         """
         self.region_x1, self.region_y1, self.region_x2, self.region_y2 = region
 

@@ -3,7 +3,7 @@ from pathlib import Path
 import shutil
 
 dir = 'asset_tk'
-f = '8.png'
+f = 'smile.png'
 
 p = dir / Path(f)
 

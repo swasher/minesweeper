@@ -128,10 +128,12 @@ def find_board(closedcell):
     cells_coord_x = [x-region_x1 for x in cells_coord_x]
     cells_coord_y = [y-region_y1 for y in cells_coord_y]
 
-    dc = win32gui.GetDC(0)
-    red = win32api.RGB(255, 0, 0)
-    win32gui.SetPixel(dc, 0, 0, red)  # draw red at 0,0
-    win32gui.Rectangle(dc, region_x1, region_y1, region_x2, region_y2)
+    DEBUG_DRAW_RECTANGLE = False
+    if DEBUG_DRAW_RECTANGLE:
+        dc = win32gui.GetDC(0)
+        red = win32api.RGB(255, 0, 0)
+        win32gui.SetPixel(dc, 0, 0, red)  # draw red at 0,0
+        win32gui.Rectangle(dc, region_x1, region_y1, region_x2, region_y2)
 
     return cells_coord_x, cells_coord_y, region
 
@@ -311,7 +313,8 @@ def recursive_wrapper():
         if config.arena:
             # TODO find_board принимает только 1 аргумент!!!!
             col_values, row_values, region = find_board(asset.closed, board)
-            matrix = Matrix(row_values, col_values, region)
+            matrix = Matrix()
+            matrix.initialize_from_screen(row_values, col_values, region)
         matrix.update()
 
     print('\n=============')
@@ -367,7 +370,8 @@ if __name__ == '__main__':
     listener.start()  # Запускаем слушатель в отдельном потоке
 
     col_values, row_values, region = find_board(asset.closed)
-    matrix = Matrix(row_values, col_values, region)
+    matrix = Matrix()
+    matrix.initialize_from_screen(row_values, col_values, region)
 
     # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.
     # bombs = matrix.bomb_qty(0.87)
