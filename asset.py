@@ -67,7 +67,7 @@ class Asset(object):
         return '<'+self.name+'>'
 
 
-directory = config.asset
+directory = 'asset/' + config.asset
 
 # deprecated
 # asset_data = importlib.import_module(f'{directory}.asset', package='.minesweeper')
