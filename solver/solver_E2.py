@@ -6,7 +6,7 @@ from classes import Color
 from cell import Cell
 
 
-def solver_E2(matrix, debug=True) -> ([Cell], Action):
+def solver_E2(matrix, debug=False) -> ([Cell], Action):
     """
     - Для каждой цифры делаем список закрытых ячеек вокруг (Root.closed)
     - При этом нужно из цифры вычесть кол-во имеющихся вокруг флагов  (Root.rest_bomb)
@@ -20,6 +20,7 @@ def solver_E2(matrix, debug=True) -> ([Cell], Action):
     action = Action.open_cell
     roots = create_roots(matrix)
     solution = []
+    debug = True
 
     for r1, r2 in itertools.combinations(roots, 2):
 
@@ -27,21 +28,23 @@ def solver_E2(matrix, debug=True) -> ([Cell], Action):
         set2 = set(r2.closed)
         if set1.issubset(set2) or set2.issubset(set1):
             if r1.rest_bombs == r2.rest_bombs:
-                empties = tuple(set(r1.closed) ^ set(r2.closed))
+                empties_cells = tuple(set(r1.closed) ^ set(r2.closed))
 
                 # -- debug
                 if debug:
-                    r1.ancestor.mark_cell_debug(Color.yellow)
-                    r2.ancestor.mark_cell_debug(Color.green)
+                    r1.ancestor.mark_cell_debug(Color.blue)
+                    r2.ancestor.mark_cell_debug(Color.cyan)
+                    for e in empties_cells:
+                        e.mark_cell_debug(Color.magenta)
                     print('-----')
                     print('COMPARE:', r1.ancestor, 'and', r2.ancestor)
-                    print('EMPTIES:', empties)
+                    print('EMPTIES:', empties_cells)
                 # -- debug
 
-                return empties, action
+                # return empties_cells, action
                 # VAR1 - return all found solution
-                #solution += empties
+                solution += empties_cells
 
     # VAR1 - return all found solution
-    # return solution, Asset.open
-    return [], action
+    return solution, action
+    # return [], action

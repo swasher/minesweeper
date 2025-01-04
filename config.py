@@ -60,6 +60,7 @@ class Configuration(object):
         self.turn_by_turn = conf.getboolean('debug', 'turn_by_turn')
         self.icecream = conf.getboolean('debug', 'icecream')
         self.extra_pause_between_clicks = conf.getfloat('debug', 'extra_pause_between_clicks')
+        self.print_time_between_clicks = conf.getboolean('debug', 'print_time_between_clicks')
 
         # implementation
         self.left = conf.getint(self.asset, 'left')

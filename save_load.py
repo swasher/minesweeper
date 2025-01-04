@@ -73,14 +73,15 @@ def save():
 def load(dir):
     """
     Demo load matrix from pickle
-    :param dir:
-    :return:
+    :param f: relative path to obj.pickle
+    :return: matrix object
     """
-    # todo move to config
     picklefile = 'obj.pickle'
     image_file = 'image.png'
+    full_path = os.path.join(dir, picklefile)
 
-    with open(os.path.join(dir, picklefile), 'rb') as inp:
+    print(full_path)
+    with open(full_path, 'rb') as inp:
         matrix = pickle.load(inp)
     return matrix
 

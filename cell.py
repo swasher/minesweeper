@@ -24,7 +24,7 @@ class Cell(object):
     abscoordy = 0
     w = 0
     h = 0
-    type = None  # Pattern instance
+    asset = None  # Asset instance
     image = None  # Current image of cell; ndarray
     hash = 0  # hash of image
 
@@ -38,7 +38,7 @@ class Cell(object):
         :param abscoordy: коор. на экране Y от левого верхнего угла ЭКРАНА в пикселях
         :param w: ширина ячейки в пикселях
         :param h: высота ячейки в пикселях
-        :param type: instance of Asset - что содержится в ячейке
+        :param asset: instance of Asset - что содержится в ячейке
         :param image: ndarray - текущее изображение ячейки
         :param hash: int - хэш изображения ячейки
         """
@@ -53,10 +53,10 @@ class Cell(object):
         # self.status = 'closed'
 
     def __repr__(self):
-        return f'{self.type.name} ({self.row}:{self.col})'
+        return f'{self.asset.name} ({self.row}:{self.col})'
 
     def cell_pict(self):
-        return self.type.repr
+        return self.asset.repr
 
     @property
     def is_closed(self):
@@ -65,30 +65,30 @@ class Cell(object):
         возращаем False для более ясной логики solver-ов
         :return:
         """
-        return True if self.type == asset.closed else False
+        return True if self.asset == asset.closed else False
 
     @property
     def is_flag(self):
-        return True if self.type == asset.flag else False
+        return True if self.asset == asset.flag else False
 
     @property
     def is_bomb(self):
-        return True if self.type in asset.bombs else False
+        return True if self.asset in asset.bombs else False
 
     @property
     def is_digit(self):
-        return True if self.type in asset.digits else False
+        return True if self.asset in asset.digits else False
 
     @property
     def is_open(self):
-        return True if self.type in asset.open_cells else False
+        return True if self.asset in asset.open_cells else False
 
     @property
     def is_noguess(self):
-        return True if self.type == asset.noguess else False
+        return True if self.asset == asset.noguess else False
 
     def set_flag(self):
-        self.type = asset.flag
+        self.asset = asset.flag
 
     def click(self, button):
         """
@@ -108,8 +108,8 @@ class Cell(object):
         Возвращает цифру ячейки в виде int. Если ячейка - не цифра, возвращает -1
         :return: int
         """
-        if self.type in asset.digits:
-            return int(self.type.value)
+        if self.asset in asset.digits:
+            return int(self.asset.value)
         else:
             return -1
 
@@ -145,7 +145,7 @@ class Cell(object):
                 # print(f'Cell {self.row}:{self.col} compared with <{pattern.name}> with result {max_val}')
                 pattern.similarity = max_val
                 if max_val > precision:
-                    self.type = pattern
+                    self.asset = pattern
                     # deprecated
                     # self.status = pattern.name
                     break

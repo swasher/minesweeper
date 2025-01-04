@@ -46,7 +46,7 @@ class Asset(object):
     # ПОЭТОМУ ТУТ НЕ МОЖЕТ БЫТЬ СВОЙСТВ ШИРИНА-ВЫСОТА
     # ----
 
-    # TODO У нас кадлый экземпряр Asset имеет несвойственные для него поля,
+    # TODO У нас каждый экземпряр Asset имеет несвойственные для него поля,
     #      например, Clock0 имеет поля LAG, border и так далее. Можно увидеть в дебаге.
 
     name = ''
@@ -84,7 +84,7 @@ for f in pics:
 
 
 # digits
-n0 = Asset('0', f'{directory}/0.png', 0, ' ')
+n0 = Asset('0', f'{directory}/0.png', 0, '·')
 n1 = Asset('1', f'{directory}/1.png', 1, '1')
 n2 = Asset('2', f'{directory}/2.png', 2, '2')
 n3 = Asset('3', f'{directory}/3.png', 3, '3')
@@ -95,12 +95,12 @@ n7 = Asset('7', f'{directory}/7.png', 7, '7')
 n8 = Asset('8', f'{directory}/8.png', 8, '8')
 
 # cells
-closed = Asset('closed', f'{directory}/closed.png', None, '·')
+closed = Asset('closed', f'{directory}/closed.png', None, '⨯')
 bomb = Asset('bomb', f'{directory}/bomb.png', None, '⚹')
 red_bomb = Asset('red_bomb', f'{directory}/red_bomb.png', None, '✱')
 flag = Asset('flag', f'{directory}/flag.png', None, '⚑')
 # if config.allow_noguess:
-noguess = Asset('noguess', f'{directory}/noguess.png', None, 'x')
+noguess = Asset('noguess', f'{directory}/noguess.png', None, '🕂')
 
 # smile
 fail = Asset('fail', f'{directory}/fail.png')

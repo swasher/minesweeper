@@ -10,7 +10,14 @@ class Action(IntEnum):
     set_flag = 3
 
     def __str__(self):
-        return f'{self.__class__.__name__}.{self.name}'
+        # return f'{self.__class__.__name__}.{self.name}'
+        match self:
+            case self.open_cell:
+                return 'open'
+            case self.open_digit:
+                return 'open'
+            case self.set_flag:
+                return 'flag'
 
     @property
     def button(self):
@@ -38,13 +45,13 @@ class MouseButtons(IntEnum):
                 return cls[value]
 
 
-class Color():
-    red: win32api.RGB(255, 0, 0)
-    green: win32api.RGB(0, 255, 0)
-    blue: win32api.RGB(0, 0, 255)
-    yellow: win32api.RGB(255, 255, 0)
-    cyan: win32api.RGB(0, 255, 255)
-    magenta: win32api.RGB(255, 0, 255)
+class Color:
+    red = win32api.RGB(255, 0, 0)
+    green = win32api.RGB(0, 255, 0)
+    blue = win32api.RGB(0, 0, 255)
+    yellow = win32api.RGB(255, 255, 0)
+    cyan = win32api.RGB(0, 255, 255)
+    magenta = win32api.RGB(255, 0, 255)
 
     def rand(self):
         colors = [value for name, value in vars(self.__class__).items() if not name.startswith('__') and not callable(value)]

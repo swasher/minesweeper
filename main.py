@@ -2,6 +2,7 @@ import random
 import time
 import sys
 import os
+import queue
 import cv2 as cv
 import mss
 import numpy as np
@@ -20,12 +21,15 @@ import threading
 import ctypes
 import time
 
+from typing import Callable
+
 import asset
 from board import board
 
 from util import search_pattern_in_image
 from matrix import Matrix
 from classes import Action
+from classes import Color
 import save_load
 
 from solver import solver_R1
@@ -78,6 +82,14 @@ s
 0
 
 """
+
+
+def initialize():
+    global last_click_time
+    last_click_time = time.perf_counter()
+
+    global q
+    q = queue.Queue()
 
 
 def find_board(closedcell):
@@ -156,18 +168,16 @@ def draw():
 # Вычисляется время между реальным кликами. Если нет искуственных пауз - это время, ушедшее на
 # вычисления.
 #
-import queue
-q = queue.Queue()
-q.put(time.perf_counter())
 def clicking_cells(cells: [Cell], action: Action):
+    global last_click_time
+
     for cell in cells:
         matrix.lastclicked = cell
-        n = time.perf_counter()
-        prev = q.get()
-        # print('real sec:', n-prev, '\n')
-        q.put(n)
+        if config.print_time_between_clicks:
+            current_time = time.perf_counter()
+            print(f'click delay: {current_time - last_click_time:.3f}\n')
+            last_click_time = current_time
         cell.click(action.button)
-
 
 def do_strategy(strategy):
     """
@@ -190,19 +200,28 @@ def do_strategy(strategy):
     # смотрим, нашла ли Стратегия доступные для выполнения ходы
     have_a_move = bool(len(cells))
 
-    DEBUG_PRINT_EVERY_MOVE = False
+    DEBUG_PRINT_EVERY_MOVE = True
     if DEBUG_PRINT_EVERY_MOVE:
         if have_a_move:
-            print(f'move: {name}: [{action.name}] {cells}')
+            print(f'{name}: {cells} -> {action.__str__()}')
         else:
-            print(f'move: {name}: [{action}] pass')
+            print(f'{name}: pass')
 
     if have_a_move:
+
         # debug
-        # if config.turn_by_turn:
-        #     for c in cells:
-        #         c.mark_cell_debug()
-        #     input("Press Enter to mouse moving")
+        if config.turn_by_turn:
+            for c in cells:
+                c.mark_cell_debug(Color.green)
+            print("Any key for continue, 's' for save")
+            while True:
+                time.sleep(0.05)
+                if not q.empty():
+                    message = q.get()
+                    if message == 'save':
+                        matrix.save()
+                        print('Matrix saved')
+                    break
 
         # --------------------------------
         # В ЭТОЙ ТОЧКЕ МЫ ДОЛЖНЫ СДЕЛАТЬ ЗАДЕРЖКУ, ИМИТИРУЯ "ДУМАНИЕ" ЧЕЛОВЕКА
@@ -232,7 +251,7 @@ def do_strategy(strategy):
         # matrix.display()
 
         # --------------------------------
-        # DEBUG PAUSE HERE AFTER EACH MOVE
+        # DEBUG - POINT AFTER EACH CLICK
         # --------------------------------
 
         # DEBUG
@@ -330,7 +349,10 @@ def on_press(key):
         print('EXIT!!!')
         listener.stop()
         t1.raise_exception()
-
+    elif key.char.lower() == 's':
+        q.put('save')
+    else:
+        q.put('continue')
 
 
 class thread_with_exception(threading.Thread):
@@ -365,6 +387,8 @@ class thread_with_exception(threading.Thread):
 
 
 if __name__ == '__main__':
+
+    initialize()
 
     listener = Listener(on_press=on_press)
     listener.start()  # Запускаем слушатель в отдельном потоке
@@ -416,16 +440,15 @@ if __name__ == '__main__':
     # чтобы его можно было остановить по нажатию клавиши
     # recursive_wrapper(strategies)
 
-
-
     t1 = thread_with_exception('Thread 1')
     t1.start()
     # остановка потока по нажатию Esc выполняется в колбеке on_press(key):
     t1.join()
     listener.stop()
 
+# описание рабочего цикла:
 # - самое-самое начало
-# some logic
+# выполняем some logic
 #
 # - самое начало
 # выполняем R1 один раз

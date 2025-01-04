@@ -8,10 +8,12 @@ import win32ui
 import win32con
 import cv2 as cv
 import mss
+import random
 import secrets
 import pickle
 import mss.tools
 import numpy as np
+from itertools import product
 
 import asset
 import cell
@@ -66,11 +68,20 @@ class Matrix(object):
                 c = cell.Cell(row, col, coordx, coordy, abscoordx, abscoordy, w, h)
                 image_cell = self.image_cell(c)
                 c.image = image_cell
-                c.update_cell(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу их Pickle, нужно ячейки распознавать.
+                c.update_cell(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
                 c.hash = c.hashing()
                 self.table[row, col] = c
 
         self.lastclicked = self.table[0, 0]
+
+    def create_game(self, bombs: int = 0):
+        for b in range(bombs):
+            row = random.randint(0, self.width - 1)
+            col = random.randint(0, self.height - 1)
+            self.table[row, col].asset = asset.bombs
+        for row, col in product(range(self.height), range(self.width)):
+            if self.table[row, col] is None:
+                self.table[row, col].asset = asset.closed
 
     def cell_distance(self, cell1, cell2) -> float:
         d = math.hypot(cell1.row - cell2.row, cell1.col - cell2.col)
@@ -86,6 +97,10 @@ class Matrix(object):
         for row in range(self.height):
             row_view = ''
             for col in range(self.width):
+                c = self.table[row, col]
+                print('Class c:', type(c))
+                print('c is None:', c is None)
+                print('c:', c)
                 row_view += self.table[row, col].cell_pict() + ' '
             matrix_view.append(row_view)
         print('\n'.join(row for row in matrix_view))
@@ -128,7 +143,7 @@ class Matrix(object):
             :return:
             """
             if v not in range(len_axis):
-                raise Exception('`get_proper_area` function - out of matrix range')
+                raise Exception('`get_slice` function - out of matrix range')
             if v == 0:
                 return 0, v + 2
             elif v == len_axis - 1:
@@ -349,6 +364,7 @@ class Matrix(object):
         Сохраняет текущую игру в папку, создавая два файла - картинку с изображением игры
         и файл pickle, который потом можно загрузить.
         """
+        print('Saving...')
         random_string = secrets.token_hex(2)
         date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
         picklefile = 'obj.pickle'
