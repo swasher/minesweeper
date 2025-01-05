@@ -75,13 +75,24 @@ class Matrix(object):
         self.lastclicked = self.table[0, 0]
 
     def create_game(self, bombs: int = 0):
+        """
+        Используется для создания новой игры.
+        Заполняет поле бомбами и закрытыми ячейками.
+        Такая матрица не свящана с экраном.
+        :param bombs:
+        :return:
+        """
+        for row, col in product(range(self.height), range(self.width)):
+            self.table[row, col].asset = asset.closed
+            print(f'Closed at {row}:{col}')
+
         for b in range(bombs):
             row = random.randint(0, self.width - 1)
             col = random.randint(0, self.height - 1)
-            self.table[row, col].asset = asset.bombs
-        for row, col in product(range(self.height), range(self.width)):
-            if self.table[row, col] is None:
-                self.table[row, col].asset = asset.closed
+            self.table[row, col].asset = asset.bomb
+            print(f'Bomb at {row}:{col}')
+
+        self.display()
 
     def cell_distance(self, cell1, cell2) -> float:
         d = math.hypot(cell1.row - cell2.row, cell1.col - cell2.col)
@@ -100,8 +111,10 @@ class Matrix(object):
                 c = self.table[row, col]
                 print('Class c:', type(c))
                 print('c is None:', c is None)
+                print('c asset name:', c.asset.name)
                 print('c:', c)
-                row_view += self.table[row, col].cell_pict() + ' '
+                row_view += cell.symbol() + ' '
+                row_view += c.asset.symbol + ' '
             matrix_view.append(row_view)
         print('\n'.join(row for row in matrix_view))
         return matrix_view

@@ -172,9 +172,9 @@ R1 fail chance
 - Сравниваем каждый список с каждым. Ищем вхождение одного списка в другой.
 - Если при этом цифры одинаковые (с учетом вычета флагов), то все "лишние" ячейки - пустые (их может быть более 1-й)
 
-![screenshot](pics/solver_e2.png)
-![screenshot](pics/solver_e2_2.png)
-![screenshot](pics/solver_e2_3.png)
+![screenshot](pics/solver_E2.png)
+![screenshot](pics/solver_E2_2.png)
+![screenshot](pics/solver_E2_3.png)
 
 ### solver_human 
 

@@ -53,15 +53,15 @@ class Asset(object):
     filename = ''
     similarity = 0
     raster = ''
-    value = None  # if applicable - represent number of Cell; if not - None
-    repr = None   # if appicable - represent cell in print board
+    value = None  # digit for opened cells
+    symbol = None   # if appicable - text represent of cell
 
-    def __init__(self, name, filename, value=None, repr=None):
+    def __init__(self, name, filename, value=None, symbol=None):
         self.name = name
         self.filename = filename
         self.raster = cv.imread(filename, cv.IMREAD_COLOR)
         self.value = value
-        self.repr = repr
+        self.symbol = symbol
 
     def __repr__(self):
         return '<'+self.name+'>'
@@ -74,10 +74,14 @@ directory = 'asset/' + config.asset
 
 
 # Проверяем наличие всех изображений ассета - получаем эксепшн при отсутствии файла
-pics = ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', 'bomb.png', 'clock_0.png', 'clock_1.png', 'clock_2.png', 'clock_3.png', 'clock_4.png', 'clock_5.png', 'clock_6.png', 'clock_7.png', 'clock_8.png', 'clock_9.png', 'closed.png', 'error_bomb.png', 'fail.png', 'flag.png', 'red_bomb.png', 'smile.png', 'win.png']
+pics = ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png',
+        'LED_0.png', 'LED_1.png', 'LED_2.png', 'LED_3.png', 'LED_4.png',
+        'LED_5.png', 'LED_6.png', 'LED_7.png', 'LED_8.png', 'LED_9.png',
+        'closed.png', 'flag.png', 'bomb.png', 'bomb_red.png', 'bomb_wrong.png',
+        'face_unpressed.png', 'face_win.png', 'face_lose.png']
 if config.allow_noguess:
     # потому что не во всех наборах есть такое изображение - пока только в Minesweeper online
-    pics.append('noguess.png')
+    pics.append('no_guess.png')
 for f in pics:
     # Проверяем, все ли есть файлы ассета; если нет, возникнет эксепшн.
     pathlib.Path(pathlib.PurePath(directory, f)).open()
@@ -97,26 +101,29 @@ n8 = Asset('8', f'{directory}/8.png', 8, '8')
 # cells
 closed = Asset('closed', f'{directory}/closed.png', None, '⨯')
 bomb = Asset('bomb', f'{directory}/bomb.png', None, '⚹')
-red_bomb = Asset('red_bomb', f'{directory}/red_bomb.png', None, '✱')
+red_bomb = Asset('red_bomb', f'{directory}/bomb_wrong.png', None, '✱')
 flag = Asset('flag', f'{directory}/flag.png', None, '⚑')
 # if config.allow_noguess:
-noguess = Asset('noguess', f'{directory}/noguess.png', None, '🕂')
+noguess = Asset('no_guess', f'{directory}/no_guess.png', None, '🕂')
+# под закрытой клеткой находися бомба. Нужно для редактора поля.
+there_is_bomb = Asset('there_is_bomb', f'{directory}/there_is_bomb.png', None, '⚹')
+
 
 # smile
-fail = Asset('fail', f'{directory}/fail.png')
-win = Asset('win', f'{directory}/win.png')
-smile = Asset('smile', f'{directory}/smile.png')
+fail = Asset('fail', f'{directory}/face_lose.png')
+win = Asset('win', f'{directory}/face_win.png')
+smile = Asset('smile', f'{directory}/face_unpressed.png')
 
 # Список цифр, используемых на поле в подсчете бомб и секунд
 red_digits = []
 for i in range(10):
-    obj = Asset(f'clock_{i}', f'{directory}/clock_{i}.png', i)
+    obj = Asset(f'clock_{i}', f'{directory}/LED_{i}.png', i)
     red_digits.append(obj)
 
 
 digits = [n1, n2, n3, n4, n5, n6, n7, n8]
 open_cells = [n0, n1, n2, n3, n4, n5, n6, n7, n8]
 bombs = [bomb, red_bomb]
-all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, red_bomb, noguess]
+all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, red_bomb, noguess, there_is_bomb]
 
 

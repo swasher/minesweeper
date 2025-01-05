@@ -10,6 +10,7 @@ from config import config
 from util import point_in_rect
 from util import random_point_in_square
 from classes import Color
+from enum import IntEnum
 
 
 class Cell(object):
@@ -55,8 +56,8 @@ class Cell(object):
     def __repr__(self):
         return f'{self.asset.name} ({self.row}:{self.col})'
 
-    def cell_pict(self):
-        return self.asset.repr
+    def symbol(self):
+        return self.asset.symbol
 
     @property
     def is_closed(self):
@@ -73,6 +74,7 @@ class Cell(object):
 
     @property
     def is_bomb(self):
+        # Бомбы, которые видны после проигрыша
         return True if self.asset in asset.bombs else False
 
     @property

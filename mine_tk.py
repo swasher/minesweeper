@@ -1,4 +1,5 @@
 import tkinter as tk
+
 from tkinter import Button
 from tkinter import filedialog, messagebox, simpledialog
 from dataclasses import dataclass
@@ -6,6 +7,8 @@ import json
 import os
 import pickle
 from enum import IntEnum
+
+import asset
 from matrix import Matrix
 from cell import Cell
 from PIL import Image, ImageTk
@@ -28,7 +31,6 @@ intermediate = Game(16, 16, 40)
 expert = Game(30, 16, 99)
 
 
-
 class MinesweeperApp:
     def __init__(self, root):
         self.root = root
@@ -36,6 +38,7 @@ class MinesweeperApp:
 
         self.grid_width = 10
         self.grid_height = 10
+        self.px = 24  # размер ячейки в px
         self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
 
         self.matrix = Matrix(width=self.grid_width, height=self.grid_height)
@@ -46,39 +49,39 @@ class MinesweeperApp:
         # deprecated
         # self.mines = set()
 
-        self.buttons = {}
-        self.load_images()
-        self.create_menu()
-        self.create_sidebar()
-        self.grid_frame = tk.Frame(self.root)
-
         # Create status bar
         self.status_bar = tk.Label(self.root, text="Status: ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.grid(row=1, column=0, columnspan=2, sticky='we')
         self.update_status_bar()
 
+        self.buttons = {}
+        self.load_images()
+        self.create_menu()
+
+        self.grid_frame = tk.Frame(self.root)
         self.create_grid()
-        self.px = 16  # каждая ячейка - 20х20 px в asset_tk
 
-
+        self.create_sidebar()
 
     def load_images(self):
         folder = 'asset/'
-        asset = folder + 'asset_tk/'
+        asset = folder + 'svg_ms_online/'
         self.images = {
             "closed": tk.PhotoImage(file=asset + "closed.png"),
             "bomb": tk.PhotoImage(file=asset + "bomb.png"),
             "flag": tk.PhotoImage(file=asset + "flag.png"),
-            "0": tk.PhotoImage(file=asset + "0.png"),
-            "1": tk.PhotoImage(file=asset + "1.png"),
-            "2": tk.PhotoImage(file=asset + "2.png"),
-            "3": tk.PhotoImage(file=asset + "3.png"),
-            "4": tk.PhotoImage(file=asset + "4.png"),
-            "5": tk.PhotoImage(file=asset + "5.png"),
-            "6": tk.PhotoImage(file=asset + "6.png"),
-            "7": tk.PhotoImage(file=asset + "7.png"),
-            "8": tk.PhotoImage(file=asset + "8.png"),
+            "there_is_bomb": tk.PhotoImage(file=asset + "there_is_bomb.png"),
+            "0": tk.PhotoImage(file=asset + "type0.png"),
+            "1": tk.PhotoImage(file=asset + "type1.png"),
+            "2": tk.PhotoImage(file=asset + "type2.png"),
+            "3": tk.PhotoImage(file=asset + "type3.png"),
+            "4": tk.PhotoImage(file=asset + "type4.png"),
+            "5": tk.PhotoImage(file=asset + "type5.png"),
+            "6": tk.PhotoImage(file=asset + "type6.png"),
+            "7": tk.PhotoImage(file=asset + "type7.png"),
+            "8": tk.PhotoImage(file=asset + "type8.png"),
         }
+
 
     def create_menu(self):
         menu = tk.Menu(self.root)
@@ -98,14 +101,17 @@ class MinesweeperApp:
         size_menu.add_command(label="Custom", command=self.start_new_game)
 
     def create_sidebar(self):
-        sidebar = tk.Frame(self.root, width=100, bg='lightgrey')
-        sidebar.grid(row=0, column=0, rowspan=self.grid_height, sticky='ns')
+        self.sidebar = tk.Frame(self.root, width=47, padx=3, bg='lightgrey')
+        self.sidebar.grid(row=0, column=0, rowspan=self.grid_height, sticky='ns')
+        self.sidebar.grid_propagate(False)  # Prevent the sidebar from resizing based on its children
 
-        edit_button = tk.Button(sidebar, text="Edit", command=lambda: self.set_mode(Mode.edit))
-        edit_button.grid(row=0, column=0, pady=10)
+        self.edit_button = tk.Button(master=self.sidebar, text="Edit", command=lambda: self.set_mode(Mode.edit))
+        self.edit_button.grid(row=0, column=0, pady=10)
 
-        play_button = tk.Button(sidebar, text="Play", command=lambda: self.set_mode(Mode.play))
-        play_button.grid(row=1, column=0, pady=10)
+        self.play_button = tk.Button(master=self.sidebar, text="Play", command=lambda: self.set_mode(Mode.play))
+        self.play_button.grid(row=1, column=0, pady=10)
+
+        self.set_mode(self.mode)
 
     def create_status_bar(self):
         statusbar = tk.Frame(self.root, width=100, bg='lightgrey')
@@ -121,6 +127,15 @@ class MinesweeperApp:
     def set_mode(self, mode):
         self.mode = mode
         print(f"Mode set to: {self.mode.name}")
+
+        # Update button fonts
+        if self.mode == Mode.edit:
+            self.edit_button.config(font=("Helvetica", 10, "bold"))
+            self.play_button.config(font=("Helvetica", 10, "normal"))
+        elif self.mode == Mode.play:
+            self.edit_button.config(font=("Helvetica", 10, "normal"))
+            self.play_button.config(font=("Helvetica", 10, "bold"))
+        self.update_grid()
 
     def start_new_game(self, game: Game = None):
         if not game:
@@ -186,21 +201,33 @@ class MinesweeperApp:
 
         self.update_status_bar()
 
-    def update_grid(self, matrix=None):
+    def update_grid(self):
         """
         Обновляет визуальное отображение в соответствии с объектом Matrix
         """
-        if matrix:
-            for x in range(self.grid_width):
-                for y in range(self.grid_height):
+        for x in range(self.grid_width):
+            for y in range(self.grid_height):
 
-                    # TODO если ячейка УЖЕ соотв. матрице, не нужно ее обновлять, это только отнимает процессорное время
+                # TODO если ячейка УЖЕ соотв. матрице, не нужно ее обновлять, это только отнимает процессорное время
 
-                    cell = matrix.table[x][y]
-                    image_name = cell.asset.name
-                    if image_name in self.images:
-                        img = self.images[image_name]
-                        self.buttons[(x, y)].config(image=img)
+                cell = self.matrix.table[x][y]
+                image_name = cell.asset.name
+                button = self.buttons[(x, y)]
+
+                if image_name in self.images:
+                    img = self.images[image_name]
+
+                    # deprecated - это какая-то пурга
+                    # if cell.asset.name == "opened":
+                    #     if cell.adjacent_mines > 0:
+                    #         img = self.images[str(cell.adjacent_mines)]
+                    #     else:
+                    #         img = self.images["opened"]
+
+                    button.config(image=img)
+                else:
+                    raise Exception(f"Image not found: {image_name}")
+
         self.update_status_bar()
 
     def click_cell(self, x, y):
@@ -212,43 +239,59 @@ class MinesweeperApp:
             # self.matrix.display()
         elif self.mode == Mode.edit:
             # мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
-            cell_toggle_list = ['closed', 'opened', 'flag', 'bomb']
+
             # Тут проблема в том, что в Asset нет ячейки "opened". Ее надо либо добавить в ассет, либо как-то
             # обрабатывать в коде. Ее нет, потому что все открытые ячейки отображаются цифрами.
+
+
             self.toggle_cell(x, y)
 
     def play_cell(self, x, y):
         pass
 
+        # current_image = self.buttons[(x, y)].cget("image")
+        # if current_image == str(self.images["closed"]):
+        #     self.buttons[(x, y)].config(image=self.images["opened"])
+        # elif current_image == str(self.images["opened"]):
+        #     self.buttons[(x, y)].config(image=self.images["mine"])
+        # elif current_image == str(self.images["mine"]):
+        #     self.buttons[(x, y)].config(image=self.images["flag"])
+        # else:
+        #     self.buttons[(x, y)].config(image=self.images["closed"])
+        #
+        # # Update only the toggled cell
+        # if (x, y) not in self.mines:
+        #     adjacent_mines = self.count_adjacent_mines(x, y)
+        #     if adjacent_mines > 0:
+        #         self.buttons[(x, y)].config(image=self.images[str(adjacent_mines)])
+        #     else:
+        #         self.buttons[(x, y)].config(image=self.images["opened"])
+
     # 💣🚩
     def toggle_cell(self, x, y):
-        if self.mode == Mode.edit:
-            current_image = self.buttons[(x, y)].cget("image")
-            if current_image == str(self.images["closed"]):
-                self.buttons[(x, y)].config(image=self.images["mine"])
-                self.mines.add((x, y))
-            elif current_image == str(self.images["mine"]):
-                self.buttons[(x, y)].config(image=self.images["closed"])
-                self.mines.remove((x, y))
-        elif self.mode == Mode.play:
-            current_image = self.buttons[(x, y)].cget("image")
-            if current_image == str(self.images["closed"]):
-                self.buttons[(x, y)].config(image=self.images["opened"])
-            elif current_image == str(self.images["opened"]):
-                self.buttons[(x, y)].config(image=self.images["mine"])
-            elif current_image == str(self.images["mine"]):
-                self.buttons[(x, y)].config(image=self.images["flag"])
-            else:
-                self.buttons[(x, y)].config(image=self.images["closed"])
+        cell_toggle_list = [asset.closed, asset.n0, asset.flag, asset.there_is_bomb]
+        c = asset.flag
 
-            # Update only the toggled cell
-            if (x, y) not in self.mines:
-                adjacent_mines = self.count_adjacent_mines(x, y)
-                if adjacent_mines > 0:
-                    self.buttons[(x, y)].config(image=self.images[str(adjacent_mines)])
-                else:
-                    self.buttons[(x, y)].config(image=self.images["opened"])
+        # Find the index of c in the list
+        current_index = cell_toggle_list.index(c)
 
+        # Calculate the next index, wrapping around if necessary
+        next_index = (current_index + 1) % len(cell_toggle_list)
+
+        # Get the next item
+        next_item = cell_toggle_list[next_index]
+
+        self.matrix.table[x][y].asset = next_item
+
+        # current_image = self.buttons[(x, y)].cget("image")
+        # if current_image == str(self.images["closed"]):
+        #     self.buttons[(x, y)].config(image=self.images["mine"])
+        #     self.mines.add((x, y))
+        # elif current_image == str(self.images["mine"]):
+        #     self.buttons[(x, y)].config(image=self.images["closed"])
+        #     self.mines.remove((x, y))
+
+        self.update_grid()
         self.update_status_bar()
 
     def save_matrix(self):
