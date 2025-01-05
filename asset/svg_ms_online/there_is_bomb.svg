@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" baseProfile="tiny" version="1.2" viewBox="0 0 70.9 70.9">
+  <!-- Generator: Adobe Illustrator 28.7.1, SVG Export Plug-In . SVG Version: 1.2.0 Build 142)  -->
+  <g>
+    <g id="Layer_1">
+      <g id="Layer_x5F_1">
+        <g id="_181895168">
+          <polygon id="_181263088" points="0 0 70.9 0 45.7 45.7 0 70.9 0 0" fill="#fff" fill-rule="evenodd"/>
+          <polygon id="_181201536" points="70.9 0 70.9 70.9 0 70.9 70.9 0" fill="gray" fill-rule="evenodd"/>
+          <rect id="_181263160" x="8.6" y="8.6" width="53.7" height="53.7" fill="#c6c6c6"/>
+        </g>
+      </g>
+      <g>
+        <g>
+          <polygon points="17.6 36.6 17.3 35.5 17.6 34.3 34.3 34.3 34.3 17.6 35.5 17.3 36.6 17.6 36.6 34.3 53.4 34.3 53.5 35.4 53.4 36.6 36.6 36.6 36.6 53.3 35.5 53.5 34.3 53.3 34.3 36.6 17.6 36.6" fill-rule="evenodd" stroke="#000" stroke-miterlimit="266" stroke-width=".1"/>
+          <circle cx="26.5" cy="26.3" r="1.8" stroke="#000" stroke-miterlimit="266" stroke-width=".1"/>
+          <polygon points="24.5 47.9 23.5 47.4 23 46.4 34 35.4 23 24.4 23.6 23.5 24.5 22.9 35.5 33.9 46.5 22.9 47.4 23.5 48 24.4 37 35.4 48 46.4 47.5 47.4 46.5 47.9 35.5 36.9 24.5 47.9" fill-rule="evenodd" stroke="#000" stroke-miterlimit="266" stroke-width=".1"/>
+          <circle cx="35.6" cy="22.7" r="1.8" stroke="#000" stroke-miterlimit="266" stroke-width=".1"/>
+          <circle cx="44.1" cy="26.8" r="1.8" stroke="#000" stroke-miterlimit="266" stroke-width=".1"/>
+          <circle cx="26.8" cy="44.1" r="1.8" stroke="#000" stroke-miterlimit="266" stroke-width=".1"/>
+          <circle cx="44.1" cy="44.1" r="1.8" stroke="#000" stroke-miterlimit="266" stroke-width=".1"/>
+        </g>
+        <circle cx="35.5" cy="35.2" r="12.5"/>
+      </g>
+    </g>
+  </g>
+</svg>
