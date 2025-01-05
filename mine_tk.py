@@ -41,7 +41,7 @@ class MinesweeperApp:
         self.matrix = Matrix(width=self.grid_width, height=self.grid_height)
         self.matrix.create_game(bombs=10)
 
-        self.mode = Mode.play
+        self.mode = Mode.edit
 
         # deprecated
         # self.mines = set()
@@ -193,6 +193,9 @@ class MinesweeperApp:
         if matrix:
             for x in range(self.grid_width):
                 for y in range(self.grid_height):
+
+                    # TODO если ячейка УЖЕ соотв. матрице, не нужно ее обновлять, это только отнимает процессорное время
+
                     cell = matrix.table[x][y]
                     image_name = cell.asset.name
                     if image_name in self.images:
@@ -206,9 +209,12 @@ class MinesweeperApp:
             # Нужна логика открытия связанных ячеек.
             # Если нажали бомбу, то игра заканчивается.
             self.play_cell(x, y)
-            self.matrix.display()
+            # self.matrix.display()
         elif self.mode == Mode.edit:
             # мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
+            cell_toggle_list = ['closed', 'opened', 'flag', 'bomb']
+            # Тут проблема в том, что в Asset нет ячейки "opened". Ее надо либо добавить в ассет, либо как-то
+            # обрабатывать в коде. Ее нет, потому что все открытые ячейки отображаются цифрами.
             self.toggle_cell(x, y)
 
     def play_cell(self, x, y):
