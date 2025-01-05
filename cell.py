@@ -29,7 +29,7 @@ class Cell(object):
     image = None  # Current image of cell; ndarray
     hash = 0  # hash of image
 
-    def __init__(self, row, col, coordx, coordy, abscoordx, abscoordy, w, h):
+    def __init__(self, row, col, coordx=0, coordy=0, abscoordx=0, abscoordy=0, w=0, h=0):
         """
         :param col: номер ячейки в строке, начиная с 0. Т.е. это СТОЛБЕЦ. Левая ячейка - номер 0 - cell[строка][столбец]
         :param row: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
@@ -76,6 +76,10 @@ class Cell(object):
     def is_bomb(self):
         # Бомбы, которые видны после проигрыша
         return True if self.asset in asset.bombs else False
+
+    @property
+    def is_known_bomb(self):
+        return True if self.asset is asset.there_is_bomb else False
 
     @property
     def is_digit(self):

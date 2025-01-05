@@ -1,7 +1,8 @@
 import tkinter as tk
-
 from tkinter import Button
 from tkinter import filedialog, messagebox, simpledialog
+from tktooltip import ToolTip
+
 from dataclasses import dataclass
 import json
 import os
@@ -41,23 +42,18 @@ class MinesweeperApp:
         self.px = 24  # размер ячейки в px
         self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
 
-        self.matrix = Matrix(width=self.grid_width, height=self.grid_height)
-        self.matrix.create_game(bombs=10)
+        self.matrix = Matrix()
+        self.matrix.initialize_without_screen(height=self.grid_height, width=self.grid_width)
+        self.matrix.create_new_game(n_bombs=10)
+        self.buttons = {}
 
         self.mode = Mode.edit
+        self.mines_is_known = False
 
-        # deprecated
-        # self.mines = set()
+        self.create_status_bar()
 
-        # Create status bar
-        self.status_bar = tk.Label(self.root, text="Status: ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.status_bar.grid(row=1, column=0, columnspan=2, sticky='we')
-        self.update_status_bar()
-
-        self.buttons = {}
         self.load_images()
         self.create_menu()
-
         self.grid_frame = tk.Frame(self.root)
         self.create_grid()
 
@@ -65,21 +61,21 @@ class MinesweeperApp:
 
     def load_images(self):
         folder = 'asset/'
-        asset = folder + 'svg_ms_online/'
+        asset = folder + 'asset_svg/'
         self.images = {
             "closed": tk.PhotoImage(file=asset + "closed.png"),
             "bomb": tk.PhotoImage(file=asset + "bomb.png"),
             "flag": tk.PhotoImage(file=asset + "flag.png"),
             "there_is_bomb": tk.PhotoImage(file=asset + "there_is_bomb.png"),
-            "0": tk.PhotoImage(file=asset + "type0.png"),
-            "1": tk.PhotoImage(file=asset + "type1.png"),
-            "2": tk.PhotoImage(file=asset + "type2.png"),
-            "3": tk.PhotoImage(file=asset + "type3.png"),
-            "4": tk.PhotoImage(file=asset + "type4.png"),
-            "5": tk.PhotoImage(file=asset + "type5.png"),
-            "6": tk.PhotoImage(file=asset + "type6.png"),
-            "7": tk.PhotoImage(file=asset + "type7.png"),
-            "8": tk.PhotoImage(file=asset + "type8.png"),
+            "0": tk.PhotoImage(file=asset + "0.png"),
+            "1": tk.PhotoImage(file=asset + "1.png"),
+            "2": tk.PhotoImage(file=asset + "2.png"),
+            "3": tk.PhotoImage(file=asset + "3.png"),
+            "4": tk.PhotoImage(file=asset + "4.png"),
+            "5": tk.PhotoImage(file=asset + "5.png"),
+            "6": tk.PhotoImage(file=asset + "6.png"),
+            "7": tk.PhotoImage(file=asset + "7.png"),
+            "8": tk.PhotoImage(file=asset + "8.png"),
         }
 
 
@@ -101,28 +97,36 @@ class MinesweeperApp:
         size_menu.add_command(label="Custom", command=self.start_new_game)
 
     def create_sidebar(self):
-        self.sidebar = tk.Frame(self.root, width=47, padx=3, bg='lightgrey')
+        self.sidebar = tk.Frame(self.root, width=60, padx=3, bg='lightgrey')
         self.sidebar.grid(row=0, column=0, rowspan=self.grid_height, sticky='ns')
         self.sidebar.grid_propagate(False)  # Prevent the sidebar from resizing based on its children
 
         self.edit_button = tk.Button(master=self.sidebar, text="Edit", command=lambda: self.set_mode(Mode.edit))
-        self.edit_button.grid(row=0, column=0, pady=10)
+        self.edit_button.grid(row=0, column=0, pady=5)
+
+        self.checkbutton_mik = tk.Checkbutton(master=self.sidebar, text="MIK", command=self.change_mines_is_known)
+        self.checkbutton_mik.grid(row=1, column=0, pady=5)
+        ToolTip(self.checkbutton_mik, msg="Если включено, то положения мин определены и содержатся в Matrix. Иначе "
+                                          "пользователь должен расставить их вручную.")
 
         self.play_button = tk.Button(master=self.sidebar, text="Play", command=lambda: self.set_mode(Mode.play))
-        self.play_button.grid(row=1, column=0, pady=10)
+        self.play_button.grid(row=2, column=0, pady=5)
 
         self.set_mode(self.mode)
 
     def create_status_bar(self):
-        statusbar = tk.Frame(self.root, width=100, bg='lightgrey')
-        statusbar.pack(side=tk.BOTTOM, fill='x')
+        self.status_bar_frame = tk.Frame(self.root)
+        self.status_bar_frame.grid(row=1, column=1, sticky='ns')
+        self.status_bar = tk.Label(self.status_bar_frame, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.status_bar.grid(row=1, column=0, columnspan=2, sticky='we')
+        self.update_status_bar()
 
     def update_status_bar(self):
         closed_count = len(self.matrix.get_closed_cells())
-        mine_count = 0
+        mine_count = len(self.matrix.get_known_bomb_cells())
         opened_count = len(self.matrix.get_open_cells())
         flag_count = len(self.matrix.get_flag_cells())
-        self.status_bar.config(text=f"Status: Closed: {closed_count}, Mines: {mine_count}, Opened: {opened_count}, Flags: {flag_count}")
+        self.status_bar.config(text=f"Closed: {closed_count}, Mines: {mine_count}, Opened: {opened_count}, Flags: {flag_count}")
 
     def set_mode(self, mode):
         self.mode = mode
@@ -147,10 +151,10 @@ class MinesweeperApp:
                 messagebox.showerror("Invalid Input", "Please enter valid ints separated by 'x'.")
 
         self.set_custom_size(game)
-        self.matrix = Matrix(self.grid_width, self.grid_height)
-        self.matrix.create_game(bombs=game.bombs)
+        self.matrix = Matrix()
+        self.matrix.initialize_without_screen(self.grid_width, self.grid_height)
+        self.matrix.create_new_game(n_bombs=game.bombs)
         self.update_grid()
-        print(111)
         self.matrix.display()
 
     def set_custom_size(self, game: Game = None):
@@ -205,8 +209,8 @@ class MinesweeperApp:
         """
         Обновляет визуальное отображение в соответствии с объектом Matrix
         """
-        for x in range(self.grid_width):
-            for y in range(self.grid_height):
+        for x in range(self.grid_height):
+            for y in range(self.grid_width):
 
                 # TODO если ячейка УЖЕ соотв. матрице, не нужно ее обновлять, это только отнимает процессорное время
 
@@ -242,8 +246,6 @@ class MinesweeperApp:
 
             # Тут проблема в том, что в Asset нет ячейки "opened". Ее надо либо добавить в ассет, либо как-то
             # обрабатывать в коде. Ее нет, потому что все открытые ячейки отображаются цифрами.
-
-
             self.toggle_cell(x, y)
 
     def play_cell(self, x, y):
@@ -270,16 +272,24 @@ class MinesweeperApp:
     # 💣🚩
     def toggle_cell(self, x, y):
         cell_toggle_list = [asset.closed, asset.n0, asset.flag, asset.there_is_bomb]
-        c = asset.flag
+        current_cell = self.matrix.table[x][y].asset
+
+        # match current_cell:
+        #     case asset.n
+
+        if current_cell in asset.digits:
+            current_cell = asset.n0
 
         # Find the index of c in the list
-        current_index = cell_toggle_list.index(c)
-
+        current_index = cell_toggle_list.index(current_cell)
         # Calculate the next index, wrapping around if necessary
         next_index = (current_index + 1) % len(cell_toggle_list)
 
         # Get the next item
         next_item = cell_toggle_list[next_index]
+        # print(f'row: {x}, col: {y}, current:', c)
+        # print(f'row: {x}, col: {y}, new:', next_item)
+
 
         self.matrix.table[x][y].asset = next_item
 
@@ -307,8 +317,16 @@ class MinesweeperApp:
             w, h = self.matrix.width, self.matrix.height
             g = Game(w, h, bombs=0)
             self.set_custom_size(g)
-            self.update_grid(self.matrix)
+            self.update_grid()
             print("Field loaded successfully!")
+
+    def change_mines_is_known(self):
+        self.mines_is_known = not self.mines_is_known
+        if self.mines_is_known:
+            self.checkbutton_mik.select()
+        else:
+            self.checkbutton_mik.deselect()
+
 
     # deprecated
     # def count_adjacent_mines(self, x, y):

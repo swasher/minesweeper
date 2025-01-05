@@ -94,7 +94,7 @@ def initialize():
 
 def find_board(closedcell):
     """
-    Находит поле сапера
+    Находит поле сапера на экране и возвращает координаты клеток и область, в которой находится доска.
 
     :param board: global variable
     :param pattern: объект Pattern, который содержит изображения клеток; мы будем искать на экране закрытую клетку (pattern.closed)
@@ -206,6 +206,8 @@ def do_strategy(strategy):
             print(f'{name}: {cells} -> {action.__str__()}')
         else:
             print(f'{name}: pass')
+
+    matrix.display()
 
     if have_a_move:
 

@@ -16,7 +16,7 @@ import numpy as np
 from itertools import product
 
 import asset
-import cell
+from cell import Cell
 import mouse_controller
 import util
 from datetime import datetime
@@ -39,7 +39,7 @@ class Matrix(object):
     def __init__(self, width: int = 0, height: int = 0):
         self.width = width
         self.height = height
-        self.table = np.full((self.height, self.width), cell.Cell)
+        self.table = np.full((self.height, self.width), Cell)
 
     def initialize_from_screen(self, row_values, col_values, region):
         """
@@ -56,7 +56,7 @@ class Matrix(object):
         self.height = len(row_values)
         self.width = len(col_values)
 
-        self.table = np.full((self.height, self.width), cell.Cell)
+        self.table = np.full((self.height, self.width), Cell)
 
         template = asset.closed.raster
         h, w = template.shape[:2]
@@ -65,7 +65,7 @@ class Matrix(object):
             for col, coordx in enumerate(col_values):
                 abscoordx = coordx + self.region_x1
                 abscoordy = coordy + self.region_y1
-                c = cell.Cell(row, col, coordx, coordy, abscoordx, abscoordy, w, h)
+                c = Cell(row, col, coordx, coordy, abscoordx, abscoordy, w, h)
                 image_cell = self.image_cell(c)
                 c.image = image_cell
                 c.update_cell(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
@@ -74,7 +74,24 @@ class Matrix(object):
 
         self.lastclicked = self.table[0, 0]
 
-    def create_game(self, bombs: int = 0):
+    def initialize_without_screen(self, width, height):
+        """
+        Создаем матрицу со всеми закрытыми ячейками.
+        Такая матрица не свящана с экраном.
+        :return:
+        """
+        self.height = height
+        self.width = width
+        self.table = np.full((height, width), Cell)
+
+        for row in range(height):  # cell[строка][столбец]
+            for col in range(width):
+                self.table[row, col] = Cell(row, col)
+
+        self.lastclicked = self.table[0, 0]
+        pass
+
+    def create_new_game(self, n_bombs: int = 0):
         """
         Используется для создания новой игры.
         Заполняет поле бомбами и закрытыми ячейками.
@@ -84,19 +101,40 @@ class Matrix(object):
         """
         for row, col in product(range(self.height), range(self.width)):
             self.table[row, col].asset = asset.closed
-            print(f'Closed at {row}:{col}')
+            # print(f'Closed at {row}:{col}')
 
-        for b in range(bombs):
-            row = random.randint(0, self.width - 1)
-            col = random.randint(0, self.height - 1)
-            self.table[row, col].asset = asset.bomb
-            print(f'Bomb at {row}:{col}')
+        placed_mines = 0
+        while placed_mines < n_bombs:
+            row = random.randint(0, self.height - 1)
+            col = random.randint(0, self.width - 1)
 
-        self.display()
+            if self.table[row, col].asset != asset.there_is_bomb:
+                self.table[row, col].asset = asset.there_is_bomb
+                placed_mines += 1
 
     def cell_distance(self, cell1, cell2) -> float:
         d = math.hypot(cell1.row - cell2.row, cell1.col - cell2.col)
         return d
+
+    # deprecated
+    # def display(self):
+    #     """
+    #     Выводит в консоль текущее изображение поля (матрицу)
+    #     :return: Возвращает матрицу типа array of strings
+    #     """
+    #     print('---DISPLAY---')
+    #     matrix_view = []
+    #     for row in range(self.height):
+    #         row_view = ''
+    #         for col in range(self.width):
+    #             c = self.table[row, col]
+    #             # было
+    #             # row_view += self.table[row, col].cell_pict() + ' '
+    #             # стало
+    #             row_view += c.asset.symbol + ' '
+    #         matrix_view.append(row_view)
+    #     print('\n'.join(row for row in matrix_view))
+    #     return matrix_view
 
     def display(self):
         """
@@ -104,19 +142,11 @@ class Matrix(object):
         :return: Возвращает матрицу типа array of strings
         """
         print('---DISPLAY---')
-        matrix_view = []
-        for row in range(self.height):
-            row_view = ''
-            for col in range(self.width):
-                c = self.table[row, col]
-                print('Class c:', type(c))
-                print('c is None:', c is None)
-                print('c asset name:', c.asset.name)
-                print('c:', c)
-                row_view += cell.symbol() + ' '
-                row_view += c.asset.symbol + ' '
-            matrix_view.append(row_view)
-        print('\n'.join(row for row in matrix_view))
+        matrix_view = [
+            ' '.join(self.table[row, col].asset.symbol for col in range(self.width))
+            for row in range(self.height)
+        ]
+        print('\n'.join(matrix_view))
         return matrix_view
 
     def get_image(self):
@@ -244,6 +274,15 @@ class Matrix(object):
         :return: array of Cell objects
         """
         cells = list([x for x in self.table.flat if x.is_bomb])
+        return cells
+
+    def get_known_bomb_cells(self):
+        """
+        Если матрица в режиме ручного редактирования, что на скрытых полях мы можем
+        установить бомбы.
+        :return:
+        """
+        cells = list([x for x in self.table.flat if x.is_known_bomb])
         return cells
 
     def get_noguess_cell(self):

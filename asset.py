@@ -73,7 +73,7 @@ directory = 'asset/' + config.asset
 # asset_data = importlib.import_module(f'{directory}.asset', package='.minesweeper')
 
 
-# Проверяем наличие всех изображений ассета - получаем эксепшн при отсутствии файла
+# Проверяем наличие всех НЕОБХОДИМЫХ изображений ассета - получаем эксепшн при отсутствии файла
 pics = ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png',
         'LED_0.png', 'LED_1.png', 'LED_2.png', 'LED_3.png', 'LED_4.png',
         'LED_5.png', 'LED_6.png', 'LED_7.png', 'LED_8.png', 'LED_9.png',
@@ -105,8 +105,13 @@ red_bomb = Asset('red_bomb', f'{directory}/bomb_wrong.png', None, '✱')
 flag = Asset('flag', f'{directory}/flag.png', None, '⚑')
 # if config.allow_noguess:
 noguess = Asset('no_guess', f'{directory}/no_guess.png', None, '🕂')
-# под закрытой клеткой находися бомба. Нужно для редактора поля.
-there_is_bomb = Asset('there_is_bomb', f'{directory}/there_is_bomb.png', None, '⚹')
+# под закрытой клеткой находися бомба.
+try:
+    # если нет файла, то не создаем объект. Нужно только для редактора поля.
+    there_is_bomb = Asset('there_is_bomb', f'{directory}/there_is_bomb.png', None, 'ơ')
+except FileNotFoundError:
+    pass
+
 
 
 # smile

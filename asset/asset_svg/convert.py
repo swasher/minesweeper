@@ -2,7 +2,7 @@ import os
 import subprocess
 
 cells = ["0.svg", "1.svg", "2.svg", "3.svg", "4.svg", "5.svg", "6.svg", "7.svg", "8.svg",
-         "bomb.svg", "bomb_red.svg", "bomb_wrong.svg", "flag.svg", "closed.svg", "start.svg", "there_is_bomb.svg"]
+         "bomb.svg", "bomb_red.svg", "bomb_wrong.svg", "flag.svg", "closed.svg", "no_guess.svg", "there_is_bomb.svg"]
 cells_width = 24
 
 segment_led = ["LED_0.svg", "LED_1.svg", "LED_2.svg", "LED_3.svg", "LED_4.svg", "LED_5.svg", "LED_6.svg", "LED_7.svg", "LED_8.svg", "LED_9.svg"]

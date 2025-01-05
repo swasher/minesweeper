@@ -19,7 +19,7 @@ opencv-python = "^4.10.0.84"
 pillow = "^11.0.0"
 humancursor = "^1.1.5"
 pytest = "^8.3.4"
-cairosvg = "^2.7.1"
+tkinter-tooltip = "^3.1.2"
 
 
 [build-system]
