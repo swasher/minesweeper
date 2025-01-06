@@ -12,3 +12,5 @@ settings.local.ini
 side_projects/
 mine_tk.cmd
 mine_tk.exe
+mine_tk.build/
+mine_tk.dist/

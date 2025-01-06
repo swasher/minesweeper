@@ -23,6 +23,27 @@ tkinter-tooltip = "^3.1.2"
 nuitka = "^2.5.9"
 
 
+#[build-system]
+#requires = ["poetry-core"]
+#build-backend = "poetry.core.masonry.api"
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=42", "wheel", "nuitka", "toml"]
+build-backend = "nuitka.distutils.Build"
+
+[tool.nuitka]
+# These are not recommended, but they make it obvious to have effect.
+
+# boolean option, e.g. if you cared for C compilation commands, leading
+# dashes are omitted
+show-scons = true
+
+# options with single values, e.g. enable a plugin of Nuitka
+enable-plugin = "tk-inter"
+
+# options with several values, e.g. avoid including modules, accepts
+# list argument.
+nofollow-import-to = ["*.tests", "*.distutils"]
+
+include-package-data = "settings.ini"
+include-data-dir = "/asset/asset_svg=asset/asset_svg"

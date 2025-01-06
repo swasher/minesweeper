@@ -1,5 +1,6 @@
 # 💣🚩
 import time
+from win32gui import GetWindowRect, GetForegroundWindow
 import tkinter as tk
 from tkinter import Button
 from tkinter import filedialog, messagebox, simpledialog
@@ -76,6 +77,8 @@ class MinesweeperApp:
         self.images = {
             "closed": tk.PhotoImage(file=asset + "closed.png"),
             "bomb": tk.PhotoImage(file=asset + "bomb.png"),
+            "bomb_red": tk.PhotoImage(file=asset + "bomb_red.png"),
+            "bomb_wrong": tk.PhotoImage(file=asset + "bomb_wrong.png"),
             "flag": tk.PhotoImage(file=asset + "flag.png"),
             "there_is_bomb": tk.PhotoImage(file=asset + "there_is_bomb.png"),
             "0": tk.PhotoImage(file=asset + "0.png"),
@@ -149,7 +152,6 @@ class MinesweeperApp:
 
         self.grid_frame.grid(row=0, column=1, sticky='nw')
 
-        st = time.perf_counter()
         for x in range(self.grid_height):
             for y in range(self.grid_width):
                 btn = tk.Button(self.grid_frame,
@@ -162,8 +164,6 @@ class MinesweeperApp:
                 btn.bind("<Button-3>", lambda event, x=x, y=y: self.click_cell(event, x, y, Mouse.right))
                 btn.grid(row=x, column=y)
                 self.buttons[(x, y)] = btn
-        en = time.perf_counter()
-        print(f'Update {en-st:.3f}s')
 
     def update_status_bar(self):
         closed_count = len(self.matrix.get_closed_cells()) + len(self.matrix.get_known_bomb_cells())
@@ -269,6 +269,7 @@ class MinesweeperApp:
         self.matrix = Matrix()
         self.matrix.initialize_without_screen(self.grid_width, self.grid_height)
         self.matrix.create_new_game(n_bombs=game.bombs)
+
         self.update_grid()
         # self.matrix.display()
 
@@ -296,12 +297,12 @@ class MinesweeperApp:
             messagebox.showerror("Invalid Size", "Width and height must be between 1 and 50.")
 
     def click_cell(self, event, x: int, y: int, button: Mouse):
-        print(f'Clicked: {button.name}')
+        # print(f'Clicked: {button.name}')
         if self.mode == Mode.play:
             # мы не можем "переключать" ячейки, а только "открывать" их, а на закрытые ставит флаг.
             # Нужна логика открытия связанных ячеек.
             # Если нажали бомбу, то игра заканчивается.
-            self.play_cell(x, y)
+            self.play_cell(x, y, button)
             # self.matrix.display()
         elif self.mode == Mode.edit:
             # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
@@ -311,26 +312,18 @@ class MinesweeperApp:
             else:
                 self.toggle_cell(x, y, button)
 
-    def play_cell(self, x, y):
-        pass
+        self.update_grid()
+        self.update_status_bar()
 
-        # current_image = self.buttons[(x, y)].cget("image")
-        # if current_image == str(self.images["closed"]):
-        #     self.buttons[(x, y)].config(image=self.images["opened"])
-        # elif current_image == str(self.images["opened"]):
-        #     self.buttons[(x, y)].config(image=self.images["mine"])
-        # elif current_image == str(self.images["mine"]):
-        #     self.buttons[(x, y)].config(image=self.images["flag"])
-        # else:
-        #     self.buttons[(x, y)].config(image=self.images["closed"])
-        #
-        # # Update only the toggled cell
-        # if (x, y) not in self.mines:
-        #     adjacent_mines = self.count_adjacent_mines(x, y)
-        #     if adjacent_mines > 0:
-        #         self.buttons[(x, y)].config(image=self.images[str(adjacent_mines)])
-        #     else:
-        #         self.buttons[(x, y)].config(image=self.images["opened"])
+    def play_cell(self, x, y, button):
+        current_cell = self.matrix.table[x][y]
+
+        if button == Mouse.left:
+            self.matrix.play_left_button(current_cell)
+        elif button == Mouse.right:
+            self.matrix.play_right_button(current_cell)
+        else:
+            raise Exception('Unknown button')
 
     def toggle_cell_mik(self, x, y, button):
         if button == Mouse.left:
@@ -368,8 +361,7 @@ class MinesweeperApp:
             mines = len(self.matrix.around_known_bombs_cells(current_cell))
             current_cell.asset = asset.open_cells[mines]
 
-        self.update_grid()
-        self.update_status_bar()
+
 
     def toggle_cell(self, x, y, button):
         if button == Mouse.left:
@@ -393,10 +385,33 @@ class MinesweeperApp:
 
         self.matrix.table[x][y].asset = next_item
 
-        self.update_grid()
-        self.update_status_bar()
+
 
     def save_matrix(self):
+
+        # method 1
+        # w, h = self.root.winfo_reqwidth(), self.root.winfo_reqheight()
+        # x, y = self.root.winfo_rootx(), self.root.winfo_rootx()
+
+        # method 2
+        # coordinates = self.root.geometry()
+        # size, x, y = coordinates.split('+')
+        # x, y = int(x), int(y)
+        # w, h = map(int, size.split('x'))
+        # print(coordinates)
+        # print(w, h)
+        # print(x, y)
+
+        # method 3
+        (x1, y1, x2, y2) = GetWindowRect(GetForegroundWindow())
+
+        # -----------
+        # remove 9 px as shadow
+        self.matrix.region_x1 = x1+9
+        self.matrix.region_y1 = y1
+        self.matrix.region_x2 = x2-9
+        self.matrix.region_y2 = y2-9
+
         self.matrix.save()
 
     def load_matrix(self):
@@ -411,8 +426,6 @@ class MinesweeperApp:
             self.set_custom_size(g)
             self.update_grid()
             print("Field loaded successfully!")
-
-
 
 
 if __name__ == "__main__":

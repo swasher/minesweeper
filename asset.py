@@ -101,7 +101,8 @@ n8 = Asset('8', f'{directory}/8.png', 8, '8')
 # cells
 closed = Asset('closed', f'{directory}/closed.png', None, '⨯')
 bomb = Asset('bomb', f'{directory}/bomb.png', None, '⚹')
-red_bomb = Asset('red_bomb', f'{directory}/bomb_wrong.png', None, '✱')
+bomb_red = Asset('bomb_red', f'{directory}/bomb_red.png', None, '✱')
+bomb_wrong = Asset('bomb_wrong', f'{directory}/bomb_wrong.png', None, '⚐')
 flag = Asset('flag', f'{directory}/flag.png', None, '⚑')
 # if config.allow_noguess:
 noguess = Asset('no_guess', f'{directory}/no_guess.png', None, '🕂')
@@ -128,7 +129,7 @@ for i in range(10):
 
 digits = [n1, n2, n3, n4, n5, n6, n7, n8]
 open_cells = [n0, n1, n2, n3, n4, n5, n6, n7, n8]
-bombs = [bomb, red_bomb]
-all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, red_bomb, noguess, there_is_bomb]
+bombs = [bomb, bomb_red, bomb_wrong]
+all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, bomb_red, bomb_wrong, noguess, there_is_bomb]
 
 

@@ -86,6 +86,10 @@ class Cell(object):
         return True if self.asset in asset.digits else False
 
     @property
+    def is_empty(self):
+        return True if self.asset == asset.n0 else False
+
+    @property
     def is_open(self):
         return True if self.asset in asset.open_cells else False
 

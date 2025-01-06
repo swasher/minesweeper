@@ -562,6 +562,57 @@ class Matrix(object):
             mem_dc.DeleteDC()
             win32gui.ReleaseDC(hdesktop, desktop_dc)
 
+    def play_left_button(self, cell):
+        """
+        Метод для "игры" в сапера Tk.
+        :param cell:
+        :return:
+        """
+        match cell.asset:
+            case asset.closed:
+                # открываем ячейку
+                # Обращаю внимание, что закрытая ячейка не может быть бомбой!
+                # Закрытые ячейки с бомбами обозначаются как asser.there_is_bomb
+                cell.asset = asset.open_cells
+
+                mines = len(self.around_known_bombs_cells(cell))
+                cell.asset = asset.open_cells[mines]
+
+                # Если вокруг ячейки нет бомб (n0), открываем все соседние ячейки
+                if cell.is_empty:
+                    for neighbor in self.around_closed_cells(cell):
+                        self.play_left_button(neighbor)
+                # Если ячейка с цифрой, ничего не делаем
+                elif cell.is_digit:
+                    pass
+
+            case asset.digits:
+                # пока держит мышку, закрытые ячейки вокруг визуально меняем на открытые (как-бы подсвечиваем)
+                # если кол-во бомб вокруг совпадаем с цифрой - открываем
+                pass
+            case asset.there_is_bomb:
+                # Game over!
+                print("Game Over!")
+                self.reveal_all_bombs(cell)
+            case asset.n0:
+                pass  # тут реально pass, ничего делать не надо.
+            case asset.flag:
+                pass  # тут тоже реально pass, если стоит флаг, ячейку не открываем.
+
+    def reveal_all_bombs(self, cell):
+        bombs = self.get_known_bomb_cells()
+        for b in bombs:
+            b.asset = asset.bomb
+        cell.asset = asset.bomb_red
+
+    def play_right_button(self, cell):
+        match cell.asset:
+            case asset.closed:
+                cell.asset = asset.flag
+            case asset.flag:
+                cell.asset = asset.closed
+
+
     # попытка уменьщить размер текста, но не завелось
     # def show_debug_text(self):
     #     """
