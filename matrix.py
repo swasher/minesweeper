@@ -236,12 +236,39 @@ class Matrix(object):
         flagged_cells = list([x for x in self.around_cells(cell) if x.is_digit])
         return flagged_cells
 
+    def around_opened_cells(self, cell):
+        """
+        Возвращает список открытых ячеек вокруг ячейки cell.
+        :param cell: instance of Cell class
+        :return: array of Cell instances
+        """
+        flagged_cells = list([x for x in self.around_cells(cell) if x.is_open])
+        return flagged_cells
+
+    def around_known_bombs_cells(self, cell):
+        """
+        Возвращает список ячеек-мин вокруг ячейки cell.
+        Используется для tk-версии с известно расположенными минами.
+        :param cell: instance of Cell class
+        :return: array of Cell instances
+        """
+        flagged_cells = list([x for x in self.around_cells(cell) if x.is_known_bomb])
+        return flagged_cells
+
     def get_closed_cells(self):
         """
         Возвращает все закрытые ячейки (которые закрыты и НЕ отмечены флагом)
         :return: array of Cell objects
         """
         cells = list([x for x in self.table.flat if x.is_closed])
+        return cells
+
+    def get_opened_cells(self):
+        """
+        Возвращает все открытые ячейки (это цифры плюс пустая ячейка)
+        :return: array of Cell objects
+        """
+        cells = list([x for x in self.table.flat if x.is_open])
         return cells
 
     def get_flag_cells(self):
