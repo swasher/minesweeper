@@ -15,21 +15,7 @@ from enum import IntEnum
 
 class Cell(object):
 
-    col = 0
-    row = 0
-    # coordinates from game board; need it because we take screenshot only game board
-    coordx = 0
-    coordy = 0
-    # coordinates from screen; for example used for draw on screen
-    abscoordx = 0
-    abscoordy = 0
-    w = 0
-    h = 0
-    asset = None  # Asset instance
-    image = None  # Current image of cell; ndarray
-    hash = 0  # hash of image
-
-    def __init__(self, row, col, coordx=0, coordy=0, abscoordx=0, abscoordy=0, w=0, h=0):
+    def __init__(self, row, col, coordx=0, coordy=0, abscoordx=0, abscoordy=0, w=0, h=0, matrix=None):
         """
         :param col: номер ячейки в строке, начиная с 0. Т.е. это СТОЛБЕЦ. Левая ячейка - номер 0 - cell[строка][столбец]
         :param row: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
@@ -43,15 +29,23 @@ class Cell(object):
         :param image: ndarray - текущее изображение ячейки
         :param hash: int - хэш изображения ячейки
         """
+        # column and row of matrix
         self.col = col
         self.row = row
+        # coordinates from game board; need it because we take screenshot only game board
         self.coordx = coordx
         self.coordy = coordy
+        # coordinates from screen; for example used for draw on screen
         self.abscoordx = abscoordx
         self.abscoordy = abscoordy
         self.w = w
         self.h = h
         # self.status = 'closed'
+        self.asset = None  # Asset instance
+        self.image = None  # Current image of cell; ndarray
+        self.hash = 0  # hash of image
+        self.matrix = matrix
+
 
     def __repr__(self):
         return f'{self.asset.name} ({self.row}:{self.col})'
@@ -77,9 +71,12 @@ class Cell(object):
         # Бомбы, которые видны после проигрыша
         return True if self.asset in asset.bombs else False
 
-    @property
-    def is_known_bomb(self):
-        return True if self.asset is asset.there_is_bomb else False
+    # @property
+    # def is_known_bomb(self):
+        # # return True if self.asset is asset.there_is_bomb else False
+        # self.matrix.mines.is_mine(self)
+        # # но нужно добавить в свойства Cell
+        # self.matrix = matrix
 
     @property
     def is_digit(self):
@@ -96,6 +93,9 @@ class Cell(object):
     @property
     def is_noguess(self):
         return True if self.asset == asset.noguess else False
+
+    def is_mine(self):
+        return self.matrix.is_mine(self)
 
     def set_flag(self):
         self.asset = asset.flag

@@ -31,15 +31,18 @@ get_closed - возвращает только закрытые и НЕ отме
 
 
 class Matrix(object):
-
-    table = None  # matrix itself; numpy 2D array of Cell object
-    height = 0  # height of matrix (number of rows)
-    width = 0  # width of matrix (number of cols)
+    """
+    Описывает набор ячеек игрового поля и реализует логику.
+    Часть функционала предназначена для решения сторонних полей (solver),
+    часть - для реализации Tk игры.
+    """
 
     def __init__(self, width: int = 0, height: int = 0):
-        self.width = width
-        self.height = height
-        self.table = np.full((self.height, self.width), Cell)
+        self.width = width   # height of matrix (number of rows)
+        self.height = height # width of matrix (number of cols)
+        self.table = np.full((self.height, self.width), Cell) # matrix itself; numpy 2D array of Cell object
+        self.mines = set()  # set of bombs for Tk playing
+
 
     def initialize_from_screen(self, row_values, col_values, region):
         """
@@ -86,31 +89,53 @@ class Matrix(object):
 
         for row in range(height):  # cell[строка][столбец]
             for col in range(width):
-                self.table[row, col] = Cell(row, col)
+                self.table[row, col] = Cell(row, col, matrix=self)
 
         self.lastclicked = self.table[0, 0]
         pass
 
     def create_new_game(self, n_bombs: int = 0):
         """
-        Используется для создания новой игры.
-        Заполняет поле бомбами и закрытыми ячейками.
-        Такая матрица не свящана с экраном.
-        :param bombs:
+        Used to create a new game.
+        Fills the field with bombs and closed cells.
+        This matrix is not linked to the screen.
+        :param n_bombs: Number of bombs to place
         :return:
         """
+        self.mines = set()  # Initialize the set to store mine positions
+
         for row, col in product(range(self.height), range(self.width)):
             self.table[row, col].asset = asset.closed
-            # print(f'Closed at {row}:{col}')
 
         placed_mines = 0
         while placed_mines < n_bombs:
             row = random.randint(0, self.height - 1)
             col = random.randint(0, self.width - 1)
 
-            if self.table[row, col].asset != asset.there_is_bomb:
-                self.table[row, col].asset = asset.there_is_bomb
+            if (row, col) not in self.mines:
+                self.mines.add((row, col))
                 placed_mines += 1
+
+    # def create_new_game1(self, n_bombs: int = 0):
+    #     """
+    #     Используется для создания новой игры.
+    #     Заполняет поле бомбами и закрытыми ячейками.
+    #     Такая матрица не свящана с экраном.
+    #     :param bombs:
+    #     :return:
+    #     """
+    #     for row, col in product(range(self.height), range(self.width)):
+    #         self.table[row, col].asset = asset.closed
+    #         # print(f'Closed at {row}:{col}')
+    #
+    #     placed_mines = 0
+    #     while placed_mines < n_bombs:
+    #         row = random.randint(0, self.height - 1)
+    #         col = random.randint(0, self.width - 1)
+    #
+    #         if self.table[row, col].asset != asset.there_is_bomb:
+    #             self.table[row, col].asset = asset.there_is_bomb
+    #             placed_mines += 1
 
     def cell_distance(self, cell1, cell2) -> float:
         d = math.hypot(cell1.row - cell2.row, cell1.col - cell2.col)
@@ -297,20 +322,18 @@ class Matrix(object):
 
     def get_bomb_cells(self):
         """
-        Возвращает список бомб. Используется в game_over
+        Возвращает список бомб (которые видны, если игра окончена). Используется в game_over
         :return: array of Cell objects
         """
         cells = list([x for x in self.table.flat if x.is_bomb])
         return cells
 
-    def get_known_bomb_cells(self):
+    def get_known_mines(self):
         """
-        Если матрица в режиме ручного редактирования, что на скрытых полях мы можем
-        установить бомбы.
+        Возвращает список установленных мин в закрытых ячейках.
         :return:
         """
-        cells = list([x for x in self.table.flat if x.is_known_bomb])
-        return cells
+        return [self.table[row][col] for row, col in self.mines]
 
     def get_noguess_cell(self):
         """
@@ -319,6 +342,9 @@ class Matrix(object):
         """
         cell = list([x for x in self.table.flat if x.is_noguess])
         return cell
+
+    def is_mine(self, cell):
+        return (cell.row, cell.col) in self.mines
 
     @property
     def region(self):
@@ -568,12 +594,14 @@ class Matrix(object):
         :param cell:
         :return:
         """
+        is_game_over = False
+
         match cell.asset:
             case asset.closed:
                 # открываем ячейку
                 # Обращаю внимание, что закрытая ячейка не может быть бомбой!
                 # Закрытые ячейки с бомбами обозначаются как asser.there_is_bomb
-                cell.asset = asset.open_cells
+                # depr cell.asset = asset.open_cells
 
                 mines = len(self.around_known_bombs_cells(cell))
                 cell.asset = asset.open_cells[mines]
@@ -586,18 +614,39 @@ class Matrix(object):
                 elif cell.is_digit:
                     pass
 
-            case asset.digits:
+            case cell.asset if cell.asset in asset.digits:
                 # пока держит мышку, закрытые ячейки вокруг визуально меняем на открытые (как-бы подсвечиваем)
-                # если кол-во бомб вокруг совпадаем с цифрой - открываем
-                pass
+                # если кол-во бомб вокруг совпадаем с цифрой - открываем все закрытые ячейки вокруг мины.
+                flagged_cells = self.around_flagged_cells(cell)
+                print('Detect flagged cells:', flagged_cells)
+                if len(flagged_cells) == cell.asset.value:
+                    print('Flagged equal!')
+                    for neighbor in self.around_closed_cells(cell):
+
+                        print('Neighbors: ', self.around_closed_cells(cell))
+
+                        self.play_left_button(neighbor)
+
             case asset.there_is_bomb:
                 # Game over!
                 print("Game Over!")
                 self.reveal_all_bombs(cell)
+                is_game_over = True
             case asset.n0:
                 pass  # тут реально pass, ничего делать не надо.
             case asset.flag:
                 pass  # тут тоже реально pass, если стоит флаг, ячейку не открываем.
+
+        return is_game_over
+
+    def play_right_button(self, cell):
+        match cell.asset:
+            case asset.closed:
+                cell.asset = asset.flag
+            case asset.there_is_bomb:
+                cell.asset = asset.flag
+            case asset.flag:
+                cell.asset = asset.closed
 
     def reveal_all_bombs(self, cell):
         bombs = self.get_known_bomb_cells()
@@ -605,12 +654,7 @@ class Matrix(object):
             b.asset = asset.bomb
         cell.asset = asset.bomb_red
 
-    def play_right_button(self, cell):
-        match cell.asset:
-            case asset.closed:
-                cell.asset = asset.flag
-            case asset.flag:
-                cell.asset = asset.closed
+
 
 
     # попытка уменьщить размер текста, но не завелось

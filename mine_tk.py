@@ -21,6 +21,7 @@ from PIL import Image, ImageTk
 class Mode(IntEnum):
     play = 0
     edit = 1
+    gameover = 2
 
 
 class Mouse(IntEnum):
@@ -36,13 +37,12 @@ class Game:
     bombs: int
 
 
-
-
 beginner = Game(9, 9, 10)
 intermediate = Game(16, 16, 40)
 expert = Game(30, 16, 99)
 default_game = beginner
 
+asset_dir = 'asset/asset_svg/'
 
 class MinesweeperApp:
     def __init__(self, root):
@@ -72,24 +72,22 @@ class MinesweeperApp:
         self.start_new_game(game=beginner)
 
     def load_images(self):
-        folder = 'asset/'
-        asset = folder + 'asset_svg/'
         self.images = {
-            "closed": tk.PhotoImage(file=asset + "closed.png"),
-            "bomb": tk.PhotoImage(file=asset + "bomb.png"),
-            "bomb_red": tk.PhotoImage(file=asset + "bomb_red.png"),
-            "bomb_wrong": tk.PhotoImage(file=asset + "bomb_wrong.png"),
-            "flag": tk.PhotoImage(file=asset + "flag.png"),
-            "there_is_bomb": tk.PhotoImage(file=asset + "there_is_bomb.png"),
-            "0": tk.PhotoImage(file=asset + "0.png"),
-            "1": tk.PhotoImage(file=asset + "1.png"),
-            "2": tk.PhotoImage(file=asset + "2.png"),
-            "3": tk.PhotoImage(file=asset + "3.png"),
-            "4": tk.PhotoImage(file=asset + "4.png"),
-            "5": tk.PhotoImage(file=asset + "5.png"),
-            "6": tk.PhotoImage(file=asset + "6.png"),
-            "7": tk.PhotoImage(file=asset + "7.png"),
-            "8": tk.PhotoImage(file=asset + "8.png"),
+            "closed": tk.PhotoImage(file=asset_dir + "closed.png"),
+            "bomb": tk.PhotoImage(file=asset_dir + "bomb.png"),
+            "bomb_red": tk.PhotoImage(file=asset_dir + "bomb_red.png"),
+            "bomb_wrong": tk.PhotoImage(file=asset_dir + "bomb_wrong.png"),
+            "flag": tk.PhotoImage(file=asset_dir + "flag.png"),
+            "there_is_bomb": tk.PhotoImage(file=asset_dir + "there_is_bomb.png"),
+            "0": tk.PhotoImage(file=asset_dir + "0.png"),
+            "1": tk.PhotoImage(file=asset_dir + "1.png"),
+            "2": tk.PhotoImage(file=asset_dir + "2.png"),
+            "3": tk.PhotoImage(file=asset_dir + "3.png"),
+            "4": tk.PhotoImage(file=asset_dir + "4.png"),
+            "5": tk.PhotoImage(file=asset_dir + "5.png"),
+            "6": tk.PhotoImage(file=asset_dir + "6.png"),
+            "7": tk.PhotoImage(file=asset_dir + "7.png"),
+            "8": tk.PhotoImage(file=asset_dir + "8.png"),
         }
 
 
@@ -119,17 +117,20 @@ class MinesweeperApp:
         self.edit_button.grid(row=0, column=0, pady=5)
         ToolTip(self.edit_button, msg="Для Edit Mode нужно установить соотв. Bomb Mode")
 
-        label = tk.Label(self.sidebar, text="Bomb mode:")
-        label.grid(row=1, column=0, pady=5)
+        # self.label_mik = tk.Label(self.sidebar, text="Bomb mode:")
+        # self.label_mik.grid(row=1, column=0, pady=5)
 
-        self.checkbutton_mik = tk.Checkbutton(master=self.sidebar, text="MiK", command=self.update_mines_is_known)
+        self.checkbutton_mik = tk.Checkbutton(master=self.sidebar, text="", command=self.update_mines_is_known)
         self.checkbutton_mik.grid(row=2, column=0, pady=5)
         ToolTip(self.checkbutton_mik, msg="Mines is known. ON - Мы устанавливаем бомбы, цифры ставятся автоматически."
                                           " OFF - Мы устанавливаем цифры, положение бомб в матрице неопределено")
         self.checkbutton_mik.select() if self.checkbutton_mik else self.checkbutton_mik.deselect()
 
+        self.label_mik_mode = tk.Label(self.sidebar, text="(Set Bombs)")
+        self.label_mik_mode.grid(row=3, column=0, pady=5)
+
         self.play_button = tk.Button(master=self.sidebar, text="Play mode", command=lambda: self.set_mode(Mode.play))
-        self.play_button.grid(row=3, column=0, pady=5)
+        self.play_button.grid(row=4, column=0, pady=5)
         ToolTip(self.play_button, msg="Выходим из режима редактирования, и можем 'играть' в текущее поле")
 
         if self.mode == Mode.edit:
@@ -166,8 +167,8 @@ class MinesweeperApp:
                 self.buttons[(x, y)] = btn
 
     def update_status_bar(self):
-        closed_count = len(self.matrix.get_closed_cells()) + len(self.matrix.get_known_bomb_cells())
-        mine_count = len(self.matrix.get_known_bomb_cells())
+        closed_count = len(self.matrix.get_closed_cells())
+        mine_count = len(self.matrix.get_known_mines())
         opened_count = len(self.matrix.get_open_cells())
         flag_count = len(self.matrix.get_flag_cells())
         self.status_bar.config(text=f"Closed: {closed_count}, Mines: {mine_count}, Opened: {opened_count}, Flags: {flag_count}")
@@ -187,13 +188,8 @@ class MinesweeperApp:
 
                 if image_name in self.images:
                     img = self.images[image_name]
-
-                    # deprecated - это какая-то пурга
-                    # if cell.asset.name == "opened":
-                    #     if cell.adjacent_mines > 0:
-                    #         img = self.images[str(cell.adjacent_mines)]
-                    #     else:
-                    #         img = self.images["opened"]
+                    if self.mode == Mode.edit and image_name == 'closed' and self.matrix.is_mine(cell):
+                        img = self.images['there_is_bomb']
 
                     button.config(image=img)
                 else:
@@ -202,27 +198,22 @@ class MinesweeperApp:
         self.update_status_bar()
 
     def update_mines_is_known(self):
-        print("MiK variable", self.mines_is_known)
-        print("MiK state", self.checkbutton_mik.getvar(self.checkbutton_mik.cget('variable')))
         if self.mines_is_known:
             response = messagebox.askyesno("Warning",
                                            "Это удалит все установленные мины с поля.")
             if response:
                 self.mines_is_known = not self.mines_is_known
                 self.checkbutton_mik.deselect()
-                self.swithc_to_mik_off()
+                self.switch_to_mik_off()
         else:
             response = messagebox.askyesno("Warning",
                                            "Все цифры станут просто открытыми ячейками (0). Можно расставить бомбы")
             if response:
                 self.mines_is_known = not self.mines_is_known
                 self.checkbutton_mik.select()
-                self.swithc_to_mik_on()
+                self.switch_to_mik_on()
 
-        print("aft MiK variable", self.mines_is_known)
-        print("aft MiK state", self.checkbutton_mik.getvar(self.checkbutton_mik.cget('variable')))
-
-    def swithc_to_mik_on(self):
+    def switch_to_mik_on(self):
         """
         Переключение в режим "расстановка бомб"
         """
@@ -231,16 +222,18 @@ class MinesweeperApp:
         digits = self.matrix.get_digit_cells()
         for d in digits:
             d.asset = asset.n0
+
+        self.label_mik_mode.config(text="(Set Bombs)")
+
         self.update_grid()
 
-    def swithc_to_mik_off(self):
+    def switch_to_mik_off(self):
         """
         Переключение в режим "расстановка чисел"
         """
-        # Нам нужно все "известные бомбы" сделать закрытыми ячейками
-        mines = self.matrix.get_known_bomb_cells()
-        for d in mines:
-            d.asset = asset.closed
+        # Нам нужно убрать все "установленные бомбы"
+        self.matrix.mines = set()
+        self.label_mik_mode.config(text="(Set Digits)")
         self.update_grid()
 
     def set_mode(self, mode):
@@ -251,9 +244,11 @@ class MinesweeperApp:
         if self.mode == Mode.edit:
             self.edit_button.config(font=("Helvetica", 10, "bold"))
             self.play_button.config(font=("Helvetica", 10, "normal"))
+            self.images["there_is_bomb"] = tk.PhotoImage(file=asset_dir + "there_is_bomb.png")
         elif self.mode == Mode.play:
             self.edit_button.config(font=("Helvetica", 10, "normal"))
             self.play_button.config(font=("Helvetica", 10, "bold"))
+            self.images["there_is_bomb"] = tk.PhotoImage(file=asset_dir + "closed.png")
         self.update_grid()
 
     def start_new_game(self, game: Game = None):
@@ -308,9 +303,9 @@ class MinesweeperApp:
             # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
             # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
             if self.mines_is_known:
-                self.toggle_cell_mik(x, y, button)
+                self.edit_cell_bomb_mode(x, y, button)
             else:
-                self.toggle_cell(x, y, button)
+                self.edit_cell_digit_mode(x, y, button)
 
         self.update_grid()
         self.update_status_bar()
@@ -325,7 +320,12 @@ class MinesweeperApp:
         else:
             raise Exception('Unknown button')
 
-    def toggle_cell_mik(self, x, y, button):
+    #
+    # В МАЙН.ТК ОСТАЛОСЬ ПРОВЕРИТЬ ТОЛЬКО ЭТИ ДВА МЕТОДА
+    # ОСТАЛЬНОЕ В ЛОГИКЕ MATRIX play_left_button И play_right_button
+    #
+
+    def edit_cell_bomb_mode(self, x, y, button):
         if button == Mouse.left:
             cell_toggle_list = [asset.there_is_bomb, asset.closed, asset.n0]
         elif button == Mouse.right:
@@ -361,9 +361,7 @@ class MinesweeperApp:
             mines = len(self.matrix.around_known_bombs_cells(current_cell))
             current_cell.asset = asset.open_cells[mines]
 
-
-
-    def toggle_cell(self, x, y, button):
+    def edit_cell_digit_mode(self, x, y, button):
         if button == Mouse.left:
             cell_toggle_list = [asset.closed, asset.n0, asset.n1, asset.n2, asset.n3, asset.n4, asset.n5, asset.n6, asset.n7, asset.n8]
         elif button == Mouse.right:
@@ -384,8 +382,6 @@ class MinesweeperApp:
         next_item = cell_toggle_list[next_index]
 
         self.matrix.table[x][y].asset = next_item
-
-
 
     def save_matrix(self):
 
@@ -411,7 +407,6 @@ class MinesweeperApp:
         self.matrix.region_y1 = y1
         self.matrix.region_x2 = x2-9
         self.matrix.region_y2 = y2-9
-
         self.matrix.save()
 
     def load_matrix(self):
