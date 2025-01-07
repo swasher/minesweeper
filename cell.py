@@ -71,12 +71,10 @@ class Cell(object):
         # Бомбы, которые видны после проигрыша
         return True if self.asset in asset.bombs else False
 
-    # @property
-    # def is_known_bomb(self):
-        # # return True if self.asset is asset.there_is_bomb else False
-        # self.matrix.mines.is_mine(self)
-        # # но нужно добавить в свойства Cell
-        # self.matrix = matrix
+    @property
+    def is_mine(self):
+        # Мины, которые "заложены" в ячейки при игре в Tk сапера.
+        return self.matrix.is_mine(self)
 
     @property
     def is_digit(self):
@@ -93,9 +91,6 @@ class Cell(object):
     @property
     def is_noguess(self):
         return True if self.asset == asset.noguess else False
-
-    def is_mine(self):
-        return self.matrix.is_mine(self)
 
     def set_flag(self):
         self.asset = asset.flag

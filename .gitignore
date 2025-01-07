@@ -14,3 +14,4 @@ mine_tk.cmd
 mine_tk.exe
 mine_tk.build/
 mine_tk.dist/
+build/

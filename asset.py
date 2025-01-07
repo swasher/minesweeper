@@ -29,7 +29,7 @@ HOUSE
 
 """
 
-import pathlib
+from pathlib import Path, PurePath
 from types import SimpleNamespace
 import cv2 as cv
 from config import config
@@ -68,6 +68,7 @@ class Asset(object):
 
 
 directory = 'asset/' + config.asset
+dir_path = Path(__file__).resolve().parent / 'asset' / config.asset
 
 # deprecated
 # asset_data = importlib.import_module(f'{directory}.asset', package='.minesweeper')
@@ -82,21 +83,24 @@ pics = ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', 
 if config.allow_noguess:
     # потому что не во всех наборах есть такое изображение - пока только в Minesweeper online
     pics.append('no_guess.png')
-for f in pics:
-    # Проверяем, все ли есть файлы ассета; если нет, возникнет эксепшн.
-    pathlib.Path(pathlib.PurePath(directory, f)).open()
-
+# for f in pics:
+#     # Проверяем, все ли есть файлы ассета; если нет, возникнет эксепшн.
+#     Path(PurePath(directory, f)).open()
+for file_name in pics:
+    file_path = dir_path / file_name  # Создаем полный путь к файлу
+    if not file_path.exists():  # Проверяем, существует ли файл
+        raise Exception(f"{file_name} не существует.")
 
 # digits
-n0 = Asset('0', f'{directory}/0.png', 0, '·')
-n1 = Asset('1', f'{directory}/1.png', 1, '1')
-n2 = Asset('2', f'{directory}/2.png', 2, '2')
-n3 = Asset('3', f'{directory}/3.png', 3, '3')
-n4 = Asset('4', f'{directory}/4.png', 4, '4')
-n5 = Asset('5', f'{directory}/5.png', 5, '5')
-n6 = Asset('6', f'{directory}/6.png', 6, '6')
-n7 = Asset('7', f'{directory}/7.png', 7, '7')
-n8 = Asset('8', f'{directory}/8.png', 8, '8')
+n0 = Asset('0', dir_path.joinpath('0.png'), 0, '·')
+n1 = Asset('1', dir_path.joinpath('1.png'), 1, '1')
+n2 = Asset('2', dir_path.joinpath('2.png'), 2, '2')
+n3 = Asset('3', dir_path.joinpath('3.png'), 3, '3')
+n4 = Asset('4', dir_path.joinpath('4.png'), 4, '4')
+n5 = Asset('5', dir_path.joinpath('5.png'), 5, '5')
+n6 = Asset('6', dir_path.joinpath('6.png'), 6, '6')
+n7 = Asset('7', dir_path.joinpath('7.png'), 7, '7')
+n8 = Asset('8', dir_path.joinpath('8.png'), 8, '8')
 
 # cells
 closed = Asset('closed', f'{directory}/closed.png', None, '⨯')

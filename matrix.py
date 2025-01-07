@@ -270,14 +270,14 @@ class Matrix(object):
         flagged_cells = list([x for x in self.around_cells(cell) if x.is_open])
         return flagged_cells
 
-    def around_mines_cells(self, cell):
+    def around_mined_cells(self, cell):
         """
         Возвращает список ячеек-мин вокруг ячейки cell.
         Используется для tk-версии с известно расположенными минами.
         :param cell: instance of Cell class
         :return: array of Cell instances
         """
-        mines = list([x for x in self.around_cells(cell) if x.is_known_bomb])
+        mines = list([x for x in self.around_cells(cell) if x.is_mine])
         return mines
 
     def get_closed_cells(self):
@@ -320,7 +320,7 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_open])
         return cells
 
-    def get_bomb_cells(self):
+    def get_bombs_cells(self):
         """
         Возвращает список бомб (которые видны, если игра окончена). Используется в game_over
         :return: array of Cell objects
@@ -328,9 +328,9 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_bomb])
         return cells
 
-    def get_known_mines(self):
+    def get_mined_cells(self):
         """
-        Возвращает список установленных мин в закрытых ячейках.
+        Возвращает список установленных мин в закрытых ячейках (при игре в Tk сапера).
         :return:
         """
         return [self.table[row][col] for row, col in self.mines]
@@ -382,7 +382,7 @@ class Matrix(object):
         Если в матрице есть бомбы - то FAIL
         :return:
         """
-        bombs = self.get_bomb_cells()
+        bombs = self.get_bombs_cells()
         if bool(len(bombs)):
             # print('You lose!')
             return True
@@ -599,26 +599,26 @@ class Matrix(object):
         match cell.asset:
             case asset.closed:
                 # открываем ячейку
-                # Обращаю внимание, что закрытая ячейка не может быть бомбой!
-                # Закрытые ячейки с бомбами обозначаются как asser.there_is_bomb
-                # depr cell.asset = asset.open_cells
+                if cell.is_mine:
+                    # Game over!
+                    print("Game Over!")
+                    self.reveal_all_bombs(cell)
+                    is_game_over = True
+                else:
+                    mines = len(self.around_mined_cells(cell))
+                    cell.asset = asset.open_cells[mines]
 
-                mines = len(self.around_known_bombs_cells(cell))
-                cell.asset = asset.open_cells[mines]
-
-                # Если вокруг ячейки нет бомб (n0), открываем все соседние ячейки
-                if cell.is_empty:
-                    for neighbor in self.around_closed_cells(cell):
-                        self.play_left_button(neighbor)
-                # Если ячейка с цифрой, ничего не делаем
-                elif cell.is_digit:
-                    pass
+                    # Если вокруг ячейки нет бомб (n0), открываем все соседние ячейки
+                    if cell.is_empty:
+                        for neighbor in self.around_closed_cells(cell):
+                            self.play_left_button(neighbor)
 
             case cell.asset if cell.asset in asset.digits:
-                # пока держит мышку, закрытые ячейки вокруг визуально меняем на открытые (как-бы подсвечиваем)
+                # TODO пока держит мышку, закрытые ячейки вокруг визуально меняем на открытые (как-бы подсвечиваем)
+                # это нужно реализовать в Tk части
                 # если кол-во бомб вокруг совпадаем с цифрой - открываем все закрытые ячейки вокруг мины.
                 flagged_cells = self.around_flagged_cells(cell)
-                print('Detect flagged cells:', flagged_cells)
+                # print('Detect flagged cells:', flagged_cells)
                 if len(flagged_cells) == cell.asset.value:
                     print('Flagged equal!')
                     for neighbor in self.around_closed_cells(cell):
@@ -627,29 +627,17 @@ class Matrix(object):
 
                         self.play_left_button(neighbor)
 
-            case asset.there_is_bomb:
-                # Game over!
-                print("Game Over!")
-                self.reveal_all_bombs(cell)
-                is_game_over = True
-            case asset.n0:
-                pass  # тут реально pass, ничего делать не надо.
-            case asset.flag:
-                pass  # тут тоже реально pass, если стоит флаг, ячейку не открываем.
-
         return is_game_over
 
     def play_right_button(self, cell):
         match cell.asset:
             case asset.closed:
                 cell.asset = asset.flag
-            case asset.there_is_bomb:
-                cell.asset = asset.flag
             case asset.flag:
                 cell.asset = asset.closed
 
     def reveal_all_bombs(self, cell):
-        bombs = self.get_known_bomb_cells()
+        bombs = self.get_mined_cells()
         for b in bombs:
             b.asset = asset.bomb
         cell.asset = asset.bomb_red

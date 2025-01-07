@@ -1,8 +1,13 @@
+from os import path
 import configparser
 import ctypes
 
+
+settings_file = path.abspath(path.join(path.dirname(__file__), 'settings.ini'))
+
+
 conf = configparser.ConfigParser()
-conf.read('settings.ini', encoding='utf-8')
+conf.read(settings_file, encoding='utf-8')
 
 # Читаем вспомогательный конфигурационный файл
 conf.read('settings.local.ini', encoding='utf-8')

@@ -13,10 +13,15 @@ cell.is_mine - это спрятанная в ячейке бомба (в сет
 
 """
 
+# TODO В Play mode можно перейти, только если был включен bomb mode
+# TODO После загрузки Pickle устанавливать ??? режим
+# TODO При редактировании проверять поле на валидность
+# TODO Сделать расширенный режим генерации поля с проверками на валидность 
 
 
 # 💣🚩
 import time
+from pathlib import Path
 from win32gui import GetWindowRect, GetForegroundWindow
 import tkinter as tk
 from tkinter import Button
@@ -38,7 +43,12 @@ from PIL import Image, ImageTk
 class Mode(IntEnum):
     play = 0
     edit = 1
-    gameover = 2
+
+
+class State(IntEnum):
+    playing = 0
+    win = 1
+    fail = 2
 
 
 class Mouse(IntEnum):
@@ -59,7 +69,8 @@ intermediate = Game(16, 16, 40)
 expert = Game(30, 16, 99)
 default_game = beginner
 
-asset_dir = 'asset/asset_svg/'
+# asset_dir = 'asset/asset_svg/'
+asset_dir = Path(__file__).resolve().parent / 'asset' / 'asset_svg'
 
 class MinesweeperApp:
     def __init__(self, root):
@@ -77,6 +88,7 @@ class MinesweeperApp:
 
         self.buttons = {}
         self.mode = Mode.edit
+        self.state = State.playing
         self.mines_is_known = True
         self.load_images()
 
@@ -90,23 +102,22 @@ class MinesweeperApp:
 
     def load_images(self):
         self.images = {
-            "closed": tk.PhotoImage(file=asset_dir + "closed.png"),
-            "bomb": tk.PhotoImage(file=asset_dir + "bomb.png"),
-            "bomb_red": tk.PhotoImage(file=asset_dir + "bomb_red.png"),
-            "bomb_wrong": tk.PhotoImage(file=asset_dir + "bomb_wrong.png"),
-            "flag": tk.PhotoImage(file=asset_dir + "flag.png"),
-            "there_is_bomb": tk.PhotoImage(file=asset_dir + "there_is_bomb.png"),
-            "0": tk.PhotoImage(file=asset_dir + "0.png"),
-            "1": tk.PhotoImage(file=asset_dir + "1.png"),
-            "2": tk.PhotoImage(file=asset_dir + "2.png"),
-            "3": tk.PhotoImage(file=asset_dir + "3.png"),
-            "4": tk.PhotoImage(file=asset_dir + "4.png"),
-            "5": tk.PhotoImage(file=asset_dir + "5.png"),
-            "6": tk.PhotoImage(file=asset_dir + "6.png"),
-            "7": tk.PhotoImage(file=asset_dir + "7.png"),
-            "8": tk.PhotoImage(file=asset_dir + "8.png"),
+            "closed": tk.PhotoImage(file=asset_dir.joinpath("closed.png")),
+            "bomb": tk.PhotoImage(file=asset_dir.joinpath("bomb.png")),
+            "bomb_red": tk.PhotoImage(file=asset_dir.joinpath("bomb_red.png")),
+            "bomb_wrong": tk.PhotoImage(file=asset_dir.joinpath("bomb_wrong.png")),
+            "flag": tk.PhotoImage(file=asset_dir.joinpath("flag.png")),
+            "there_is_bomb": tk.PhotoImage(file=asset_dir.joinpath("there_is_bomb.png")),
+            "0": tk.PhotoImage(file=asset_dir.joinpath("0.png")),
+            "1": tk.PhotoImage(file=asset_dir.joinpath("1.png")),
+            "2": tk.PhotoImage(file=asset_dir.joinpath("2.png")),
+            "3": tk.PhotoImage(file=asset_dir.joinpath("3.png")),
+            "4": tk.PhotoImage(file=asset_dir.joinpath("4.png")),
+            "5": tk.PhotoImage(file=asset_dir.joinpath("5.png")),
+            "6": tk.PhotoImage(file=asset_dir.joinpath("6.png")),
+            "7": tk.PhotoImage(file=asset_dir.joinpath("7.png")),
+            "8": tk.PhotoImage(file=asset_dir.joinpath("8.png")),
         }
-
 
     def create_menu(self):
         menu = tk.Menu(self.root)
@@ -184,11 +195,16 @@ class MinesweeperApp:
                 self.buttons[(x, y)] = btn
 
     def update_status_bar(self):
-        closed_count = len(self.matrix.get_closed_cells())
-        mine_count = len(self.matrix.get_known_mines())
-        opened_count = len(self.matrix.get_open_cells())
-        flag_count = len(self.matrix.get_flag_cells())
-        self.status_bar.config(text=f"Closed: {closed_count}, Mines: {mine_count}, Opened: {opened_count}, Flags: {flag_count}")
+        if self.get_state == State.win:
+            self.status_bar.config(text="You win!")
+        elif self.get_state == State.fail:
+            self.status_bar.config(text="You lose!")
+        else:
+            closed_count = len(self.matrix.get_closed_cells())
+            mine_count = len(self.matrix.get_mined_cells())
+            opened_count = len(self.matrix.get_open_cells())
+            flag_count = len(self.matrix.get_flag_cells())
+            self.status_bar.config(text=f"Closed:{closed_count}, Mines:{mine_count}, Open:{opened_count}, Flags:{flag_count}")
 
     def update_grid(self):
         """
@@ -205,7 +221,7 @@ class MinesweeperApp:
 
                 if image_name in self.images:
                     img = self.images[image_name]
-                    if self.mode == Mode.edit and image_name == 'closed' and self.matrix.is_mine(cell):
+                    if self.mode == Mode.edit and image_name == 'closed' and cell.is_mine:
                         img = self.images['there_is_bomb']
 
                     button.config(image=img)
@@ -261,11 +277,11 @@ class MinesweeperApp:
         if self.mode == Mode.edit:
             self.edit_button.config(font=("Helvetica", 10, "bold"))
             self.play_button.config(font=("Helvetica", 10, "normal"))
-            self.images["there_is_bomb"] = tk.PhotoImage(file=asset_dir + "there_is_bomb.png")
+            self.images["there_is_bomb"] = tk.PhotoImage(file=asset_dir.joinpath("there_is_bomb.png"))
         elif self.mode == Mode.play:
             self.edit_button.config(font=("Helvetica", 10, "normal"))
             self.play_button.config(font=("Helvetica", 10, "bold"))
-            self.images["there_is_bomb"] = tk.PhotoImage(file=asset_dir + "closed.png")
+            self.images["there_is_bomb"] = tk.PhotoImage(file=asset_dir.joinpath("closed.png"))
         self.update_grid()
 
     def start_new_game(self, game: Game = None):
@@ -282,6 +298,7 @@ class MinesweeperApp:
         self.matrix.initialize_without_screen(self.grid_width, self.grid_height)
         self.matrix.create_new_game(n_bombs=game.bombs)
 
+        self.set_state(State.playing)
         self.update_grid()
         # self.matrix.display()
 
@@ -309,33 +326,42 @@ class MinesweeperApp:
             messagebox.showerror("Invalid Size", "Width and height must be between 1 and 50.")
 
     def click_cell(self, event, x: int, y: int, button: Mouse):
-        # print(f'Clicked: {button.name}')
-        if self.mode == Mode.play:
-            # мы не можем "переключать" ячейки, а только "открывать" их, а на закрытые ставит флаг.
-            # Нужна логика открытия связанных ячеек.
-            # Если нажали бомбу, то игра заканчивается.
-            self.play_cell(x, y, button)
-            # self.matrix.display()
-        elif self.mode == Mode.edit:
-            # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
-            # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
-            if self.mines_is_known:
-                self.edit_cell_bomb_mode(x, y, button)
-            else:
-                self.edit_cell_digit_mode(x, y, button)
+        if self.get_state == State.playing:
+            # print(f'Clicked: {button.name}')
+            if self.mode == Mode.play:
+                # мы не можем "переключать" ячейки, а только "открывать" их, а на закрытые ставит флаг.
+                # Нужна логика открытия связанных ячеек.
+                # Если нажали бомбу, то игра заканчивается.
+                self.play_cell(x, y, button)
+                # self.matrix.display()
+            elif self.mode == Mode.edit:
+                # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
+                # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
+                if self.mines_is_known:
+                    self.edit_cell_bomb_mode(x, y, button)
+                else:
+                    self.edit_cell_digit_mode(x, y, button)
 
-        self.update_grid()
-        self.update_status_bar()
+            self.update_grid()
+            self.update_status_bar()
 
     def play_cell(self, x, y, button):
         current_cell = self.matrix.table[x][y]
 
         if button == Mouse.left:
-            self.matrix.play_left_button(current_cell)
+            fail = self.matrix.play_left_button(current_cell)
         elif button == Mouse.right:
-            self.matrix.play_right_button(current_cell)
+            fail = self.matrix.play_right_button(current_cell)
         else:
             raise Exception('Unknown button')
+
+        if fail:
+            print('FAIL')
+            self.set_state(State.fail)
+        else:
+            if len(self.matrix.get_closed_cells()) == 0:
+                self.set_state(State.win)
+                print('WIN')
 
     #
     # В МАЙН.ТК ОСТАЛОСЬ ПРОВЕРИТЬ ТОЛЬКО ЭТИ ДВА МЕТОДА
@@ -370,12 +396,12 @@ class MinesweeperApp:
             cells_to_update = self.matrix.around_opened_cells(current_cell)
 
             for cell in cells_to_update:
-                mines = len(self.matrix.around_known_bombs_cells(cell))
+                mines = len(self.matrix.around_mined_cells(cell))
                 cell.asset = asset.open_cells[mines]
 
         if next_asset is asset.n0:
             #  и саму ячейку (если она стала пустой)
-            mines = len(self.matrix.around_known_bombs_cells(current_cell))
+            mines = len(self.matrix.around_mined_cells(current_cell))
             current_cell.asset = asset.open_cells[mines]
 
     def edit_cell_digit_mode(self, x, y, button):
@@ -399,6 +425,13 @@ class MinesweeperApp:
         next_item = cell_toggle_list[next_index]
 
         self.matrix.table[x][y].asset = next_item
+
+    def set_state(self, state: State):
+        self.state = state
+
+    @property
+    def get_state(self):
+        return self.state
 
     def save_matrix(self):
 
