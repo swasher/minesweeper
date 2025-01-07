@@ -270,15 +270,15 @@ class Matrix(object):
         flagged_cells = list([x for x in self.around_cells(cell) if x.is_open])
         return flagged_cells
 
-    def around_known_bombs_cells(self, cell):
+    def around_mines_cells(self, cell):
         """
         Возвращает список ячеек-мин вокруг ячейки cell.
         Используется для tk-версии с известно расположенными минами.
         :param cell: instance of Cell class
         :return: array of Cell instances
         """
-        flagged_cells = list([x for x in self.around_cells(cell) if x.is_known_bomb])
-        return flagged_cells
+        mines = list([x for x in self.around_cells(cell) if x.is_known_bomb])
+        return mines
 
     def get_closed_cells(self):
         """
