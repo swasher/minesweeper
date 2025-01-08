@@ -1,3 +1,4 @@
+.venv/
 test/examples.py
 .idea/
 __pycache__/
@@ -12,6 +13,6 @@ settings.local.ini
 side_projects/
 mine_tk.cmd
 mine_tk.exe
-mine_tk.build/
-mine_tk.dist/
+mine_tk.spec
 build/
+dist/

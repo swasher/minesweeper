@@ -4,22 +4,23 @@ import ctypes
 
 
 settings_file = path.abspath(path.join(path.dirname(__file__), 'settings.ini'))
+settings_local_file = path.abspath(path.join(path.dirname(__file__), 'settings.local.ini'))
 
 
 conf = configparser.ConfigParser()
 conf.read(settings_file, encoding='utf-8')
 
-# Читаем вспомогательный конфигурационный файл
-conf.read('settings.local.ini', encoding='utf-8')
+# Читаем вспомогательный конфигурационный файл, настройки из которого перезаписывают settings.ini
+conf.read(settings_local_file, encoding='utf-8')
 
 
 # Известные виды сапера. Называние соотв. директории с ассетом.
 # NOT USED (probably)
-assets = {'Asset_24_1920x1080': 'asset_24_1920x1080',
-          'Asset_28_2560x1440': 'asset_28_2560x1440',
-          'Asset_22_2560x1440': 'asset_22_2560x1440',
-          'Asset_vienna': 'asset_vienna'
-          }
+# assets = {'Asset_24_1920x1080': 'asset_24_1920x1080',
+#           'Asset_28_2560x1440': 'asset_28_2560x1440',
+#           'Asset_22_2560x1440': 'asset_22_2560x1440',
+#           'Asset_vienna': 'asset_vienna'
+#           }
 
 
 def get_screen_size():

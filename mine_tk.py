@@ -13,32 +13,25 @@ cell.is_mine - это спрятанная в ячейке бомба (в сет
 
 """
 
+# 💣🚩
 # TODO В Play mode можно перейти, только если был включен bomb mode
 # TODO После загрузки Pickle устанавливать ??? режим
 # TODO При редактировании проверять поле на валидность
 # TODO Сделать расширенный режим генерации поля с проверками на валидность 
 
-
-# 💣🚩
-import time
+import pickle
 from pathlib import Path
 from win32gui import GetWindowRect, GetForegroundWindow
+from enum import IntEnum
+from dataclasses import dataclass
+
 import tkinter as tk
-from tkinter import Button
 from tkinter import filedialog, messagebox, simpledialog
 from tktooltip import ToolTip
-
-from dataclasses import dataclass
-import json
-import os
-import pickle
-from enum import IntEnum
 
 import asset
 from matrix import Matrix
 from cell import Cell
-from PIL import Image, ImageTk
-
 
 class Mode(IntEnum):
     play = 0
@@ -69,8 +62,11 @@ intermediate = Game(16, 16, 40)
 expert = Game(30, 16, 99)
 default_game = beginner
 
+# config.assets =
+
 # asset_dir = 'asset/asset_svg/'
 asset_dir = Path(__file__).resolve().parent / 'asset' / 'asset_svg'
+
 
 class MinesweeperApp:
     def __init__(self, root):
@@ -102,21 +98,21 @@ class MinesweeperApp:
 
     def load_images(self):
         self.images = {
-            "closed": tk.PhotoImage(file=asset_dir.joinpath("closed.png")),
-            "bomb": tk.PhotoImage(file=asset_dir.joinpath("bomb.png")),
-            "bomb_red": tk.PhotoImage(file=asset_dir.joinpath("bomb_red.png")),
-            "bomb_wrong": tk.PhotoImage(file=asset_dir.joinpath("bomb_wrong.png")),
-            "flag": tk.PhotoImage(file=asset_dir.joinpath("flag.png")),
-            "there_is_bomb": tk.PhotoImage(file=asset_dir.joinpath("there_is_bomb.png")),
-            "0": tk.PhotoImage(file=asset_dir.joinpath("0.png")),
-            "1": tk.PhotoImage(file=asset_dir.joinpath("1.png")),
-            "2": tk.PhotoImage(file=asset_dir.joinpath("2.png")),
-            "3": tk.PhotoImage(file=asset_dir.joinpath("3.png")),
-            "4": tk.PhotoImage(file=asset_dir.joinpath("4.png")),
-            "5": tk.PhotoImage(file=asset_dir.joinpath("5.png")),
-            "6": tk.PhotoImage(file=asset_dir.joinpath("6.png")),
-            "7": tk.PhotoImage(file=asset_dir.joinpath("7.png")),
-            "8": tk.PhotoImage(file=asset_dir.joinpath("8.png")),
+            "closed": tk.PhotoImage(file=asset.closed.filename),
+            "bomb": tk.PhotoImage(file=asset.bomb.filename),
+            "bomb_red": tk.PhotoImage(file=asset.bomb_red.filename),
+            "bomb_wrong": tk.PhotoImage(file=asset.bomb_wrong.filename),
+            "flag": tk.PhotoImage(file=asset.flag.filename),
+            "there_is_bomb": tk.PhotoImage(file=asset.there_is_bomb.filename),
+            "0": tk.PhotoImage(file=asset.n0.filename),
+            "1": tk.PhotoImage(file=asset.n1.filename),
+            "2": tk.PhotoImage(file=asset.n2.filename),
+            "3": tk.PhotoImage(file=asset.n3.filename),
+            "4": tk.PhotoImage(file=asset.n4.filename),
+            "5": tk.PhotoImage(file=asset.n5.filename),
+            "6": tk.PhotoImage(file=asset.n6.filename),
+            "7": tk.PhotoImage(file=asset.n7.filename),
+            "8": tk.PhotoImage(file=asset.n8.filename),
         }
 
     def create_menu(self):
@@ -220,9 +216,12 @@ class MinesweeperApp:
                 button = self.buttons[(x, y)]
 
                 if image_name in self.images:
-                    img = self.images[image_name]
-                    if self.mode == Mode.edit and image_name == 'closed' and cell.is_mine:
+
+                    if (self.mode == Mode.edit and self.mines_is_known is True
+                            and cell.is_closed and cell.is_mine):
                         img = self.images['there_is_bomb']
+                    else:
+                        img = self.images[image_name]
 
                     button.config(image=img)
                 else:
@@ -369,40 +368,76 @@ class MinesweeperApp:
     #
 
     def edit_cell_bomb_mode(self, x, y, button):
-        if button == Mouse.left:
-            cell_toggle_list = [asset.there_is_bomb, asset.closed, asset.n0]
-        elif button == Mouse.right:
-            cell_toggle_list = [asset.closed, asset.flag]
-        else:
-            raise Exception('Unknown button')
+        """
+        тут немного говно-код. Потому что нам нужно итерировать состояние ячейки по нескольким ассетам ПЛЮС
+        закрытая ячейка с бомбой. Для этого введен псевдо-ассет there_is_bomb, который на самом деле является
+        ЗАКРЫТОЙ ЯЧЕЙКОЙ плюс мина в matrix.mines.
+        """
 
-        current_cell = self.matrix.table[x][y]
+        # if button == Mouse.left:
+        #     cell_toggle_list = [asset.there_is_bomb, asset.closed, asset.n0]
+        # elif button == Mouse.right:
+        #     cell_toggle_list = [asset.closed, asset.flag]
+        # else:
+        #     raise Exception('Unknown button')
+
+        # current_cell = self.matrix.table[x][y]
+        # current_asset = self.matrix.table[x][y].asset
+
+        # # Find the index of c in the list
+        # if current_asset in cell_toggle_list:
+        #     current_index = cell_toggle_list.index(current_asset)
+        # else:
+        #     current_index = 1
+
+        # # Calculate the next index, wrapping around if necessary
+        # next_index = (current_index + 1) % len(cell_toggle_list)
+        # # Get the next item
+        # next_asset = cell_toggle_list[next_index]
+
+        # if next_asset is not asset.there_is_bomb:
+        #     self.matrix.table[x][y].asset = next_asset
+        # else:
+        #     self.matrix.table[x][y].asset = asset.closed
+
+        cell: Cell = self.matrix.table[x][y]
         current_asset = self.matrix.table[x][y].asset
+        is_mined = cell.is_mine
+        mined = True
+        not_mined = False
+        print('Mined?', is_mined)
 
-        # Find the index of c in the list
-        if current_asset in cell_toggle_list:
-            current_index = cell_toggle_list.index(current_asset)
-        else:
-            current_index = 2
-        # Calculate the next index, wrapping around if necessary
-        next_index = (current_index + 1) % len(cell_toggle_list)
-        # Get the next item
-        next_asset = cell_toggle_list[next_index]
+        match current_asset, is_mined, button:
+            case [asset.closed, not_mined, Mouse.left]:
+                print('left1')
+                # закрытая - ставим мину (ассет при этом не меняется - остается closed)
+                cell.set_mine()
+                self.matrix.display()
+            case [asset.closed, mined, Mouse.left]:
+                print('left2')
+                # мина -> открываем
+                cell.remove_mine()
+                cell.asset = asset.n0
+            case _, not_mined, Mouse.left:
+                print('left3')
+                # открытая -> закрываем
+                cell.asset = asset.closed
+            case asset.flag, _, Mouse.right:
+                print('right1')
+                cell.remove_flag()
+            case asset.closed, _, Mouse.right:
+                print('right2')
+                cell.set_flag()
 
-        self.matrix.table[x][y].asset = next_asset
+        # обновляем цифры вокруг
+        cells_to_update = self.matrix.around_opened_cells(cell)
+        for c in cells_to_update:
+            mines = len(self.matrix.around_mined_cells(c))
+            c.asset = asset.open_cells[mines]
 
-        if next_asset in [asset.there_is_bomb, asset.closed]:
-            # нам нужно обновить цифры вокруг измененной ячейки
-            cells_to_update = self.matrix.around_opened_cells(current_cell)
-
-            for cell in cells_to_update:
-                mines = len(self.matrix.around_mined_cells(cell))
-                cell.asset = asset.open_cells[mines]
-
-        if next_asset is asset.n0:
-            #  и саму ячейку (если она стала пустой)
-            mines = len(self.matrix.around_mined_cells(current_cell))
-            current_cell.asset = asset.open_cells[mines]
+        # и в самой ячейке (если она стала пустой)
+        mines = len(self.matrix.around_mined_cells(cell))
+        cell.asset = asset.open_cells[mines]
 
     def edit_cell_digit_mode(self, x, y, button):
         if button == Mouse.left:

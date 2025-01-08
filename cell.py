@@ -95,6 +95,23 @@ class Cell(object):
     def set_flag(self):
         self.asset = asset.flag
 
+    def remove_flag(self):
+        self.asset = asset.closed
+
+    def set_mine(self):
+        """
+        Только для Tk
+        Sets a mine in this cell by adding its coordinates to the matrix's mines set.
+        """
+        self.matrix.mines.add((self.row, self.col))
+
+    def remove_mine(self):
+        """
+        Только для Tk
+        Removes a mine from this cell by removing its coordinates from the matrix's mines set.
+        """
+        self.matrix.mines.discard((self.row, self.col))
+
     def click(self, button):
         """
         Нажимает на ячейку.

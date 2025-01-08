@@ -161,7 +161,7 @@ class Matrix(object):
     #     print('\n'.join(row for row in matrix_view))
     #     return matrix_view
 
-    def display(self):
+    def display1(self):
         """
         Выводит в консоль текущее изображение поля (матрицу)
         :return: Возвращает матрицу типа array of strings
@@ -169,6 +169,19 @@ class Matrix(object):
         print('---DISPLAY---')
         matrix_view = [
             ' '.join(self.table[row, col].asset.symbol for col in range(self.width))
+            for row in range(self.height)
+        ]
+        print('\n'.join(matrix_view))
+        return matrix_view
+
+    def display(self):
+        """
+        Выводит в консоль текущее изображение поля (матрицу)
+        :return: Возвращает матрицу типа array of strings
+        """
+        print('---DISPLAY---')
+        matrix_view = [
+            ' '.join('ơ' if (row, col) in self.mines else self.table[row, col].asset.symbol for col in range(self.width))
             for row in range(self.height)
         ]
         print('\n'.join(matrix_view))
