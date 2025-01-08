@@ -19,6 +19,7 @@ cell.is_mine - это спрятанная в ячейке бомба (в сет
 # TODO При редактировании проверять поле на валидность
 # TODO Сделать расширенный режим генерации поля с проверками на валидность 
 
+import os
 import pickle
 from pathlib import Path
 from win32gui import GetWindowRect, GetForegroundWindow
@@ -377,28 +378,23 @@ class MinesweeperApp:
         cell: Cell = self.matrix.table[x][y]
         current_asset = self.matrix.table[x][y].asset
         is_mined = cell.is_mine
-        print('Mined?', is_mined)
-        print('Before match cell is:', cell, cell.asset)
 
         match current_asset, is_mined, button:
             case asset.closed, False, Mouse.left:
-                print('left1')
                 # закрытая - ставим мину (ассет при этом не меняется - остается closed)
                 cell.set_mine()
             case asset.closed, True, Mouse.left:
-                print('left2')
                 # мина -> открываем
                 cell.remove_mine()
                 cell.asset = asset.n0
             case _, False, Mouse.left:
-                print('left3')
                 # открытая -> закрываем
                 cell.asset = asset.closed
             case asset.flag, _, Mouse.right:
-                print('right1')
+                # удаляем флаг
                 cell.remove_flag()
             case asset.closed, _, Mouse.right:
-                print('right2')
+                # устанавливаем флаг
                 cell.set_flag()
 
         # обновляем цифры вокруг
@@ -412,29 +408,39 @@ class MinesweeperApp:
             mines = len(self.matrix.around_mined_cells(cell))
             cell.asset = asset.open_cells[mines]
 
-        print('After match cell is:', cell, cell.asset)
-
     def edit_cell_digit_mode(self, x, y, button):
-        if button == Mouse.left:
-            cell_toggle_list = [asset.closed, asset.n0, asset.n1, asset.n2, asset.n3, asset.n4, asset.n5, asset.n6, asset.n7, asset.n8]
-        elif button == Mouse.right:
-            cell_toggle_list = [asset.closed, asset.flag]
-        else:
-            raise Exception('Unknown button')
 
+
+        # =-----
+
+        cell: Cell = self.matrix.table[x][y]
         current_asset = self.matrix.table[x][y].asset
+        rotating_states = [asset.closed, asset.n0, asset.n1, asset.n2, asset.n3, asset.n4, asset.n5, asset.n6, asset.n7,
+                           asset.n8]
 
-        # Find the index of c in the list
-        try:
-            current_index = cell_toggle_list.index(current_asset)
-        except ValueError:
-            current_index = 0
-        # Calculate the next index, wrapping around if necessary
-        next_index = (current_index + 1) % len(cell_toggle_list)
-        # Get the next item
-        next_item = cell_toggle_list[next_index]
+        print(f'Is flag: {current_asset==asset.flag}')
+        match current_asset, button:
 
-        self.matrix.table[x][y].asset = next_item
+            case asset.flag, Mouse.right:
+                # удаляем флаг
+                cell.remove_flag()
+                print('rem f')
+
+            case current_asset, Mouse.right:
+                # устанавливаем флаг
+                cell.set_flag()
+                print('set f')
+
+            case current_asset, Mouse.left:
+                if current_asset in rotating_states:
+                    next_asset = rotating_states[(rotating_states.index(current_asset) + 1) % len(rotating_states)]
+                    cell.asset = next_asset
+                    print('Assign:', cell.asset)
+                pass
+
+            case _:
+                print('None equals')
+
 
     def set_state(self, state: State):
         self.state = state
@@ -470,7 +476,9 @@ class MinesweeperApp:
         self.matrix.save()
 
     def load_matrix(self):
-        file_path = filedialog.askopenfilename(filetypes=[("Pickle files", "*.pickle")])
+        file_path = filedialog.askopenfilename(
+            initialdir=os.path.dirname(__file__),
+            filetypes=[("Pickle files", "*.pickle")])
         if file_path:
             with open(file_path, 'rb') as inp:
                 self.matrix = pickle.load(inp)
