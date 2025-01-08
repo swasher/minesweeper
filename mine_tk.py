@@ -33,6 +33,7 @@ import asset
 from matrix import Matrix
 from cell import Cell
 
+
 class Mode(IntEnum):
     play = 0
     edit = 1
@@ -373,52 +374,23 @@ class MinesweeperApp:
         закрытая ячейка с бомбой. Для этого введен псевдо-ассет there_is_bomb, который на самом деле является
         ЗАКРЫТОЙ ЯЧЕЙКОЙ плюс мина в matrix.mines.
         """
-
-        # if button == Mouse.left:
-        #     cell_toggle_list = [asset.there_is_bomb, asset.closed, asset.n0]
-        # elif button == Mouse.right:
-        #     cell_toggle_list = [asset.closed, asset.flag]
-        # else:
-        #     raise Exception('Unknown button')
-
-        # current_cell = self.matrix.table[x][y]
-        # current_asset = self.matrix.table[x][y].asset
-
-        # # Find the index of c in the list
-        # if current_asset in cell_toggle_list:
-        #     current_index = cell_toggle_list.index(current_asset)
-        # else:
-        #     current_index = 1
-
-        # # Calculate the next index, wrapping around if necessary
-        # next_index = (current_index + 1) % len(cell_toggle_list)
-        # # Get the next item
-        # next_asset = cell_toggle_list[next_index]
-
-        # if next_asset is not asset.there_is_bomb:
-        #     self.matrix.table[x][y].asset = next_asset
-        # else:
-        #     self.matrix.table[x][y].asset = asset.closed
-
         cell: Cell = self.matrix.table[x][y]
         current_asset = self.matrix.table[x][y].asset
         is_mined = cell.is_mine
-        mined = True
-        not_mined = False
         print('Mined?', is_mined)
+        print('Before match cell is:', cell, cell.asset)
 
         match current_asset, is_mined, button:
-            case [asset.closed, not_mined, Mouse.left]:
+            case asset.closed, False, Mouse.left:
                 print('left1')
                 # закрытая - ставим мину (ассет при этом не меняется - остается closed)
                 cell.set_mine()
-                self.matrix.display()
-            case [asset.closed, mined, Mouse.left]:
+            case asset.closed, True, Mouse.left:
                 print('left2')
                 # мина -> открываем
                 cell.remove_mine()
                 cell.asset = asset.n0
-            case _, not_mined, Mouse.left:
+            case _, False, Mouse.left:
                 print('left3')
                 # открытая -> закрываем
                 cell.asset = asset.closed
@@ -435,9 +407,12 @@ class MinesweeperApp:
             mines = len(self.matrix.around_mined_cells(c))
             c.asset = asset.open_cells[mines]
 
-        # и в самой ячейке (если она стала пустой)
-        mines = len(self.matrix.around_mined_cells(cell))
-        cell.asset = asset.open_cells[mines]
+        # и в самой ячейке (если она открылась)
+        if cell.is_empty:
+            mines = len(self.matrix.around_mined_cells(cell))
+            cell.asset = asset.open_cells[mines]
+
+        print('After match cell is:', cell, cell.asset)
 
     def edit_cell_digit_mode(self, x, y, button):
         if button == Mouse.left:
