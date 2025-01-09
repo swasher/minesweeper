@@ -90,6 +90,7 @@ class MinesweeperApp:
         self.mines_is_known = True
         self.load_images()
 
+        self.create_top_frame()
         self.create_status_bar()
         self.create_menu()
         self.grid_frame = tk.Frame(self.root)
@@ -115,7 +116,39 @@ class MinesweeperApp:
             "6": tk.PhotoImage(file=asset.n6.filename),
             "7": tk.PhotoImage(file=asset.n7.filename),
             "8": tk.PhotoImage(file=asset.n8.filename),
+            "led0": tk.PhotoImage(file=asset.led0.filename),
+            "led1": tk.PhotoImage(file=asset.led1.filename),
+            "led2": tk.PhotoImage(file=asset.led2.filename),
+            "led3": tk.PhotoImage(file=asset.led3.filename),
+            "led4": tk.PhotoImage(file=asset.led4.filename),
+            "led5": tk.PhotoImage(file=asset.led5.filename),
+            "led6": tk.PhotoImage(file=asset.led6.filename),
+            "led7": tk.PhotoImage(file=asset.led7.filename),
+            "led8": tk.PhotoImage(file=asset.led8.filename),
+            "led9": tk.PhotoImage(file=asset.led9.filename),
         }
+
+    def create_top_frame(self):
+        self.top_frame = tk.Frame(self.root)
+        self.top_frame.grid(row=0, column=0, columnspan=2, sticky='we')
+
+        self.mine_counter = [tk.Label(self.top_frame, image=self.images["led0"]) for _ in range(3)]
+        for i, label in enumerate(self.mine_counter):
+            label.grid(row=0, column=i)
+
+        self.timer = [tk.Label(self.top_frame, image=self.images["led0"]) for _ in range(3)]
+        for i, label in enumerate(self.timer):
+            label.grid(row=0, column=3 + i)
+
+    def update_mine_counter(self, count):
+        count_str = f"{count:03d}"
+        for i, digit in enumerate(count_str):
+            self.mine_counter[i].config(image=self.images[f"led{digit}"])
+
+    def update_timer(self, time):
+        time_str = f"{time:03d}"
+        for i, digit in enumerate(time_str):
+            self.timer[i].config(image=self.images[f"led{digit}"])
 
     def create_menu(self):
         menu = tk.Menu(self.root)

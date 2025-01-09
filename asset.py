@@ -114,10 +114,22 @@ win = Asset('win', dir_path.joinpath('face_win.png'))
 smile = Asset('smile', dir_path.joinpath('face_unpressed.png'))
 
 # Список цифр, используемых на поле в подсчете бомб и секунд
-red_digits = []
-for i in range(10):
-    obj = Asset(f'led_{i}', dir_path.joinpath(f'LED_{i}.png'), i)
-    red_digits.append(obj)
+# led_digits = []
+# for i in range(10):
+#     obj = Asset(f'led_{i}', dir_path.joinpath(f'LED_{i}.png'), i)
+#     led_digits.append(obj)
+
+led0 = Asset(f'led_0', dir_path.joinpath(f'LED_0.png'), 0)
+led1 = Asset(f'led_2', dir_path.joinpath(f'LED_2.png'), 1)
+led2 = Asset(f'led_2', dir_path.joinpath(f'LED_2.png'), 2)
+led3 = Asset(f'led_3', dir_path.joinpath(f'LED_3.png'), 3)
+led4 = Asset(f'led_4', dir_path.joinpath(f'LED_4.png'), 4)
+led5 = Asset(f'led_5', dir_path.joinpath(f'LED_5.png'), 5)
+led6 = Asset(f'led_6', dir_path.joinpath(f'LED_6.png'), 6)
+led7 = Asset(f'led_7', dir_path.joinpath(f'LED_7.png'), 7)
+led8 = Asset(f'led_8', dir_path.joinpath(f'LED_8.png'), 8)
+led9 = Asset(f'led_9', dir_path.joinpath(f'LED_9.png'), 9)
+led_digits = [led0, led1, led2, led3, led4, led5, led6, led7, led8, led9]
 
 
 digits = [n1, n2, n3, n4, n5, n6, n7, n8]
