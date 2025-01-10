@@ -21,6 +21,8 @@ cell.is_mine - это спрятанная в ячейке бомба (в сет
 
 import os
 import pickle
+import threading
+import time
 from pathlib import Path
 from win32gui import GetWindowRect, GetForegroundWindow
 from enum import IntEnum
@@ -73,6 +75,7 @@ class MinesweeperApp:
     def __init__(self, root):
         self.root = root
         self.root.geometry("300x300")
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)  # Bind the close event
 
         self.current_game = beginner
         self.grid_width = self.current_game.width
@@ -96,6 +99,10 @@ class MinesweeperApp:
         self.grid_frame = tk.Frame(self.root)
         self.create_grid()
         self.create_sidebar()
+
+        self.timer_thread = None
+        self.timer_running = False
+        self.start_time = None
 
         self.start_new_game(game=beginner)
 
@@ -174,7 +181,7 @@ class MinesweeperApp:
         self.right_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
         self.timer = [tk.Label(self.right_frame, image=self.images["led0"]) for _ in range(3)]
-        for i, label in enumerate(self.timer):
+        for label in reversed(self.timer):
             label.pack(side=tk.RIGHT)
 
     def update_mine_counter(self):
@@ -183,10 +190,7 @@ class MinesweeperApp:
         for i, digit in enumerate(count_str):
             self.mine_counter[i].config(image=self.images[f"led{digit}"])
 
-    def update_timer(self, time):
-        time_str = f"{time:03d}"
-        for i, digit in enumerate(time_str):
-            self.timer[i].config(image=self.images[f"led{digit}"])
+
 
     def create_menu(self):
         menu = tk.Menu(self.root)
@@ -371,6 +375,7 @@ class MinesweeperApp:
         self.set_state(State.playing)
         self.update_grid()
         # self.matrix.display()
+        self.start_timer()
 
     def set_custom_size(self, game: Game = None):
         """
@@ -511,13 +516,47 @@ class MinesweeperApp:
             case _:
                 print('None equals')
 
-
     def set_state(self, state: State):
         self.state = state
+        if state in (State.win, State.fail):
+            self.stop_timer()
 
     @property
     def get_state(self):
         return self.state
+
+    """
+    Four methods for clock's
+    """
+    def update_timer(self, elapsed_time):
+        time_str = f"{elapsed_time:03d}"
+        for i, digit in enumerate(time_str):
+            self.timer[i].config(image=self.images[f"led{digit}"])
+
+    def start_timer(self):
+        if self.timer_thread and self.timer_thread.is_alive():
+            self.timer_running = False
+            self.timer_thread.join()
+
+        self.start_time = time.time()
+        self.timer_running = True
+        self.timer_thread = threading.Thread(target=self.update_timer_thread)
+        self.timer_thread.start()
+
+    def update_timer_thread(self):
+        while self.timer_running:
+            elapsed_time = int(time.time() - self.start_time)
+            self.root.after(1000, self.update_timer, elapsed_time)
+            time.sleep(1)
+
+    def stop_timer(self):
+        self.timer_running = False
+        if self.timer_thread:
+            self.timer_thread.join()
+    """
+    END
+    """
+
 
     def save_matrix(self):
 
@@ -559,6 +598,10 @@ class MinesweeperApp:
             self.set_custom_size(g)
             self.update_grid()
             print("Field loaded successfully!")
+
+    def on_closing(self):
+        self.stop_timer()  # Stop the timer thread
+        self.root.destroy()  # Close the application
 
 
 if __name__ == "__main__":
