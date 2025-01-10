@@ -120,7 +120,7 @@ smile = Asset('smile', dir_path.joinpath('face_unpressed.png'))
 #     led_digits.append(obj)
 
 led0 = Asset(f'led_0', dir_path.joinpath(f'LED_0.png'), 0)
-led1 = Asset(f'led_2', dir_path.joinpath(f'LED_2.png'), 1)
+led1 = Asset(f'led_2', dir_path.joinpath(f'LED_1.png'), 1)
 led2 = Asset(f'led_2', dir_path.joinpath(f'LED_2.png'), 2)
 led3 = Asset(f'led_3', dir_path.joinpath(f'LED_3.png'), 3)
 led4 = Asset(f'led_4', dir_path.joinpath(f'LED_4.png'), 4)

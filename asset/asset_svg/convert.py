@@ -6,10 +6,10 @@ cells = ["0.svg", "1.svg", "2.svg", "3.svg", "4.svg", "5.svg", "6.svg", "7.svg",
 cells_width = 24
 
 segment_led = ["LED_0.svg", "LED_1.svg", "LED_2.svg", "LED_3.svg", "LED_4.svg", "LED_5.svg", "LED_6.svg", "LED_7.svg", "LED_8.svg", "LED_9.svg"]
-segment_width = 32
+segment_width = 18
 
 face_svg = ["face_unpressed.svg", "face_lose.svg", "face_win.svg"]
-face_width = 40
+face_width = 38
 
 
 def resize_svg(list_svg: list[str], width: int):

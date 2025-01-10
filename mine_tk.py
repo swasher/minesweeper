@@ -62,7 +62,6 @@ class Game:
 beginner = Game(9, 9, 10)
 intermediate = Game(16, 16, 40)
 expert = Game(30, 16, 99)
-default_game = beginner
 
 # config.assets =
 
@@ -75,8 +74,9 @@ class MinesweeperApp:
         self.root = root
         self.root.geometry("300x300")
 
-        self.grid_width = default_game.width
-        self.grid_height = default_game.height
+        self.current_game = beginner
+        self.grid_width = self.current_game.width
+        self.grid_height = self.current_game.height
         self.px = 24  # размер ячейки в px
         self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
 
@@ -126,9 +126,12 @@ class MinesweeperApp:
             "led7": tk.PhotoImage(file=asset.led7.filename),
             "led8": tk.PhotoImage(file=asset.led8.filename),
             "led9": tk.PhotoImage(file=asset.led9.filename),
+            "face_smile": tk.PhotoImage(file=asset.smile.filename),
+            "face_win": tk.PhotoImage(file=asset.win.filename),
+            "face_fail": tk.PhotoImage(file=asset.fail.filename),
         }
 
-    def create_top_frame(self):
+    def create_top_frame1(self):
         self.top_frame = tk.Frame(self.root)
         self.top_frame.grid(row=0, column=0, columnspan=2, sticky='we')
 
@@ -136,11 +139,46 @@ class MinesweeperApp:
         for i, label in enumerate(self.mine_counter):
             label.grid(row=0, column=i)
 
+        self.smile = tk.Label(self.top_frame, image=self.images["face_smile"])
+        self.smile.grid(row=0, column=3)
+
         self.timer = [tk.Label(self.top_frame, image=self.images["led0"]) for _ in range(3)]
         for i, label in enumerate(self.timer):
-            label.grid(row=0, column=3 + i)
+            label.grid(row=0, column=4 + i)
 
-    def update_mine_counter(self, count):
+    def create_top_frame(self):
+        self.top_frame = tk.Frame(self.root)
+        self.top_frame.grid(row=0, column=0, columnspan=2, sticky='we')
+
+        # Left frame for mine counter
+        self.left_frame = tk.Frame(self.top_frame)
+        self.left_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+
+        self.mine_counter = [tk.Label(self.left_frame, image=self.images["led0"]) for _ in range(3)]
+        for i, label in enumerate(self.mine_counter):
+            label.pack(side=tk.LEFT)
+
+        # Center frame for smile
+        self.center_frame = tk.Frame(self.top_frame)
+        self.center_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+
+        self.smile = tk.Button(self.center_frame,
+                               image=self.images["face_smile"],
+                               highlightthickness=0,
+                               borderwidth=0,
+                               command=lambda: self.start_new_game(game=self.current_game))
+        self.smile.pack(expand=True)
+
+        # Right frame for timer
+        self.right_frame = tk.Frame(self.top_frame)
+        self.right_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+
+        self.timer = [tk.Label(self.right_frame, image=self.images["led0"]) for _ in range(3)]
+        for i, label in enumerate(self.timer):
+            label.pack(side=tk.RIGHT)
+
+    def update_mine_counter(self):
+        count = len(self.matrix.get_mined_cells()) - len(self.matrix.get_flag_cells())
         count_str = f"{count:03d}"
         for i, digit in enumerate(count_str):
             self.mine_counter[i].config(image=self.images[f"led{digit}"])
@@ -169,15 +207,12 @@ class MinesweeperApp:
 
     def create_sidebar(self):
         self.sidebar = tk.Frame(self.root, width=83, padx=3, bg='lightgrey')
-        self.sidebar.grid(row=0, column=0, rowspan=self.grid_height, sticky='ns')
+        self.sidebar.grid(row=1, column=0, rowspan=self.grid_height, sticky='ns')
         self.sidebar.grid_propagate(False)  # Prevent the sidebar from resizing based on its children
 
         self.edit_button = tk.Button(master=self.sidebar, text="Edit mode", command=lambda: self.set_mode(Mode.edit))
         self.edit_button.grid(row=0, column=0, pady=5)
         ToolTip(self.edit_button, msg="Для Edit Mode нужно установить соотв. Bomb Mode")
-
-        # self.label_mik = tk.Label(self.sidebar, text="Bomb mode:")
-        # self.label_mik.grid(row=1, column=0, pady=5)
 
         self.checkbutton_mik = tk.Checkbutton(master=self.sidebar, text="", command=self.update_mines_is_known)
         self.checkbutton_mik.grid(row=2, column=0, pady=5)
@@ -201,7 +236,7 @@ class MinesweeperApp:
 
     def create_status_bar(self):
         self.status_bar_frame = tk.Frame(self.root)
-        self.status_bar_frame.grid(row=1, column=1, sticky='ns')
+        self.status_bar_frame.grid(row=2, column=1, sticky='ns')
         self.status_bar = tk.Label(self.status_bar_frame, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.grid(row=1, column=0, columnspan=2, sticky='we')
 
@@ -210,7 +245,7 @@ class MinesweeperApp:
         for widget in self.grid_frame.winfo_children():
             widget.destroy()
 
-        self.grid_frame.grid(row=0, column=1, sticky='nw')
+        self.grid_frame.grid(row=1, column=1, sticky='nw')
 
         for x in range(self.grid_height):
             for y in range(self.grid_width):
@@ -263,6 +298,7 @@ class MinesweeperApp:
                     raise Exception(f"Image not found: {image_name}")
 
         self.update_status_bar()
+        self.update_mine_counter()
 
     def update_mines_is_known(self):
         if self.mines_is_known:
@@ -344,14 +380,15 @@ class MinesweeperApp:
 
         if 1 <= width <= 50 and 1 <= height <= 50:
 
+            self.current_game = game
             self.grid_width = width
             self.grid_height = height
             self.create_grid()
 
             self.root.update_idletasks()  # Ensure the grid is created before resizing
             geom_x = self.px * width + self.sidebar.winfo_width()
-            geom_y = self.px * height + self.status_bar_frame.winfo_height()
-            geom_x = max(geom_x, 250)
+            geom_y = self.px * height + self.status_bar_frame.winfo_height() + self.top_frame.winfo_height()
+            # geom_x = max(geom_x, 250)
             # geom_y = max(geom_y, 80)
             self.root.geometry(f"{geom_x}x{geom_y}")
             self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
