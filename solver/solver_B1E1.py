@@ -1,7 +1,7 @@
 import util
 from config import config
 from classes import Action
-from cell import Cell
+from classes import Cell
 
 
 def solver_B1E1(matrix) -> ([Cell], Action):

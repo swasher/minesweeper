@@ -1,5 +1,5 @@
 from classes import Action
-from cell import Cell
+from classes import Cell
 
 
 def solver_noguess(matrix) -> ([Cell], Action):

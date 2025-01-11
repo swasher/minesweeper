@@ -1,6 +1,6 @@
 import util
 from classes import Action
-from cell import Cell
+from classes import Cell
 
 
 def solver_B1(matrix) -> ([Cell], Action):

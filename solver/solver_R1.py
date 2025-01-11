@@ -1,6 +1,6 @@
 from random import randrange
 import mouse_controller
-from cell import Cell
+from classes import Cell
 from classes import Action
 
 def solver_R1(matrix) -> ([Cell], Action):

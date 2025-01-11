@@ -6,23 +6,22 @@ import time
 import win32gui
 import win32ui
 import win32con
-import cv2 as cv
-import mss
 import random
 import secrets
 import pickle
-import mss.tools
+import cv2 as cv
+
 import numpy as np
 from itertools import product
 
-import asset
-from cell import Cell
+from asset import asset
+from .cell import Cell
 import mouse_controller
-import util
+from mouse_controller import MouseButton as mb
 from datetime import datetime
-from board import board
+from .board import board
 from config import config
-from classes import MouseButtons as mb
+from .utility import State
 
 """
 Соглашения:
@@ -39,140 +38,24 @@ class Matrix(object):
 
     def __init__(self, width: int = 0, height: int = 0):
         self.width = width   # height of matrix (number of rows)
-        self.height = height # width of matrix (number of cols)
-        self.table = np.full((self.height, self.width), Cell) # matrix itself; numpy 2D array of Cell object
+        self.height = height  # width of matrix (number of cols)
+        self.table = np.full((self.height, self.width), Cell)  # matrix itself; numpy 2D array of Cell object
         self.mines = set()  # set of bombs for Tk playing
+        self.state = State
 
-
-    def initialize_from_screen(self, row_values, col_values, region):
+    def initialize(self):
         """
-        Заполняет Matrix пустыми объектами Cell с экрана,
-        настраивая взаимосвязь между экраном и Matrix.
-        Каждый объект Cell при этом становится привязан к конкретному месту на экране.
-        :param row_values: list[int] - список координат верхнего левого угла строк
-        :param col_values: list[int] - список координат верхнего левого угла столбцов
-        :param region: list[int, int, int, int] - четыре координаты окна
-        """
-        self.region_x1, self.region_y1, self.region_x2, self.region_y2 = region
-
-        self.image = self.get_image()
-        self.height = len(row_values)
-        self.width = len(col_values)
-
-        self.table = np.full((self.height, self.width), Cell)
-
-        template = asset.closed.raster
-        h, w = template.shape[:2]
-
-        for row, coordy in enumerate(row_values):  # cell[строка][столбец]
-            for col, coordx in enumerate(col_values):
-                abscoordx = coordx + self.region_x1
-                abscoordy = coordy + self.region_y1
-                c = Cell(row, col, coordx, coordy, abscoordx, abscoordy, w, h)
-                image_cell = self.image_cell(c)
-                c.image = image_cell
-                c.update_cell(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
-                c.hash = c.hashing()
-                self.table[row, col] = c
-
-        self.lastclicked = self.table[0, 0]
-
-    def initialize_without_screen(self, width, height):
-        """
-        Создаем матрицу со всеми закрытыми ячейками.
-        Такая матрица не свящана с экраном.
+        Инициализация матрицы.
+        Выполняется в дочерних классах либо экранной матрицей, либо для Tk пустыми ячейками.
+        Дочерние классы имеют различные сигнатуры параметров!
         :return:
         """
-        self.height = height
-        self.width = width
-        self.table = np.full((height, width), Cell)
-
-        for row in range(height):  # cell[строка][столбец]
-            for col in range(width):
-                self.table[row, col] = Cell(row, col, matrix=self)
-
-        self.lastclicked = self.table[0, 0]
         pass
 
-    def create_new_game(self, n_bombs: int = 0):
-        """
-        Used to create a new game.
-        Fills the field with bombs and closed cells.
-        This matrix is not linked to the screen.
-        :param n_bombs: Number of bombs to place
-        :return:
-        """
-        self.mines = set()  # Initialize the set to store mine positions
-
-        for row, col in product(range(self.height), range(self.width)):
-            self.table[row, col].asset = asset.closed
-
-        placed_mines = 0
-        while placed_mines < n_bombs:
-            row = random.randint(0, self.height - 1)
-            col = random.randint(0, self.width - 1)
-
-            if (row, col) not in self.mines:
-                self.mines.add((row, col))
-                placed_mines += 1
-
-    # def create_new_game1(self, n_bombs: int = 0):
-    #     """
-    #     Используется для создания новой игры.
-    #     Заполняет поле бомбами и закрытыми ячейками.
-    #     Такая матрица не свящана с экраном.
-    #     :param bombs:
-    #     :return:
-    #     """
-    #     for row, col in product(range(self.height), range(self.width)):
-    #         self.table[row, col].asset = asset.closed
-    #         # print(f'Closed at {row}:{col}')
-    #
-    #     placed_mines = 0
-    #     while placed_mines < n_bombs:
-    #         row = random.randint(0, self.height - 1)
-    #         col = random.randint(0, self.width - 1)
-    #
-    #         if self.table[row, col].asset != asset.there_is_bomb:
-    #             self.table[row, col].asset = asset.there_is_bomb
-    #             placed_mines += 1
-
-    def cell_distance(self, cell1, cell2) -> float:
+    @staticmethod
+    def cell_distance(cell1: Cell, cell2: Cell) -> float:
         d = math.hypot(cell1.row - cell2.row, cell1.col - cell2.col)
         return d
-
-    # deprecated
-    # def display(self):
-    #     """
-    #     Выводит в консоль текущее изображение поля (матрицу)
-    #     :return: Возвращает матрицу типа array of strings
-    #     """
-    #     print('---DISPLAY---')
-    #     matrix_view = []
-    #     for row in range(self.height):
-    #         row_view = ''
-    #         for col in range(self.width):
-    #             c = self.table[row, col]
-    #             # было
-    #             # row_view += self.table[row, col].cell_pict() + ' '
-    #             # стало
-    #             row_view += c.asset.symbol + ' '
-    #         matrix_view.append(row_view)
-    #     print('\n'.join(row for row in matrix_view))
-    #     return matrix_view
-
-    def display1(self):
-        """
-        Выводит в консоль текущее изображение поля (матрицу)
-        :return: Возвращает матрицу типа array of strings
-        """
-        print('---DISPLAY---')
-        matrix_view = [
-            ' '.join(self.table[row, col].asset.symbol for col in range(self.width))
-            for row in range(self.height)
-        ]
-        print('\n'.join(matrix_view))
-        return matrix_view
 
     def display(self):
         """
@@ -181,69 +64,86 @@ class Matrix(object):
         """
         print('---DISPLAY---')
         matrix_view = [
-            ' '.join('ơ' if (row, col) in self.mines else self.table[row, col].asset.symbol for col in range(self.width))
+            ' '.join(
+                asset.there_is_bomb.symbol
+                if ((row, col) in self.mines and not self.table[row, col].is_flag)  # -> показываем мину, если по коорд. row, col находится мина И в ячейке нет флага
+                else self.table[row, col].asset.symbol
+                for col in range(self.width))
             for row in range(self.height)
         ]
         print('\n'.join(matrix_view))
         return matrix_view
 
-    def get_image(self):
-        """
-        Возвращает текущее изображение поля игры
-        :return: opencv image
-        """
-        with mss.mss() as sct:
-            """
-            Чтобы уже раз и на всегда закрыть вопрос:
-            sct.grab отдает в формате BGRA.
-            Мы его конвертим просто в BGR. Никаких RGB не нужно!
-            Плагин pycharm'а показывает цвет правильно, только и когда он в BGR !!!
-            А RGB показывает инвертно!
-            Можно убедиться наведя пипетку на красный цвет и посмотрев, где R - 255
-            """
-            screenshot = sct.grab(self.region)
-            raw = np.array(screenshot)
-            image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
-        return image
+    # deprecated in favor of AI version
+    # def around_cells1(self, cell: Cell) -> list[Cell]:
+    #     """
+    #     Возвращает список ячеек, расположенных вокруг (вкл. диагонали) заданой. Проблема в том, что нельзя просто
+    #     вернуть "минус одна ячейка вправо, плюс одна влево", потому что у крайних ячеек возникнет IndexError.
+    #     Поэтому есть вспомогательная функция get_slice, которая возвращаем "правильный" отрезок по оси.
+    #     :param cell: instance of Cell
+    #     :return: array of Cell objects
+    #     """
+    #
+    #     def get_slice(v, len_axis):
+    #         """
+    #         Вычисляет правильный "отрезок" соседних клеток. Например для оси длиной 5 [0, 1, 2, 3, 4] для
+    #         координаты 2 вернет [1, 2, 3], а для координаты 4 вернет [3, 4]
+    #         :param v: координата
+    #         :param len_axis: длина оси
+    #         :return:
+    #         """
+    #         if v not in range(len_axis):
+    #             raise Exception('`get_slice` function - out of matrix range')
+    #         if v == 0:
+    #             return 0, v + 2
+    #         elif v == len_axis - 1:
+    #             return v - 1, v + 1
+    #         else:
+    #             return v - 1, v + 2
+    #
+    #     cells = []
+    #     rows, cols = self.table.shape
+    #
+    #     c1, c2 = get_slice(cell.col, cols)
+    #     r1, r2 = get_slice(cell.row, rows)
+    #
+    #     for row in range(r1, r2):
+    #         for col in range(c1, c2):
+    #             if col == cell.col and row == cell.row:
+    #                 continue
+    #             else:
+    #                 cells.append(self.table[row, col])
+    #     return cells
 
-    def around_cells(self, cell):
+    def around_cells(self, cell: Cell) -> list[Cell]:
         """
-        Возвращает список ячеек, расположенных вокруг (вкл. диагонали) заданой. Проблема в том, что нельзя просто
-        вернуть "минус одна ячейка вправо, плюс одна влево", потому что у крайних ячеек возникнет IndexError.
-        Поэтому есть вспомогательная функция get_slice, которая возвращаем "правильный" отрезок по оси.
-        :param cell: instance of Cell class
-        :return: array of Cell objects
+        Returns a list of cells surrounding the given cell (including diagonals).
+        Uses NumPy's capabilities to handle edge cases efficiently.
+
+        Для ячейки в центре это будет 8 "соседей", для угловой - 3, для ячейки возле стенки - 5.
+
+        Args:
+            cell: Cell object with row and col attributes
+
+        Returns:
+            list[Cell]: List of neighboring cells
         """
-
-        def get_slice(v, len_axis):
-            """
-            Вычисляет правильный "отрезок" соседних клеток. Например для оси длиной 5 [0, 1, 2, 3, 4] для
-            координаты 2 вернет [1, 2, 3], а для координаты 4 вернет [3, 4]
-            :param v: координата
-            :param len_axis: длина оси
-            :return:
-            """
-            if v not in range(len_axis):
-                raise Exception('`get_slice` function - out of matrix range')
-            if v == 0:
-                return 0, v + 2
-            elif v == len_axis - 1:
-                return v - 1, v + 1
-            else:
-                return v - 1, v + 2
-
-        cells = []
         rows, cols = self.table.shape
 
-        c1, c2 = get_slice(cell.col, cols)
-        r1, r2 = get_slice(cell.row, rows)
+        # Calculate valid row and column ranges
+        row_start = max(0, cell.row - 1)
+        row_end = min(rows, cell.row + 2)
+        col_start = max(0, cell.col - 1)
+        col_end = min(cols, cell.col + 2)
 
-        for row in range(r1, r2):
-            for col in range(c1, c2):
-                if col == cell.col and row == cell.row:
-                    continue
-                else:
-                    cells.append(self.table[row, col])
+        # Get the subarray of neighboring cells
+        neighbors = self.table[row_start:row_end, col_start:col_end]
+
+        # Convert to flat list and remove the center cell
+        cells = neighbors.flatten().tolist()
+        center_idx = (cell.row - row_start) * (col_end - col_start) + (cell.col - col_start)
+        cells.pop(center_idx)
+
         return cells
 
     def around_closed_cells(self, cell):
@@ -392,7 +292,7 @@ class Matrix(object):
     @property
     def you_fail(self):
         """
-        Если в матрице есть бомбы - то FAIL
+        Если в матрице есть бомбы - то FAIL (бомбы - это открытое изображение бомбы после проигрыша)
         :return:
         """
         bombs = self.get_bombs_cells()
@@ -414,6 +314,7 @@ class Matrix(object):
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
+        # TODO Remove it from here!
         if max_val > precision:
             # print('You WIN!\n')
             return True

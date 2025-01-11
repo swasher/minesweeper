@@ -64,7 +64,7 @@ class Asset(object):
         return '<'+self.name+'>'
 
 
-dir_path = Path(__file__).resolve().parent / 'asset' / config.asset
+dir_path = Path(__file__).resolve().parent / config.asset
 
 
 # Проверяем наличие всех НЕОБХОДИМЫХ изображений ассета - получаем эксепшн при отсутствии файла

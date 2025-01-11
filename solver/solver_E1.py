@@ -1,4 +1,4 @@
-from cell import Cell
+from classes import Cell
 from classes import Action
 
 

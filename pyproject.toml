@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "coverage[toml]>=7.6.10",
     "humancursor>=1.1.5",
     "icecream>=2.1.3",
     "mouse>=0.7.1",
@@ -15,7 +16,26 @@ dependencies = [
     "pyinstaller>=6.11.1",
     "pynput>=1.7.7",
     "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
     "pywin32>=308",
+    "rich>=13.9.4",
     "tkinter-tooltip>=3.1.2",
     "xxhash>=3.5.0",
+]
+
+[tool.pytest.ini_options]
+norecursedirs = ["side_projects", "dist", "build", "useful_code_examples", ".venv"]
+pythonpath = ["."]
+markers = [
+    "skip: mark test to be skipped"
+]
+
+[tool.coverage.run]
+omit  = [
+    "side_projects/*",
+    "*/config-3.py",
+    "dist/*",
+    "build/*",
+    "useful_code_examples/*",
+    ".venv/*"
 ]

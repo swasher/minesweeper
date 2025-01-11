@@ -1,3 +1,7 @@
+"""
+Незаконченная наработка
+"""
+
 from enum import IntEnum
 import mss
 import numpy as np

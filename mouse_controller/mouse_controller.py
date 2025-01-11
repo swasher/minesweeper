@@ -4,7 +4,7 @@ import math
 import random
 from config import config
 import numpy as np
-from classes import MouseButtons as mb
+from .buttons import MouseButton as mb
 from humancursor import SystemCursor
 
 # FLAG = config.flag      # action `flag cell`
@@ -99,6 +99,7 @@ def click_systemcursor_lib(x, y, button: mb):
     if config.extra_pause_between_clicks:
         r = random.uniform(0.7, 1.3)
         time.sleep(config.extra_pause_between_clicks * r)
+
 
 def click(x, y, button: mb):
     if config.use_neural_mouse:

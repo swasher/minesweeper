@@ -2,7 +2,7 @@ import itertools
 
 from solver.classes import create_roots
 from classes import Action
-from cell import Cell
+from classes import Cell
 
 
 def solver_B2(matrix) -> ([Cell], Action):

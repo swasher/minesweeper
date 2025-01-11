@@ -4,18 +4,17 @@ import win32gui
 import win32con
 import xxhash
 
-import asset
+from asset import asset
 import mouse_controller
 from config import config
 from util import point_in_rect
 from util import random_point_in_square
-from classes import Color
-from enum import IntEnum
+from .utility import Color
 
 
-class Cell(object):
+class Cell:
 
-    def __init__(self, row, col, coordx=0, coordy=0, abscoordx=0, abscoordy=0, w=0, h=0, matrix=None):
+    def __init__(self, matrix, row, col, coordx=0, coordy=0, abscoordx=0, abscoordy=0, w=0, h=0):
         """
         :param col: номер ячейки в строке, начиная с 0. Т.е. это СТОЛБЕЦ. Левая ячейка - номер 0 - cell[строка][столбец]
         :param row: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
@@ -29,6 +28,7 @@ class Cell(object):
         :param image: ndarray - текущее изображение ячейки
         :param hash: int - хэш изображения ячейки
         """
+        self.matrix = matrix
         # column and row of matrix
         self.col = col
         self.row = row
@@ -44,8 +44,6 @@ class Cell(object):
         self.asset = None  # Asset instance
         self.image = None  # Current image of cell; ndarray
         self.hash = 0  # hash of image
-        self.matrix = matrix
-
 
     def __repr__(self):
         return f'{self.asset.name} ({self.row}:{self.col})'

@@ -3,7 +3,7 @@ from solver.classes import create_roots
 
 from classes import Action
 from classes import Color
-from cell import Cell
+from classes import Cell
 
 
 def solver_E2(matrix, debug=False) -> ([Cell], Action):

@@ -13,3 +13,10 @@ dummy:
 
 exe:
 	pyinstaller --onefile --windowed --add-data="asset:asset" --add-data="settings.ini:." --add-data="settings.local.ini:." --hidden-import "tkinter" mine_tk.py
+
+test:
+	pytest
+
+coverage:
+	pytest --cov=. --cov-report=html tests/; rm -f .coverage
+	"C:\Program Files\Google\Chrome\Application\chrome" "file://C:/Users/swasher/GitHub/minesweeper/htmlcov/index.html"

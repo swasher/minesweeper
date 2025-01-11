@@ -1,7 +1,7 @@
 from config import config
 
 
-class Board(object):
+class Board:
 
     def __init__(self):
         self.border = {}  # граница поля сапера в пикселях, от ячеек до края; скриншот каждый раз делается по этой области
@@ -14,6 +14,7 @@ class Board(object):
         self.border['right'] = config.right
 
         # Y координата для клика по смайлу
+        # TODO откуда до куда эта координата ?????
         self.smile_y_coord = config.smile_y_coord
 
 

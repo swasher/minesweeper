@@ -23,14 +23,14 @@ import time
 
 from typing import Callable
 
-import asset
-from board import board
+from asset import asset
+from classes import board
 
 from util import search_pattern_in_image
-from matrix import Matrix
+from classes import SolveMatrix
 from classes import Action
 from classes import Color
-import save_load
+from classes import Cell
 
 from solver import solver_R1
 from solver import solver_R1_corner
@@ -43,8 +43,6 @@ from solver import solver_B1E1
 from solver import solver_human, solver_human_almost_work
 from solver import solver_gauss
 from solver import solver_noguess
-
-from cell import Cell
 
 ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
@@ -207,7 +205,7 @@ def do_strategy(strategy):
         else:
             print(f'{name}: pass')
 
-    matrix.display()
+    # matrix.display()
 
     if have_a_move:
 
@@ -334,7 +332,7 @@ def recursive_wrapper():
         if config.arena:
             # TODO find_board принимает только 1 аргумент!!!!
             col_values, row_values, region = find_board(asset.closed, board)
-            matrix = Matrix()
+            matrix = SolveMatrix()
             matrix.initialize_from_screen(row_values, col_values, region)
         matrix.update()
 
@@ -396,8 +394,8 @@ if __name__ == '__main__':
     listener.start()  # Запускаем слушатель в отдельном потоке
 
     col_values, row_values, region = find_board(asset.closed)
-    matrix = Matrix()
-    matrix.initialize_from_screen(row_values, col_values, region)
+    matrix = SolveMatrix()
+    matrix.initialize(row_values, col_values, region)
 
     # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.
     # bombs = matrix.bomb_qty(0.87)
