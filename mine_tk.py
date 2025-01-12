@@ -211,8 +211,6 @@ class MinesweeperApp:
         for label in reversed(self.led_timer):
             label.pack(side=tk.RIGHT)
 
-
-
     def create_menu(self):
         menu = tk.Menu(self.root)
         self.root.config(menu=menu)
@@ -313,7 +311,6 @@ class MinesweeperApp:
         # Force update
         self.canvas.update()
 
-
     def update_status_bar(self):
         if self.matrix.get_state == GameState.win:
             self.status_bar.config(text="You win!")
@@ -325,8 +322,6 @@ class MinesweeperApp:
             opened_count = len(self.matrix.get_open_cells())
             flag_count = len(self.matrix.get_flag_cells())
             self.status_bar.config(text=f"Closed:{closed_count}, Mines:{mine_count}, Open:{opened_count}, Flags:{flag_count}")
-
-
 
     def on_canvas_click_left(self, event):
         """Handle left click on canvas"""
@@ -348,7 +343,6 @@ class MinesweeperApp:
         if 0 <= grid_x < self.grid_height and 0 <= grid_y < self.grid_width:
             return grid_x, grid_y
         return None, None
-
 
     def update_grid(self):
         """
@@ -551,7 +545,7 @@ class MinesweeperApp:
 
     def edit_cell_bomb_mode(self, x, y, button):
         """
-        тут немного говно-код. Потому что нам нужно итерировать состояние ячейки по нескольким ассетам ПЛЮС
+        Нам нужно итерировать состояние ячейки по нескольким ассетам ПЛЮС
         закрытая ячейка с бомбой. Для этого введен псевдо-ассет there_is_bomb, который на самом деле является
         ЗАКРЫТОЙ ЯЧЕЙКОЙ плюс мина в matrix.mines.
         """
@@ -621,63 +615,17 @@ class MinesweeperApp:
             case _:
                 print('None equals')
 
-
     def update_mine_counter(self):
         count = len(self.matrix.get_mined_cells()) - len(self.matrix.get_flag_cells())
         count_str = f"{count:03d}"
         for i, digit in enumerate(count_str):
             self.mine_counter[i].config(image=self.images[f"led{digit}"])
 
-    # """
-    # Four methods for clock's
-    # """
-    # def update_timer(self, elapsed_time):
-    #     time_str = f"{elapsed_time:03d}"
-    #     for i, digit in enumerate(time_str):
-    #         self.timer[i].config(image=self.images[f"led{digit}"])
-    #
-    #
-    # def start_timer(self):
-    #     if self.timer_thread and self.timer_thread.is_alive():
-    #         self.timer_running = False
-    #         self.timer_thread.join()
-    #
-    #     self.start_time = time.time()
-    #     self.timer_running = True
-    #     self.timer_thread = threading.Thread(target=self.update_timer_thread)
-    #     self.timer_thread.start()
-    #
-    # def update_timer_thread(self):
-    #     while self.timer_running:
-    #         elapsed_time = int(time.time() - self.start_time)
-    #         self.root.after(1000, self.update_timer, elapsed_time)
-    #         time.sleep(1)
-    #
-    # def stop_timer(self):
-    #     self.timer_running = False
-    #     if self.timer_thread:
-    #         self.timer_thread.join()
-    #
-    # def reset_timer(self):
-    #     count_str = f"{0:03d}"
-    #     for i, digit in enumerate(count_str):
-    #         self.mine_counter[i].config(image=self.images[f"led{digit}"])
-    # """
-    # END
-    # """
-
-    """
-    новые методы для таймера
-    """
     def update_timer_display(self, seconds: int):
         # Обновление отображения времени в интерфейсе
         time_str = f"{seconds:03d}"
         for i, digit in enumerate(time_str):
             self.led_timer[i].config(image=self.images[f"led{digit}"])
-    """
-    end
-    """
-
 
     def save_matrix(self):
 
