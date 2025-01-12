@@ -3,10 +3,6 @@ import functools
 import math
 import operator
 import time
-import win32gui
-import win32ui
-import win32con
-import random
 import secrets
 import pickle
 import cv2 as cv
@@ -21,7 +17,7 @@ from mouse_controller import MouseButton as mb
 from datetime import datetime
 from .board import board
 from config import config
-from .utility import State
+from .utility import GameState
 
 """
 Соглашения:
@@ -41,7 +37,7 @@ class Matrix(object):
         self.height = height  # width of matrix (number of cols)
         self.table = np.full((self.height, self.width), Cell)  # matrix itself; numpy 2D array of Cell object
         self.mines = set()  # set of bombs for Tk playing
-        self.state = State
+        self._game_state: GameState | None = None
 
     def initialize(self):
         """
@@ -51,6 +47,21 @@ class Matrix(object):
         :return:
         """
         pass
+
+    @property
+    def get_state(self):
+        """
+        Возвращает текущее состояние игры.
+        :return: GameState enum
+        """
+        return self._game_state
+
+    def set_state(self, state: GameState):
+        """
+        Устанавливает состояние игры.
+        :param state: GameState enum
+        """
+        self._game_state = state
 
     @staticmethod
     def cell_distance(cell1: Cell, cell2: Cell) -> float:
@@ -63,57 +74,25 @@ class Matrix(object):
         :return: Возвращает матрицу типа array of strings
         """
         print('---DISPLAY---')
-        matrix_view = [
-            ' '.join(
-                asset.there_is_bomb.symbol
-                if ((row, col) in self.mines and not self.table[row, col].is_flag)  # -> показываем мину, если по коорд. row, col находится мина И в ячейке нет флага
-                else self.table[row, col].asset.symbol
-                for col in range(self.width))
-            for row in range(self.height)
-        ]
+
+        if config.tk:
+            matrix_view = [
+                ' '.join(
+                    asset.there_is_bomb.symbol
+                    if ((row, col) in self.mines and not self.table[row, col].is_flag)  # -> показываем мину, если по коорд. row, col находится мина И в ячейке нет флага
+                    else self.table[row, col].content.symbol
+                    for col in range(self.width))
+                for row in range(self.height)
+            ]
+        else:
+            matrix_view = [
+                ' '.join(
+                    self.table[row, col].content.symbol
+                    for col in range(self.width))
+                for row in range(self.height)
+            ]
         print('\n'.join(matrix_view))
         return matrix_view
-
-    # deprecated in favor of AI version
-    # def around_cells1(self, cell: Cell) -> list[Cell]:
-    #     """
-    #     Возвращает список ячеек, расположенных вокруг (вкл. диагонали) заданой. Проблема в том, что нельзя просто
-    #     вернуть "минус одна ячейка вправо, плюс одна влево", потому что у крайних ячеек возникнет IndexError.
-    #     Поэтому есть вспомогательная функция get_slice, которая возвращаем "правильный" отрезок по оси.
-    #     :param cell: instance of Cell
-    #     :return: array of Cell objects
-    #     """
-    #
-    #     def get_slice(v, len_axis):
-    #         """
-    #         Вычисляет правильный "отрезок" соседних клеток. Например для оси длиной 5 [0, 1, 2, 3, 4] для
-    #         координаты 2 вернет [1, 2, 3], а для координаты 4 вернет [3, 4]
-    #         :param v: координата
-    #         :param len_axis: длина оси
-    #         :return:
-    #         """
-    #         if v not in range(len_axis):
-    #             raise Exception('`get_slice` function - out of matrix range')
-    #         if v == 0:
-    #             return 0, v + 2
-    #         elif v == len_axis - 1:
-    #             return v - 1, v + 1
-    #         else:
-    #             return v - 1, v + 2
-    #
-    #     cells = []
-    #     rows, cols = self.table.shape
-    #
-    #     c1, c2 = get_slice(cell.col, cols)
-    #     r1, r2 = get_slice(cell.row, rows)
-    #
-    #     for row in range(r1, r2):
-    #         for col in range(c1, c2):
-    #             if col == cell.col and row == cell.row:
-    #                 continue
-    #             else:
-    #                 cells.append(self.table[row, col])
-    #     return cells
 
     def around_cells(self, cell: Cell) -> list[Cell]:
         """
@@ -146,7 +125,7 @@ class Matrix(object):
 
         return cells
 
-    def around_closed_cells(self, cell):
+    def around_closed_cells(self, cell) -> list[Cell]:
         """
         Возвращает список закрытых ячеек вокруг ячейки cell.
         Флаги не считаются закрытыми ячейками.
@@ -156,7 +135,7 @@ class Matrix(object):
         closed_cells = list([x for x in self.around_cells(cell) if x.is_closed])
         return closed_cells
 
-    def around_flagged_cells(self, cell):
+    def around_flagged_cells(self, cell) -> list[Cell]:
         """
         Возвращает список ячеек-флагов вокруг ячейки cell
         :param cell: instance of Cell class
@@ -165,7 +144,7 @@ class Matrix(object):
         flagged_cells = list([x for x in self.around_cells(cell) if x.is_flag])
         return flagged_cells
 
-    def around_digit_cells(self, cell):
+    def around_digit_cells(self, cell) -> list[Cell]:
         """
         Возвращает список ячеек-цифр вокруг ячейки cell
         :param cell: instance of Cell class
@@ -174,7 +153,7 @@ class Matrix(object):
         flagged_cells = list([x for x in self.around_cells(cell) if x.is_digit])
         return flagged_cells
 
-    def around_opened_cells(self, cell):
+    def around_opened_cells(self, cell) -> list[Cell]:
         """
         Возвращает список открытых ячеек вокруг ячейки cell.
         :param cell: instance of Cell class
@@ -183,7 +162,7 @@ class Matrix(object):
         flagged_cells = list([x for x in self.around_cells(cell) if x.is_open])
         return flagged_cells
 
-    def around_mined_cells(self, cell):
+    def around_mined_cells(self, cell) -> list[Cell]:
         """
         Возвращает список ячеек-мин вокруг ячейки cell.
         Используется для tk-версии с известно расположенными минами.
@@ -193,7 +172,7 @@ class Matrix(object):
         mines = list([x for x in self.around_cells(cell) if x.is_mine])
         return mines
 
-    def get_closed_cells(self):
+    def get_closed_cells(self) -> list[Cell]:
         """
         Возвращает все закрытые ячейки (которые закрыты и НЕ отмечены флагом)
         :return: array of Cell objects
@@ -201,7 +180,7 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_closed])
         return cells
 
-    def get_opened_cells(self):
+    def get_opened_cells(self) -> list[Cell]:
         """
         Возвращает все открытые ячейки (это цифры плюс пустая ячейка)
         :return: array of Cell objects
@@ -209,7 +188,7 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_open])
         return cells
 
-    def get_flag_cells(self):
+    def get_flag_cells(self) -> list[Cell]:
         """
         Возвращает список закрытых ячеек, уже помеченных флагами
         :return: array of Cell objects
@@ -217,7 +196,7 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_flag])
         return cells
 
-    def get_digit_cells(self):
+    def get_digit_cells(self) -> list[Cell]:
         """
         Возвращает список открытых ячеек (без нулевых ячеек)
         :return: array of Cell objects
@@ -225,7 +204,7 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_digit])
         return cells
 
-    def get_open_cells(self):
+    def get_open_cells(self) -> list[Cell]:
         """
         Возвращает список открытых ячеек (включая нули).
         :return: array of Cell objects
@@ -233,7 +212,7 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_open])
         return cells
 
-    def get_bombs_cells(self):
+    def get_bombs_cells(self) -> list[Cell]:
         """
         Возвращает список бомб (которые видны, если игра окончена). Используется в game_over
         :return: array of Cell objects
@@ -241,14 +220,14 @@ class Matrix(object):
         cells = list([x for x in self.table.flat if x.is_bomb])
         return cells
 
-    def get_mined_cells(self):
+    def get_mined_cells(self) -> list[Cell]:
         """
-        Возвращает список установленных мин в закрытых ячейках (при игре в Tk сапера).
+        Возвращает список установленных мин в закрытых ячейках (только для Tk сапера).
         :return:
         """
         return [self.table[row][col] for row, col in self.mines]
 
-    def get_noguess_cell(self):
+    def get_noguess_cell(self) -> list[Cell]:
         """
         Первый ход для no-guess игр. Возвращает отмеченную крестиком клетку.
         :return: list of Cell objects
@@ -256,147 +235,106 @@ class Matrix(object):
         cell = list([x for x in self.table.flat if x.is_noguess])
         return cell
 
-    def is_mine(self, cell):
+    def get_num_closed(self) -> int:
+        """
+        Кол-во закрытых ячеек (флаг не считается закрытой ячейкой!)
+        """
+        return len(self.get_closed_cells())
+
+    def get_num_flags(self) -> int:
+        """
+        Кол-во установленных флагов
+        """
+        return len(self.get_flag_cells())
+
+    def get_num_mined(self) -> int:
+        """
+        Кол-во мин (только для Tk)
+        """
+        return len(self.get_mined_cells())
+
+    def is_mine(self, cell) -> bool:
         return (cell.row, cell.col) in self.mines
 
     @property
-    def region(self):
-        """
-        Возвращает объект типа PIL bbox всего поля игры, включая рамки.
-        :return: array of int
-        """
-        return self.region_x1, self.region_y1, self.region_x2, self.region_y2
-
-    def image_cell(self, cell):
-        """
-        вырезает из image сооветствующую ячейку.
-        :return: ndarray (image)
-        """
-        return self.image[cell.coordy:cell.coordy+cell.h, cell.coordx:cell.coordx+cell.w]
-
-    def update(self):
-        """
-        Запускает обновление всех ячеек, считывая их с экрана (поле Minesweeper'а)
-        :return:
-        """
-        # This is very important string! After click, website (and browser, or even Vienna program) has a lag
-        # beetween click and refreshing screen.  If we do not waiting at this point, our code do not see any changes
-        # after mouse click.
-        time.sleep(config.screen_refresh_lag)
-
-        self.image = self.get_image()
-        for cell in self.get_closed_cells():
-            crop = self.image_cell(cell)
-            cell.update_cell(crop)
-
-    @property
-    def you_fail(self):
+    def you_fail(self) -> bool:
         """
         Если в матрице есть бомбы - то FAIL (бомбы - это открытое изображение бомбы после проигрыша)
         :return:
         """
         bombs = self.get_bombs_cells()
-        if bool(len(bombs)):
-            # print('You lose!')
+        if len(bombs):
+            self.game_status = GameState.fail
             return True
-        return False
 
     @property
-    def you_win(self):
+    def you_win(self) -> bool:
         """
-        Если смайлик = веселый, то WIN
-        :return: boolean
+        Имплементируется по разному в Tk и в экранной версии.
         """
-        precision = 0.9
-        image = self.get_image()
-        template = asset.win.raster
+        pass
 
-        res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-
-        # TODO Remove it from here!
-        if max_val > precision:
-            # print('You WIN!\n')
-            return True
-
-        return False
-
-    def bomb_qty(self, precision=0) -> int:
+    def bomb_qty(self) -> int:
         """
-        Возвращает число, которое на игровом поле на счетчике бомб (сколько еще спрятанных бомб на поле)
-        :return:
+        Имеет совершенно разную имплементацию в Tk и в экранной версии.
+        Tk знает количество мин из матрицы.
+        Экранная версия считает количество мин по LED счетчику.
         """
-        image = self.get_image()
-        # TODO нарушена логика - это должно быть в абстракции конкретной реализаии сапера.
-        #      перенести это в board
-        crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
+        pass
 
-        # precision = 0.94
-        # precision = 0.837
+    # def save(self):
+    #     """
+    #     Сохраняет текущую игру в папку, создавая два файла - картинку с изображением игры
+    #     и файл pickle, который потом можно загрузить.
+    #     """
+    #     print('Saving...')
+    #     random_string = secrets.token_hex(2)
+    #     date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
+    #     picklefile = 'obj.pickle'
+    #     image_file = 'image.png'
+    #     dir = 'game_R1_' + date_time_str + '_' + random_string
+    #     if not os.path.exists(dir):
+    #         os.makedirs(dir)
+    #
+    #     with open(os.path.join(dir, picklefile), 'wb') as outp:
+    #         pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+    #
+    #     image = self.get_image()
+    #     cv.imwrite(os.path.join(dir, image_file), image)
 
-        # для Minesweeper online я подбирал значения;
-        # дома, на 1920х1080 (zoom 24) работает 0,837 (до сотых).
-        # Если больше (0,84) - он не "узнает" паттерны. Если меньше (0,8) - возникают ложные срабатывания,
-        # например, 7 может распознать как 1.
-        # НА САМОМ ДЕЛЕ, PRECISION ПОДОБРАН В search_pattern_in_image_for_red_bombs
-
-        found_digits = []
-        for pattern in asset.red_digits:  # list_patterns imported from cell_pattern
-            template = pattern.raster
-
-            # result = util.find_templates(template, crop_img, precision)
-            # result = util.search_pattern_in_image_for_red_bombs(template, crop_img, precision)
-            result = util.search_pattern_in_image_for_red_bombs_on_work(template, crop_img, precision)
-
-            # `result` - это list of tuple
-            # каждый кортеж содержит список из трех числ:
-            # координаты найденной цифры - x и y, и с какой точностью определилась цифра. Напр.
-            # [(19, 66, 1.0), (32, 66, 0.998)]
-            for r in result:
-                found_digits.append((r[0], pattern.value))
-
-        # сортируем найденные цифры по координате X
-        digits = sorted(found_digits, key=lambda a: a[0])
-
-        if not digits:
-            # raise Exception('Не удалось прочитать кол-во бомб на поле.')
-            return None
-
-        _, numbers = zip(*digits)
-        bomb_qty: int = int(''.join(map(str, numbers)))
-        return bomb_qty
-
-    def cell_by_abs_coords(self, point):
+    def save(self, mode: str):
         """
-        Возвращает ячейку, которая содержит данную точку (по абсолютным координатам на экране)
-        :param point: (x, y)
-        :return: Cell object
+        Сохраняет Матрицу в текстовый файл.
+        Режимы:
+        - 'tk' - матрица знает о расположении мин (для Tk)
+        - 'screen' - матрица не знает о расположении мин (для экранной версии)
         """
-        for cell in self.table.flat:
-            if cell.point_in_cell(point):
-                return cell
-        else:
-            return None
+        dir = 'saves'
+        file_name = 'save_' + datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
+        file_path = os.path.join(dir, file_name)
 
-    def save(self):
-        """
-        Сохраняет текущую игру в папку, создавая два файла - картинку с изображением игры
-        и файл pickle, который потом можно загрузить.
-        """
-        print('Saving...')
-        random_string = secrets.token_hex(2)
-        date_time_str = datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
-        picklefile = 'obj.pickle'
-        image_file = 'image.png'
-        dir = 'game_R1_' + date_time_str + '_' + random_string
         if not os.path.exists(dir):
             os.makedirs(dir)
 
-        with open(os.path.join(dir, picklefile), 'wb') as outp:
-            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+        with open(file_path, 'w', encoding='utf-8') as outp:
+            for row in range(self.height):
+                line = ''
+                for col in range(self.width):
+                    cell = self.table[row, col]
+                    if mode == 'tk' and (row, col) in self.mines and cell.content == asset.closed:
+                        line += 'ơ'
+                    else:
+                        line += cell.content.symbol
+                outp.write(line + '\n')
 
-        image = self.get_image()
-        cv.imwrite(os.path.join(dir, image_file), image)
+    def load(self, file_name: str):
+        """
+        Загружает Матрицу из текстового файла.
+        Режимы:
+        - 'bomb' - матрица знает о расположении мин (для Tk)
+        - 'no-bomb' - матрица не знает о расположении мин (для экранной версии)
+        """
+        pass
 
     def reset(self):
         """
@@ -418,143 +356,13 @@ class Matrix(object):
             c.type = asset.closed
         time.sleep(config.screen_refresh_lag * 10)
 
-    def show_debug_text_orig(self):
-        """
-        Показывает текст на ячейках, который содержится в каждой ячейке в debug_text.
-        Убирает текст после нажатия любой клавиши.
-        :return:
-        """
-        dc = win32gui.GetDC(0)
-        try:
-            for row in self.table:
-                for cell in row:
-                    if cell.debug_text is not None:
-                        rect = (cell.abscoordx, cell.abscoordy, cell.abscoordx+cell.w, cell.abscoordy+cell.h)
-                        win32gui.DrawText(dc, cell.debug_text, -1, rect, win32con.DT_LEFT)
-                    cell.debug_text = None
-
-            im = self.get_image()
-            cv.imwrite('screenshot2.png', im)
-
-            # keyboard.wait('space')
-        finally:
-            win32gui.ReleaseDC(0, dc)
 
 
 
-    def show_debug_text(self):
-        """
-        Показывает текст на ячейках, который содержится в каждой ячейке в debug_text, в пределах ограниченной области.
-        Убирает текст после нажатия любой клавиши, восстанавливая исходное состояние области.
-        """
-        # Координаты области
-        x1, y1, x2, y2 = self.region_x1, self.region_y1, self.region_x2, self.region_y2
-        width = x2 - x1
-        height = y2 - y1
 
-        # Получаем контекст устройства для области экрана
-        hdesktop = win32gui.GetDesktopWindow()
-        desktop_dc = win32gui.GetWindowDC(hdesktop)
 
-        # Создаем контекст устройства для сохранения области
-        mem_dc = win32ui.CreateDCFromHandle(desktop_dc)
-        save_dc = mem_dc.CreateCompatibleDC()
 
-        # Создаем битмап для сохранения области
-        save_bitmap = win32ui.CreateBitmap()
-        save_bitmap.CreateCompatibleBitmap(mem_dc, width, height)
-        save_dc.SelectObject(save_bitmap)
 
-        # Сохраняем область экрана в битмап
-        save_dc.BitBlt((0, 0), (width, height), mem_dc, (x1, y1), win32con.SRCCOPY)
-
-        try:
-            # Рисуем текст поверх экрана
-            for row in self.table:
-                for cell in row:
-                    if cell.debug_text is not None:
-                        rect = (
-                            cell.abscoordx,
-                            cell.abscoordy,
-                            cell.abscoordx + cell.w,
-                            cell.abscoordy + cell.h
-                        )
-
-                        # Рисуем текст только если ячейка попадает в область
-                        if (
-                                rect[0] >= x1 and rect[1] >= y1 and
-                                rect[2] <= x2 and rect[3] <= y2
-                        ):
-                            win32gui.DrawText(desktop_dc, cell.debug_text, -1, rect, win32con.DT_LEFT)
-                            cell.debug_text = None
-
-            # Ждем нажатия клавиши
-            # keyboard.wait('space')
-            keyboard.read_event()
-
-            # Восстанавливаем область экрана из сохраненного битмапа
-            mem_dc.BitBlt((x1, y1), (width, height), save_dc, (0, 0), win32con.SRCCOPY)
-
-        finally:
-            # Очистка ресурсов
-            win32gui.DeleteObject(save_bitmap.GetHandle())
-            save_dc.DeleteDC()
-            mem_dc.DeleteDC()
-            win32gui.ReleaseDC(hdesktop, desktop_dc)
-
-    def play_left_button(self, cell):
-        """
-        Метод для "игры" в сапера Tk.
-        :param cell:
-        :return:
-        """
-        is_game_over = False
-
-        match cell.asset:
-            case asset.closed:
-                # открываем ячейку
-                if cell.is_mine:
-                    # Game over!
-                    print("Game Over!")
-                    self.reveal_all_bombs(cell)
-                    is_game_over = True
-                else:
-                    mines = len(self.around_mined_cells(cell))
-                    cell.asset = asset.open_cells[mines]
-
-                    # Если вокруг ячейки нет бомб (n0), открываем все соседние ячейки
-                    if cell.is_empty:
-                        for neighbor in self.around_closed_cells(cell):
-                            self.play_left_button(neighbor)
-
-            case cell.asset if cell.asset in asset.digits:
-                # TODO пока держит мышку, закрытые ячейки вокруг визуально меняем на открытые (как-бы подсвечиваем)
-                # это нужно реализовать в Tk части
-                # если кол-во бомб вокруг совпадаем с цифрой - открываем все закрытые ячейки вокруг мины.
-                flagged_cells = self.around_flagged_cells(cell)
-                # print('Detect flagged cells:', flagged_cells)
-                if len(flagged_cells) == cell.asset.value:
-                    print('Flagged equal!')
-                    for neighbor in self.around_closed_cells(cell):
-
-                        print('Neighbors: ', self.around_closed_cells(cell))
-
-                        self.play_left_button(neighbor)
-
-        return is_game_over
-
-    def play_right_button(self, cell):
-        match cell.asset:
-            case asset.closed:
-                cell.asset = asset.flag
-            case asset.flag:
-                cell.asset = asset.closed
-
-    def reveal_all_bombs(self, cell):
-        bombs = self.get_mined_cells()
-        for b in bombs:
-            b.asset = asset.bomb
-        cell.asset = asset.bomb_red
 
 
 

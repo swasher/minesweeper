@@ -254,6 +254,8 @@ def do_strategy(strategy):
         # DEBUG - POINT AFTER EACH CLICK
         # --------------------------------
 
+        matrix.display()
+
         # DEBUG
         # мы можем после хода сохранить состояние игры в папку
         # if name == 'solver_E2':
@@ -385,13 +387,18 @@ class thread_with_exception(threading.Thread):
             print('Exception raise failure')
 
 
+# Если мы используем слушатель клавиатуры, то дебаг становится нереальным - кнопки перехватываются.
+# Поэтому идея была такая, чтобы этот режим можно было включить и выключить.
+# Но это нужно допилить.
+use_keyboard_listener = True
 
 if __name__ == '__main__':
 
     initialize()
 
-    listener = Listener(on_press=on_press)
-    listener.start()  # Запускаем слушатель в отдельном потоке
+    if use_keyboard_listener:
+        listener = Listener(on_press=on_press)
+        listener.start()  # Запускаем слушатель в отдельном потоке
 
     col_values, row_values, region = find_board(asset.closed)
     matrix = SolveMatrix()
@@ -435,32 +442,15 @@ if __name__ == '__main__':
         strategies.append(solver_human)
         matrix.update()
 
-
     # recursive_wrapper - это основная точка входа в запуск стратегий, теперь выполняется в отдельном потоке, для того
     # чтобы его можно было остановить по нажатию клавиши
     # recursive_wrapper(strategies)
 
-    t1 = thread_with_exception('Thread 1')
-    t1.start()
-    # остановка потока по нажатию Esc выполняется в колбеке on_press(key):
-    t1.join()
-    listener.stop()
-
-# описание рабочего цикла:
-# - самое-самое начало
-# выполняем some logic
-#
-# - самое начало
-# выполняем R1 один раз
-# - начало
-# выполняем B1, если ход есть выполняем и идем в начало, иначе продолжаем
-# выполняем E1, если ход есть выполняем и идем в начало, иначе продолжаем
-# выполняем B2, если ход есть выполняем и идем в начало, иначе продолжаем
-# выполняем E2, если ход есть выполняем и идем в начало, иначе продолжаем
-# ..... E3, B3 и т.д
-# идем в самое начало
-#
-# на каждом ходе нужно проверить Game Over или You Win. Если да, идем в самое-самое начало.
-
-
-
+    if use_keyboard_listener:
+        t1 = thread_with_exception('Thread 1')
+        t1.start()
+        # остановка потока по нажатию Esc выполняется в колбеке on_press(key):
+        t1.join()
+        listener.stop()
+    else:
+        recursive_wrapper()

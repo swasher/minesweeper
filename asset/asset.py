@@ -31,8 +31,7 @@ HOUSE
 
 """
 
-from pathlib import Path, PurePath
-from types import SimpleNamespace
+from pathlib import Path
 import cv2 as cv
 from config import config
 
@@ -51,17 +50,20 @@ class Asset(object):
     # TODO У нас каждый экземпряр Asset имеет несвойственные для него поля,
     #      например, Clock0 имеет поля LAG, border и так далее. Можно увидеть в дебаге.
 
-    similarity = 0  # possible deprecated
+    # similarity = 0  # possible deprecated
 
-    def __init__(self, name, filename, value=None, symbol=None):
+    def __init__(self, name, filename=None, value=None, symbol=None):
         self.name = name
         self.filename = filename
-        self.raster = cv.imread(filename, cv.IMREAD_COLOR)
+        # self.raster = cv.imread(filename, cv.IMREAD_COLOR)
         self.value = value  # digit for opened cells
         self.symbol = symbol  # if appicable - text represent of cell
 
     def __repr__(self):
         return '<'+self.name+'>'
+    @property
+    def raster(self):
+        return cv.imread(self.filename, cv.IMREAD_COLOR)
 
 
 dir_path = Path(__file__).resolve().parent / config.asset
@@ -93,20 +95,21 @@ n7 = Asset('7', dir_path.joinpath('7.png'), 7, '7')
 n8 = Asset('8', dir_path.joinpath('8.png'), 8, '8')
 
 # other cells
-closed = Asset('closed', dir_path.joinpath('closed.png'), None, '⨯')
+closed = Asset('closed', dir_path.joinpath('closed.png'), None, '×')
 bomb = Asset('bomb', dir_path.joinpath('bomb.png'), None, '⚹')
-bomb_red = Asset('bomb_red', dir_path.joinpath('bomb_red.png'), None, '✱')
+bomb_red = Asset('bomb_red', dir_path.joinpath('bomb_red.png'), None, '💥')
 bomb_wrong = Asset('bomb_wrong', dir_path.joinpath('bomb_wrong.png'), None, '⚐')
 flag = Asset('flag', dir_path.joinpath('flag.png'), None, '⚑')
 
-if config.allow_noguess:
-    noguess = Asset('no_guess', dir_path.joinpath('no_guess.png'), None, '🕂')
+# не во всех играх есть такая ячейка, но для совместимости оставляем всегда
+# noguess is dummy for compatible purposes
+nuguess_png = dir_path.joinpath('no_guess.png') if config.allow_noguess else None
+noguess = Asset('no_guess', nuguess_png, None, '🕂')
 
+# не во всех играх есть такая ячейка, но для совместимости оставляем всегда
 # под закрытой клеткой находися бомба - для Tk
-if dir_path.joinpath('there_is_bomb.png').exists():
-    # если нет файла, то не создаем объект. Нужно только для редактора поля.
-    there_is_bomb = Asset('there_is_bomb', dir_path.joinpath('there_is_bomb.png'), None, 'ơ')
-
+there_is_bomb_png = dir_path.joinpath('there_is_bomb.png') if config.tk else None
+there_is_bomb = Asset('there_is_bomb', there_is_bomb_png, None, 'ơ')
 
 # smile
 fail = Asset('fail', dir_path.joinpath('face_lose.png'))
@@ -135,10 +138,6 @@ led_digits = [led0, led1, led2, led3, led4, led5, led6, led7, led8, led9]
 digits = [n1, n2, n3, n4, n5, n6, n7, n8]
 open_cells = [n0, n1, n2, n3, n4, n5, n6, n7, n8]
 bombs = [bomb, bomb_red, bomb_wrong]
-all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, bomb_red, bomb_wrong]
+all_cell_types = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, bomb_red, bomb_wrong, noguess, there_is_bomb]
 
-if config.allow_noguess:
-    all_cell_types.append(noguess)
-if 'there_is_bomb' in globals():
-    all_cell_types.append(there_is_bomb)
 

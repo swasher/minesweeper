@@ -1,21 +1,38 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import cv2 as cv
 import win32api
 import win32gui
 import win32con
 import xxhash
+from enum import IntEnum
 
-from asset import asset
+
+from asset import *
+from asset import bombs, digits, open_cells, all_cell_types
 import mouse_controller
 from config import config
 from util import point_in_rect
 from util import random_point_in_square
 from .utility import Color
 
+if TYPE_CHECKING:
+    from asset import Asset
+    from classes import SolveMatrix, PlayMatrix
+    from numpy import ndarray
+
 
 class Cell:
 
-    def __init__(self, matrix, row, col, coordx=0, coordy=0, abscoordx=0, abscoordy=0, w=0, h=0):
+    def __init__(self, matrix: SolveMatrix | PlayMatrix,
+                 row: int, col: int,
+                 coordx: int = 0, coordy: int = 0,
+                 abscoordx: int = 0, abscoordy: int = 0,
+                 w: int = 0, h: int = 0):
         """
+        Определить, является ли ячейка миной, можно обратившиться к матрице и вызвать метод is_mine(self).
+
         :param col: номер ячейки в строке, начиная с 0. Т.е. это СТОЛБЕЦ. Левая ячейка - номер 0 - cell[строка][столбец]
         :param row: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
         :param coordx: коор. на экране X от левого верхнего угла ДОСКИ в пикселях
@@ -41,15 +58,15 @@ class Cell:
         self.w = w
         self.h = h
         # self.status = 'closed'
-        self.asset = None  # Asset instance
-        self.image = None  # Current image of cell; ndarray
+        self.content: Asset | None = None  # Asset instance
+        self.image: ndarray | None = None  # Current image of cell; ndarray
         self.hash = 0  # hash of image
 
     def __repr__(self):
-        return f'{self.asset.name} ({self.row}:{self.col})'
+        return f'{self.content.name} ({self.row}:{self.col})'
 
     def symbol(self):
-        return self.asset.symbol
+        return self.content.symbol
 
     @property
     def is_closed(self):
@@ -58,43 +75,43 @@ class Cell:
         возращаем False для более ясной логики solver-ов
         :return:
         """
-        return True if self.asset == asset.closed else False
+        return True if self.content == closed else False
 
     @property
     def is_flag(self):
-        return True if self.asset == asset.flag else False
+        return True if self.content == flag else False
 
     @property
     def is_bomb(self):
         # Бомбы, которые видны после проигрыша
-        return True if self.asset in asset.bombs else False
+        return True if self.content in bombs else False
 
     @property
     def is_mine(self):
-        # Мины, которые "заложены" в ячейки при игре в Tk сапера.
+        # Является ли миной. Мина определенны в матрце. Используется в сапере Tk.
         return self.matrix.is_mine(self)
 
     @property
     def is_digit(self):
-        return True if self.asset in asset.digits else False
+        return True if self.content in digits else False
 
     @property
     def is_empty(self):
-        return True if self.asset == asset.n0 else False
+        return True if self.content == n0 else False
 
     @property
     def is_open(self):
-        return True if self.asset in asset.open_cells else False
+        return True if self.content in open_cells else False
 
     @property
     def is_noguess(self):
-        return True if self.asset == asset.noguess else False
+        return True if self.content == noguess else False
 
     def set_flag(self):
-        self.asset = asset.flag
+        self.content = flag
 
     def remove_flag(self):
-        self.asset = asset.closed
+        self.content = closed
 
     def set_mine(self):
         """
@@ -123,15 +140,13 @@ class Cell:
         mouse_controller.click(x, y, button)
 
     @property
-    def digit(self):
+    def digit(self) -> int | None:
         """
-        Возвращает цифру ячейки в виде int. Если ячейка - не цифра, возвращает -1
+        Возвращает цифру ячейки в виде int. Если ячейка - не цифра, возвращает None.
         :return: int
         """
-        if self.asset in asset.digits:
-            return int(self.asset.value)
-        else:
-            return -1
+        if self.content in digits:
+            return int(self.content.value)
 
     def hashing(self):
         """
@@ -158,14 +173,14 @@ class Cell:
 
             precision = 0.8
 
-            for pattern in asset.all_cell_types:  # list_patterns imported from cell_pattern
+            for pattern in all_cell_types:  # list_patterns imported from cell_pattern
                 template = pattern.raster
                 res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
                 # print(f'Cell {self.row}:{self.col} compared with <{pattern.name}> with result {max_val}')
                 pattern.similarity = max_val
                 if max_val > precision:
-                    self.asset = pattern
+                    self.content = pattern
                     # deprecated
                     # self.status = pattern.name
                     break

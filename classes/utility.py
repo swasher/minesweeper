@@ -5,10 +5,11 @@ from config import config
 from mouse_controller import MouseButton
 
 
-class State(IntEnum):
+class GameState(IntEnum):
     playing = 0
     win = 1
     fail = 2
+    waiting = 3  # состояние в Tk до начала игры (до первого клика)
 
 
 class Action(IntEnum):

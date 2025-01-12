@@ -14,15 +14,6 @@ conf.read(settings_file, encoding='utf-8')
 conf.read(settings_local_file, encoding='utf-8')
 
 
-# Известные виды сапера. Называние соотв. директории с ассетом.
-# NOT USED (probably)
-# assets = {'Asset_24_1920x1080': 'asset_24_1920x1080',
-#           'Asset_28_2560x1440': 'asset_28_2560x1440',
-#           'Asset_22_2560x1440': 'asset_22_2560x1440',
-#           'Asset_vienna': 'asset_vienna'
-#           }
-
-
 def get_screen_size():
     user32 = ctypes.windll.user32
     user32.SetProcessDPIAware()
@@ -85,6 +76,9 @@ class Configuration(object):
 
         # self.nearby = conf.get(self.asset, 'nearby')
         self.nearby_button = conf.get(self.asset, 'nearby')
+
+        # tk version
+        self.tk = conf.getboolean(self.asset, 'tk')
 
         self.measured_distance = list(map(float, conf.get(self.asset, 'measured_distance').split(",")))
         self.measured_duration = list(map(float, conf.get(self.asset, 'measured_duration').split(",")))

@@ -26,16 +26,17 @@ import time
 from pathlib import Path
 from win32gui import GetWindowRect, GetForegroundWindow
 from enum import IntEnum
+from typing import Callable
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog
 from tktooltip import ToolTip
 
-from asset import asset
+from asset import *
 from classes import PlayMatrix
 from classes import Cell
 from classes import Game
-from classes import State
+from classes import GameState
 from classes import beginner, beginner_new, intermediate, expert
 from mouse_controller import MouseButton
 
@@ -46,6 +47,69 @@ class Mode(IntEnum):
 
 
 asset_dir = Path(__file__).resolve().parent / 'asset' / 'asset_svg'
+
+
+
+
+class GameTimer:
+    def __init__(self, update_callback: Callable[[int], None]):
+        """
+        Инициализация таймера
+
+        Args:
+            update_callback: функция, которая будет вызываться при каждом обновлении времени
+                           принимает один аргумент - количество прошедших секунд
+        """
+        self.seconds = 0
+        self.is_running = False
+        self.update_callback = update_callback
+        self.timer_thread = None
+        self._lock = threading.Lock()
+
+    def _timer_loop(self):
+        """Основной цикл таймера, выполняющийся в отдельном потоке"""
+        while True:
+            with self._lock:
+                if not self.is_running:
+                    break
+                self.seconds += 1
+                # Вызываем callback для обновления отображения
+                self.update_callback(self.seconds)
+            time.sleep(1)
+
+    def start(self):
+        """Запуск таймера"""
+        with self._lock:
+            if not self.is_running:
+                self.is_running = True
+                self.timer_thread = threading.Thread(target=self._timer_loop, daemon=True)
+                self.timer_thread.start()
+
+    def stop(self):
+        """Остановка таймера"""
+        # with self._lock:
+        #     self.is_running = False
+        # if self.timer_thread:
+        #     self.timer_thread.join()
+        with self._lock:
+            self.is_running = False
+
+    def reset(self):
+        """Сброс таймера"""
+        with self._lock:
+            self.seconds = 0
+            self.is_running = False
+        if self.timer_thread:
+            self.timer_thread.join()
+        self.update_callback(0)
+
+    def get_time(self) -> int:
+        """Получить текущее время в секундах"""
+        with self._lock:
+            return self.seconds
+
+
+
 
 
 class MinesweeperApp:
@@ -59,7 +123,13 @@ class MinesweeperApp:
         self.grid_height = self.current_game.height
         self.px = 24  # размер ячейки в px
         self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
-        self.use_timer = False
+
+        self.use_timer = True
+        self.timer = GameTimer(self.update_timer_display)
+        # old timer
+        # self.timer_thread = None
+        # self.timer_running = False
+        # self.start_time = None
 
         self.matrix = PlayMatrix()  # we need matrix initialized matrix for create status bar
         self.matrix.initialize(height=self.grid_height, width=self.grid_width)
@@ -67,7 +137,6 @@ class MinesweeperApp:
 
         self.buttons = {}
         self.mode = Mode.edit
-        self.state = State.playing
         self.mines_is_known = True
         self.load_images()
 
@@ -77,12 +146,7 @@ class MinesweeperApp:
         self.grid_frame = tk.Frame(self.root)
         self.create_grid()
         self.create_sidebar()
-
-        self.timer_thread = None
-        self.timer_running = False
-        self.start_time = None
-
-        self.start_new_game(game=beginner)
+        self.create_fresh_board(game=beginner)
 
     def load_images(self):
         self.images = {
@@ -136,15 +200,15 @@ class MinesweeperApp:
                                image=self.images["face_smile"],
                                highlightthickness=0,
                                borderwidth=0,
-                               command=lambda: self.start_new_game(game=self.current_game))
+                               command=lambda: self.create_fresh_board(game=self.current_game))
         self.smile.pack(expand=True)
 
         # Right frame for timer
         self.right_frame = tk.Frame(self.top_frame, bg='lightgrey')
         self.right_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
-        self.timer = [tk.Label(self.right_frame, image=self.images["led0"]) for _ in range(3)]
-        for label in reversed(self.timer):
+        self.led_timer = [tk.Label(self.right_frame, image=self.images["led0"]) for _ in range(3)]
+        for label in reversed(self.led_timer):
             label.pack(side=tk.RIGHT)
 
 
@@ -161,10 +225,10 @@ class MinesweeperApp:
 
         size_menu = tk.Menu(menu, tearoff=0)
         menu.add_cascade(label="New game", menu=size_menu)
-        size_menu.add_command(label="Beginner (9x9)", command=lambda: self.start_new_game(game=beginner))
-        size_menu.add_command(label="Intermediate (16x16)", command=lambda: self.start_new_game(game=intermediate))
-        size_menu.add_command(label="Expert (30x16)", command=lambda: self.start_new_game(game=expert))
-        size_menu.add_command(label="Custom", command=self.start_new_game)
+        size_menu.add_command(label="Beginner (9x9)", command=lambda: self.create_fresh_board(game=beginner))
+        size_menu.add_command(label="Intermediate (16x16)", command=lambda: self.create_fresh_board(game=intermediate))
+        size_menu.add_command(label="Expert (30x16)", command=lambda: self.create_fresh_board(game=expert))
+        size_menu.add_command(label="Custom", command=self.create_fresh_board)
 
     def create_sidebar(self):
         self.sidebar = tk.Frame(self.root, width=83, padx=3, bg='lightgrey')
@@ -202,6 +266,7 @@ class MinesweeperApp:
         self.status_bar.grid(row=1, column=0, columnspan=2, sticky='we')
 
     def create_grid1(self):
+        # TODO if create_grid1 or create_grid
         # Clear existing buttons
         for widget in self.grid_frame.winfo_children():
             widget.destroy()
@@ -241,9 +306,9 @@ class MinesweeperApp:
                 self.buttons[(x, y)].grid(row=x, column=y)
 
     def update_status_bar(self):
-        if self.get_state == State.win:
+        if self.matrix.get_state == GameState.win:
             self.status_bar.config(text="You win!")
-        elif self.get_state == State.fail:
+        elif self.matrix.get_state == GameState.fail:
             self.status_bar.config(text="You lose!")
         else:
             closed_count = len(self.matrix.get_closed_cells())
@@ -262,7 +327,7 @@ class MinesweeperApp:
                 # TODO если ячейка УЖЕ соотв. матрице, не нужно ее обновлять, это только отнимает процессорное время
 
                 cell = self.matrix.table[x][y]
-                image_name = cell.asset.name
+                image_name = cell.content.name
                 button = self.buttons[(x, y)]
 
                 if image_name in self.images:
@@ -304,7 +369,7 @@ class MinesweeperApp:
         # нам нужно все числа превратить в n0
         digits = self.matrix.get_digit_cells()
         for d in digits:
-            d.asset = asset.n0
+            d.content = asset.n0
 
         self.label_mik_mode.config(text="(Set Bombs)")
 
@@ -339,7 +404,30 @@ class MinesweeperApp:
             self.images["there_is_bomb"] = tk.PhotoImage(file=asset_dir.joinpath("closed.png"))
         self.update_grid()
 
-    def start_new_game(self, game: Game = None):
+    def set_smile(self, state: GameState):
+        match state:
+            case GameState.playing:
+                self.smile.config(image=self.images['face_smile'])
+            case GameState.win:
+                self.smile.config(image=self.images['face_win'])
+            case GameState.fail:
+                self.smile.config(image=self.images['face_fail'])
+            case GameState.waiting:
+                self.smile.config(image=self.images['face_smile'])
+
+    def set_fail(self):
+        self.set_smile(GameState.fail)
+        self.update_grid()
+        if self.use_timer:
+            self.timer.stop()
+
+    def set_win(self):
+        self.set_smile(GameState.win)
+        if self.use_timer:
+            self.timer.stop()
+
+    def create_fresh_board(self, game: Game = None):
+        print('Starting new game')
         if not game:
             size = simpledialog.askstring("Custom Size", "Enter width, height and bombs (e.g., 30x16x99):")
             try:
@@ -348,16 +436,16 @@ class MinesweeperApp:
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter valid ints separated by 'x'.")
 
+        self.timer.reset()
         self.set_custom_size(game)
         self.matrix = PlayMatrix()
         self.matrix.initialize(self.grid_width, self.grid_height)
         self.matrix.create_new_game(n_bombs=game.bombs)
+        print('State:', self.matrix.get_state.name)
+        self.set_smile(self.matrix.get_state)
 
-        self.set_state(State.playing)
         self.update_grid()
         self.matrix.display()
-        if self.use_timer:
-            self.start_timer()
 
     def set_custom_size(self, game: Game = None):
         """
@@ -383,25 +471,16 @@ class MinesweeperApp:
         else:
             messagebox.showerror("Invalid Size", "Width and height must be between 1 and 50.")
 
-    def set_smile(self, state: State):
-        match state:
-            case State.playing:
-                self.smile.config(image=self.images['face_smile'])
-            case State.win:
-                self.smile.config(image=self.images['face_win'])
-            case State.fail:
-                self.smile.config(image=self.images['face_fail'])
-
-
     def click_cell(self, event, x: int, y: int, button: MouseButton):
-        if self.get_state == State.playing:
+        if self.matrix.get_state == GameState.waiting:
+            self.matrix.set_state(GameState.playing)
+            if self.use_timer:
+                self.timer.start()
+
+        if self.matrix.get_state == GameState.playing:
             # print(f'Clicked: {button.name}')
             if self.mode == Mode.play:
-                # мы не можем "переключать" ячейки, а только "открывать" их, а на закрытые ставит флаг.
-                # Нужна логика открытия связанных ячеек.
-                # Если нажали бомбу, то игра заканчивается.
                 self.play_cell(x, y, button)
-                self.matrix.display()
             elif self.mode == Mode.edit:
                 # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
                 # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
@@ -415,21 +494,20 @@ class MinesweeperApp:
 
     def play_cell(self, x, y, button):
         current_cell = self.matrix.table[x][y]
+        print(f'Click: {button}')
 
         if button == MouseButton.left:
-            fail = self.matrix.play_left_button(current_cell)
+            self.matrix.play_left_button(current_cell)
         elif button == MouseButton.right:
-            fail = self.matrix.play_right_button(current_cell)
+            self.matrix.play_right_button(current_cell)
         else:
             raise Exception('Unknown button')
 
-        if fail:
-            print('FAIL')
-            self.set_state(State.fail)
-        else:
-            if len(self.matrix.get_closed_cells()) == 0:
-                self.set_state(State.win)
-                print('WIN')
+        if self.matrix.get_state == GameState.fail:
+            print('Gave over')
+            self.set_fail()
+        if self.matrix.get_state == GameState.win:
+            self.set_win()
 
     #
     # В МАЙН.ТК ОСТАЛОСЬ ПРОВЕРИТЬ ТОЛЬКО ЭТИ ДВА МЕТОДА
@@ -443,10 +521,10 @@ class MinesweeperApp:
         ЗАКРЫТОЙ ЯЧЕЙКОЙ плюс мина в matrix.mines.
         """
         cell: Cell = self.matrix.table[x][y]
-        current_asset = self.matrix.table[x][y].asset
+        content = self.matrix.table[x][y].content
         is_mined = cell.is_mine
 
-        match current_asset, is_mined, button:
+        match content, is_mined, button:
             case asset.closed, False, MouseButton.left:
                 # закрытая - ставим мину (ассет при этом не меняется - остается closed)
                 cell.set_mine()
@@ -468,12 +546,12 @@ class MinesweeperApp:
         cells_to_update = self.matrix.around_opened_cells(cell)
         for c in cells_to_update:
             mines = len(self.matrix.around_mined_cells(c))
-            c.asset = asset.open_cells[mines]
+            c.content = asset.open_cells[mines]
 
         # и в самой ячейке (если она открылась)
         if cell.is_empty:
             mines = len(self.matrix.around_mined_cells(cell))
-            cell.asset = asset.open_cells[mines]
+            cell.content = asset.open_cells[mines]
 
     def edit_cell_digit_mode(self, x, y, button):
 
@@ -481,50 +559,33 @@ class MinesweeperApp:
         # =-----
 
         cell: Cell = self.matrix.table[x][y]
-        current_asset = self.matrix.table[x][y].asset
+        content = self.matrix.table[x][y].content
         rotating_states = [asset.closed, asset.n0, asset.n1, asset.n2, asset.n3, asset.n4, asset.n5, asset.n6, asset.n7,
                            asset.n8]
 
-        print(f'Is flag: {current_asset==asset.flag}')
-        match current_asset, button:
+        print(f'Is flag: {content==asset.flag}')
+        match content, button:
 
             case asset.flag, MouseButton.right:
                 # удаляем флаг
                 cell.remove_flag()
                 print('rem f')
 
-            case current_asset, MouseButton.right:
+            case content, MouseButton.right:
                 # устанавливаем флаг
                 cell.set_flag()
                 print('set f')
 
-            case current_asset, MouseButton.left:
-                if current_asset in rotating_states:
-                    next_asset = rotating_states[(rotating_states.index(current_asset) + 1) % len(rotating_states)]
-                    cell.asset = next_asset
-                    print('Assign:', cell.asset)
+            case content, MouseButton.left:
+                if content in rotating_states:
+                    next_asset = rotating_states[(rotating_states.index(content) + 1) % len(rotating_states)]
+                    cell.content = next_asset
+                    print('Assign:', cell.content)
                 pass
 
             case _:
                 print('None equals')
 
-    def set_state(self, state: State):
-        self.state = state
-        if state in (State.win, State.fail):
-            self.stop_timer()
-        self.set_smile(state)
-
-    @property
-    def get_state(self):
-        return self.state
-
-    """
-    Four methods for clock's
-    """
-    def update_timer(self, elapsed_time):
-        time_str = f"{elapsed_time:03d}"
-        for i, digit in enumerate(time_str):
-            self.timer[i].config(image=self.images[f"led{digit}"])
 
     def update_mine_counter(self):
         count = len(self.matrix.get_mined_cells()) - len(self.matrix.get_flag_cells())
@@ -532,28 +593,54 @@ class MinesweeperApp:
         for i, digit in enumerate(count_str):
             self.mine_counter[i].config(image=self.images[f"led{digit}"])
 
-    def start_timer(self):
-        if self.timer_thread and self.timer_thread.is_alive():
-            self.timer_running = False
-            self.timer_thread.join()
+    # """
+    # Four methods for clock's
+    # """
+    # def update_timer(self, elapsed_time):
+    #     time_str = f"{elapsed_time:03d}"
+    #     for i, digit in enumerate(time_str):
+    #         self.timer[i].config(image=self.images[f"led{digit}"])
+    #
+    #
+    # def start_timer(self):
+    #     if self.timer_thread and self.timer_thread.is_alive():
+    #         self.timer_running = False
+    #         self.timer_thread.join()
+    #
+    #     self.start_time = time.time()
+    #     self.timer_running = True
+    #     self.timer_thread = threading.Thread(target=self.update_timer_thread)
+    #     self.timer_thread.start()
+    #
+    # def update_timer_thread(self):
+    #     while self.timer_running:
+    #         elapsed_time = int(time.time() - self.start_time)
+    #         self.root.after(1000, self.update_timer, elapsed_time)
+    #         time.sleep(1)
+    #
+    # def stop_timer(self):
+    #     self.timer_running = False
+    #     if self.timer_thread:
+    #         self.timer_thread.join()
+    #
+    # def reset_timer(self):
+    #     count_str = f"{0:03d}"
+    #     for i, digit in enumerate(count_str):
+    #         self.mine_counter[i].config(image=self.images[f"led{digit}"])
+    # """
+    # END
+    # """
 
-        self.start_time = time.time()
-        self.timer_running = True
-        self.timer_thread = threading.Thread(target=self.update_timer_thread)
-        self.timer_thread.start()
-
-    def update_timer_thread(self):
-        while self.timer_running:
-            elapsed_time = int(time.time() - self.start_time)
-            self.root.after(1000, self.update_timer, elapsed_time)
-            time.sleep(1)
-
-    def stop_timer(self):
-        self.timer_running = False
-        if self.timer_thread:
-            self.timer_thread.join()
     """
-    END
+    новые методы для таймера
+    """
+    def update_timer_display(self, seconds: int):
+        # Обновление отображения времени в интерфейсе
+        time_str = f"{seconds:03d}"
+        for i, digit in enumerate(time_str):
+            self.led_timer[i].config(image=self.images[f"led{digit}"])
+    """
+    end
     """
 
 
@@ -581,7 +668,7 @@ class MinesweeperApp:
         self.matrix.region_y1 = y1
         self.matrix.region_x2 = x2-9
         self.matrix.region_y2 = y2-9
-        self.matrix.save()
+        self.matrix.save(mode="tk")
 
     def load_matrix(self):
         file_path = filedialog.askopenfilename(
@@ -599,7 +686,7 @@ class MinesweeperApp:
             print("Field loaded successfully!")
 
     def on_closing(self):
-        self.stop_timer()  # Stop the timer thread
+        self.timer.stop()  # Stop the timer thread
         self.root.destroy()  # Close the application
 
 
