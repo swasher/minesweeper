@@ -19,7 +19,7 @@ cell.is_mine - это спрятанная в ячейке бомба (в сет
 # TODO пока юзер держит мышку, закрытые ячейки вокруг визуально меняем на открытые (как-бы подсвечиваем)
 
 import os
-import pickle
+import argparse
 import threading
 import time
 from pathlib import Path
@@ -109,7 +109,7 @@ class GameTimer:
 
 
 class MinesweeperApp:
-    def __init__(self, root):
+    def __init__(self, root, matrix_file=None):
         self.root = root
         self.root.geometry("300x300")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)  # Bind the close event
@@ -153,6 +153,8 @@ class MinesweeperApp:
         self.canvas.bind("<Button-1>", self.on_canvas_click_left)
         self.canvas.bind("<Button-3>", self.on_canvas_click_right)
 
+        if matrix_file:
+            self.load_matrix(matrix_file)
     def load_images(self):
         self.images = {
             "closed": tk.PhotoImage(file=asset.closed.filename),
@@ -592,16 +594,18 @@ class MinesweeperApp:
     def save_matrix(self):
         self.matrix.save(mine_mode=self.mine_mode)
 
-    def load_matrix(self):
-        file_path = filedialog.askopenfilename(
-            initialdir=os.path.dirname(__file__) + '/saves',
-            filetypes=[("txt", "*.txt")])
-        if file_path:
-            # with open(file_path, 'rb') as inp:
-            #     self.matrix = pickle.load(inp)
-            #     self.matrix.display()
-            #
+    def load_matrix(self, matrix_file=None):
+        save_storage_dir = Path(__file__).resolve().parent / 'saves'
 
+        if not matrix_file:
+            matrix_file = filedialog.askopenfilename(
+                initialdir=os.path.dirname(__file__) + '/saves',
+                filetypes=[("txt", "*.txt")]
+            )
+
+        file_path = save_storage_dir / matrix_file
+
+        if matrix_file:
             self.matrix.load(file_path)
             w, h = self.matrix.width, self.matrix.height
             g = Game(w, h, bombs=0)
@@ -615,7 +619,15 @@ class MinesweeperApp:
         self.root.destroy()  # Close the application
 
 
-if __name__ == "__main__":
+def main(load_matrix=None):
     root = tk.Tk()
-    app = MinesweeperApp(root)
+    app = MinesweeperApp(root, load_matrix)
     root.mainloop()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run the Minesweeper editor and game.")
+    parser.add_argument('--matrix', type=str, help='Load the matrix from file')
+    args = parser.parse_args()
+
+    main(args.matrix)  # Запускаем приложение с параметром из командной строки
