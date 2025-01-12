@@ -87,7 +87,7 @@ class Cell:
         return True if self.content in bombs else False
 
     @property
-    def is_mine(self):
+    def is_mined(self):
         # Является ли миной. Мина определенны в матрце. Используется в сапере Tk.
         return self.matrix.is_mine(self)
 

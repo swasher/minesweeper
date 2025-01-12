@@ -6,11 +6,12 @@ import time
 import secrets
 import pickle
 import cv2 as cv
+from enum import IntEnum
 
 import numpy as np
 from itertools import product
 
-from asset import asset
+from asset import *
 from .cell import Cell
 import mouse_controller
 from mouse_controller import MouseButton as mb
@@ -23,6 +24,11 @@ from .utility import GameState
 Соглашения:
 get_closed - возвращает только закрытые и НЕ отмеченные флагами
 """
+
+
+class MineMode(IntEnum):
+    PREDEFINED = 0
+    UNDEFINED = 1
 
 
 class Matrix(object):
@@ -169,7 +175,7 @@ class Matrix(object):
         :param cell: instance of Cell class
         :return: array of Cell instances
         """
-        mines = list([x for x in self.around_cells(cell) if x.is_mine])
+        mines = list([x for x in self.around_cells(cell) if x.is_mined])
         return mines
 
     def get_closed_cells(self) -> list[Cell]:
@@ -302,44 +308,193 @@ class Matrix(object):
     #     image = self.get_image()
     #     cv.imwrite(os.path.join(dir, image_file), image)
 
-    def save(self, mode: str):
+    def save(self, mine_mode: MineMode):
         """
         Сохраняет Матрицу в текстовый файл.
+
+        РЕЖИМЫ ПОД ВОПРОСОМ!!!!!!
         Режимы:
-        - 'tk' - матрица знает о расположении мин (для Tk)
-        - 'screen' - матрица не знает о расположении мин (для экранной версии)
+        - PREDEFINED - матрица знает о расположении мин (для Tk)
+        - UNDEFINED - матрица не знает о расположении мин (для Tk и экранной версии)
+
+        × - закрытая клетка
+        ơ - закрытая клетка с миной (только для PREDEFINED)
+        ⚑ - флаг
+        ⚐ - неверно поставленный флаг (мины нет) (только для PREDEFINED)
+        · - открытая клетка (0)
+        1-8 - открытая клетка с цифрой
+
+        Формат:
+
+        [properties]
+        width = 8
+        height = 8
+        mine_mode = PREDEFINED | UNDEFINED
+
+        [matrix]
+        × × × ơ × × × × ×
+        × × × 2 × × ơ × ×
+        ơ × 1 ơ 1 1 1 1 ×
+        × × 2 1 1 · · 1 ⚐
+        × ơ 2 × 1 · · 1 ⚑
+        × × × ơ 2 1 · 2 2
+        × × × × ⚑ 2 1 1 ⚑
+        × × × × × ⚑ 1 1 1
+        × × × × × × × × ⚐
+
+        [solutions]
+        # reserved for future use
         """
         dir = 'saves'
-        file_name = 'save_' + datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f")
+        file_name = 'save_' + datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f") + '.txt'
         file_path = os.path.join(dir, file_name)
 
         if not os.path.exists(dir):
             os.makedirs(dir)
 
         with open(file_path, 'w', encoding='utf-8') as outp:
+            # Записываем секцию матрицы
+            outp.write("[properties]\n")
+            outp.write(f"width = {self.width}\n")
+            outp.write(f"height = {self.height}\n")
+            mode = mine_mode.name
+            outp.write(f"mode = {mode}\n")
+
+            outp.write("\n[matrix]\n")
             for row in range(self.height):
                 line = ''
                 for col in range(self.width):
                     cell = self.table[row, col]
-                    if mode == 'tk' and (row, col) in self.mines and cell.content == asset.closed:
-                        line += 'ơ'
+
+                    if mine_mode == MineMode.PREDEFINED and cell.is_mined and cell.content == asset.closed:
+                        line += there_is_bomb.symbol  # 'ơ'
+                    elif mine_mode == MineMode.PREDEFINED and not cell.is_mined and cell.content == asset.flag:
+                        line += bomb_wrong.symbol  # '⚐'
                     else:
                         line += cell.content.symbol
+
+                line = ' '.join(line)
                 outp.write(line + '\n')
 
-    def load(self, file_name: str):
+            outp.write("\n[solution]")
+        print('Matrix saved to', file_path)
+
+    def load(self, file_path: str):
         """
         Загружает Матрицу из текстового файла.
-        Режимы:
-        - 'bomb' - матрица знает о расположении мин (для Tk)
-        - 'no-bomb' - матрица не знает о расположении мин (для экранной версии)
+        См. метод save() для описания формата файлат и символов.
+
+        Args:
+            file_path (str): Путь к файлу сохранения
+
+        Returns:
+            None
+
+        Raises:
+            FileNotFoundError: Если файл не найден
+            ValueError: Если формат файла некорректен
         """
-        pass
+        import os
+        from asset import asset
+
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Save file not found: {file_path}")
+
+        # Словарь для обратного преобразования: буква -> asset
+        symbol_to_asset = {
+            asset.closed.symbol: asset.closed,
+            asset.flag.symbol: asset.flag,
+            asset.there_is_bomb.symbol: asset.there_is_bomb,
+            asset.bomb_wrong.symbol: asset.bomb_wrong,
+        }
+
+        # Добавляем цифры от 0 до 8
+        for i, digit_asset in enumerate(asset.open_cells):
+            symbol_to_asset[digit_asset.symbol] = digit_asset
+
+        current_section = None
+        matrix_data = []
+
+        with open(file_path, 'r', encoding='utf-8') as inp:
+            for line in inp:
+                line = line.strip()
+
+                # Пропускаем пустые строки
+                if not line:
+                    continue
+
+                # Обработка заголовков секций
+                if line.startswith('[') and line.endswith(']'):
+                    current_section = line[1:-1]
+                    continue
+
+                if current_section == 'properties':
+                    key, value = line.split(' = ')
+                    if key == 'width':
+                        self.width = int(value)
+                    elif key == 'height':
+                        self.height = int(value)
+                    elif key == 'mode':
+                        if value in ['PREDEFINED', 'UNDEFINED']:
+                            loaded_mine_mode = MineMode[value]
+                        else:
+                            raise ValueError(f"Invalid mode: {value}")
+
+                elif current_section == 'matrix':
+                    # Убираем пробелы между символами, если они есть
+                    line = ''.join(line.split())
+                    matrix_data.append(line)
+
+                elif current_section == 'solution':
+                    # reserved for future use
+                    ...
+
+        # # Проверяем соответствие размеров
+        # if len(matrix_data) != self.height:
+        #     raise ValueError(f"Matrix height mismatch: expected {self.height}, got {len(matrix_data)}")
+        # if any(len(row) != self.width for row in matrix_data):
+        #     raise ValueError("Matrix width mismatch")
+
+        # Инициализируем матрицу
+        self.table = np.full((self.height, self.width), Cell)
+        self.mines = set()
+
+        # Заполняем матрицу данными
+        for row in range(self.height):
+            for col in range(self.width):
+                symbol = matrix_data[row][col]
+                cell = Cell(self, row=row, col=col)
+
+                # Конвертируем символ в asset
+                if symbol not in symbol_to_asset:
+                    raise ValueError(f"Unknown symbol in save file: {symbol}")
+                cell.content = symbol_to_asset[symbol]
+
+                # Если это мина, то добавляем в список мин, а ячейку закрываем
+                if cell.content == asset.there_is_bomb:
+                    self.mines.add((row, col))
+                    cell.content = asset.closed
+
+                # # Если это "правильный" флаг, то значит в ячейке есть мина
+                if cell.content == asset.flag:
+                    self.mines.add((row, col))
+                    cell.content = asset.flag
+
+
+                # Если это "неправильный" флаг, то значит в ячейке мины нет, а флаг нужно заменить на обычный, чтобы
+                # получилось как перед сохранением
+                if cell.content == asset.bomb_wrong:
+                    cell.content = asset.flag
+
+                self.table[row, col] = cell
+
+        print(f'Matrix loaded from {file_path}')
+        self.display()
 
     def reset(self):
         """
         Нажимает на рожицу, чтобы перезапустить поле
-        TODO BUG Рожицы нет в играх на маленьких полях
+        TODO BUG Рожицы нет в играх на маленьких полях - на кастомных полях MinSweeper.Online шириной 7 и меньше
         :return:
 
         Сделать, чтобы эти настройки брались из asset.
@@ -367,89 +522,3 @@ class Matrix(object):
 
 
 
-    # попытка уменьщить размер текста, но не завелось
-    # def show_debug_text(self):
-    #     """
-    #     Показывает текст на ячейках, который содержится в каждой ячейке в debug_text, в пределах ограниченной области.
-    #     Убирает текст после нажатия любой клавиши, восстанавливая исходное состояние области.
-    #     """
-    #     # Координаты области
-    #     x1, y1, x2, y2 = self.region_x1, self.region_y1, self.region_x2, self.region_y2
-    #     width = x2 - x1
-    #     height = y2 - y1
-    #
-    #     # Получаем контекст устройства для области экрана
-    #     hdesktop = win32gui.GetDesktopWindow()
-    #     desktop_dc = win32gui.GetWindowDC(hdesktop)
-    #
-    #     # Создаем контекст устройства для сохранения области
-    #     mem_dc = win32ui.CreateDCFromHandle(desktop_dc)
-    #     save_dc = mem_dc.CreateCompatibleDC()
-    #
-    #     # Создаем битмап для сохранения области
-    #     save_bitmap = win32ui.CreateBitmap()
-    #     save_bitmap.CreateCompatibleBitmap(mem_dc, width, height)
-    #     save_dc.SelectObject(save_bitmap)
-    #
-    #     # Сохраняем область экрана в битмап
-    #     save_dc.BitBlt((0, 0), (width, height), mem_dc, (x1, y1), win32con.SRCCOPY)
-    #
-    #     font_params = {
-    #         'height': 16,
-    #         'width': 0,
-    #         'escapement': 0,
-    #         'orientation': 0,
-    #         'weight': win32con.FW_NORMAL,
-    #         'italic': False,
-    #         'underline': False,
-    #         # 'strikeout': False,
-    #         'charset': win32con.ANSI_CHARSET,
-    #         # 'out_precision': win32con.OUT_TT_PRECIS,
-    #         # 'clip_precision': win32con.CLIP_DEFAULT_PRECIS,
-    #         'quality': win32con.DEFAULT_QUALITY,
-    #         # 'pitch_and_family': win32con.DEFAULT_PITCH | win32con.FF_DONTCARE,
-    #         'name': "Arial"
-    #     }
-    #
-    #     try:
-    #         # Создаем шрифт с меньшим размером
-    #         font_height = 12  # Высота шрифта (в пикселях)
-    #         hfont = win32ui.CreateFont(font_params)
-    #
-    #         # Устанавливаем шрифт в контексте устройства
-    #         old_font = save_dc.SelectObject(hfont)
-    #
-    #         # Рисуем текст поверх экрана
-    #         for row in self.table:
-    #             for cell in row:
-    #                 if cell.debug_text is not None:
-    #                     rect = (
-    #                         cell.abscoordx,
-    #                         cell.abscoordy,
-    #                         cell.abscoordx + cell.w,
-    #                         cell.abscoordy + cell.h
-    #                     )
-    #
-    #                     # Рисуем текст только если ячейка попадает в область
-    #                     if (
-    #                             rect[0] >= x1 and rect[1] >= y1 and
-    #                             rect[2] <= x2 and rect[3] <= y2
-    #                     ):
-    #                         win32gui.DrawText(desktop_dc, cell.debug_text, -1, rect, win32con.DT_LEFT)
-    #                         cell.debug_text = None
-    #
-    #         # Ждем нажатия клавиши
-    #         # keyboard.wait('space')
-    #         keyboard.read_event()
-    #
-    #         # Восстанавливаем старый шрифт после рисования
-    #         save_dc.SelectObject(old_font)
-    #         # Восстанавливаем область экрана из сохраненного битмапа
-    #         mem_dc.BitBlt((x1, y1), (width, height), save_dc, (0, 0), win32con.SRCCOPY)
-    #
-    #     finally:
-    #         # Очистка ресурсов
-    #         win32gui.DeleteObject(save_bitmap.GetHandle())
-    #         save_dc.DeleteDC()
-    #         mem_dc.DeleteDC()
-    #         win32gui.ReleaseDC(hdesktop, desktop_dc)

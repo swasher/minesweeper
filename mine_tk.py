@@ -14,10 +14,9 @@ cell.is_mine - это спрятанная в ячейке бомба (в сет
 """
 
 # 💣🚩
-# TODO В Play mode можно перейти, только если был включен bomb mode
-# TODO После загрузки Pickle устанавливать ??? режим
 # TODO При редактировании проверять поле на валидность
 # TODO Сделать расширенный режим генерации поля с проверками на валидность 
+# TODO пока юзер держит мышку, закрытые ячейки вокруг визуально меняем на открытые (как-бы подсвечиваем)
 
 import os
 import pickle
@@ -30,10 +29,12 @@ from typing import Callable
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog
+from tkinter import font
 from tktooltip import ToolTip
 
 from asset import *
 from classes import PlayMatrix
+from classes import MineMode
 from classes import Cell
 from classes import Game
 from classes import GameState
@@ -113,6 +114,10 @@ class MinesweeperApp:
         self.root.geometry("300x300")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)  # Bind the close event
 
+        # Определение шрифтов
+        self.segoe_normal = font.Font(family="Segoe UI", size=10, weight="normal")
+        self.segoe_bold = font.Font(family="Segoe UI", size=10, weight="bold")
+
         self.current_game = beginner
         self.grid_width = self.current_game.width
         self.grid_height = self.current_game.height
@@ -127,7 +132,7 @@ class MinesweeperApp:
         self.matrix.create_new_game(n_bombs=self.current_game.bombs)
 
         self.mode = Mode.edit
-        self.mines_is_known = True
+        self.mine_mode = MineMode.PREDEFINED
         self.load_images()
 
         self.create_top_frame()
@@ -233,29 +238,40 @@ class MinesweeperApp:
         self.sidebar.grid(row=1, column=0, rowspan=self.grid_height, sticky='ns')
         self.sidebar.grid_propagate(False)  # Prevent the sidebar from resizing based on its children
 
-        self.edit_button = tk.Button(master=self.sidebar, text="Edit mode", command=lambda: self.set_mode(Mode.edit))
+        # Edit mode button
+        self.edit_button = tk.Button(master=self.sidebar,
+                                     text="Edit mode",
+                                     font=self.segoe_bold,
+                                     command=lambda: self.set_mode(Mode.edit))
         self.edit_button.grid(row=0, column=0, pady=5)
-        ToolTip(self.edit_button, msg="Для Edit Mode нужно установить соотв. Bomb Mode")
+        ToolTip(self.edit_button, msg="Для Edit Mode нужно установить соотв. Mines Mode. Левая кнопка - ставить флаги.")
 
-        self.checkbutton_mik = tk.Checkbutton(master=self.sidebar, text="", command=self.update_mines_is_known_button)
-        self.checkbutton_mik.grid(row=2, column=0, pady=5)
-        ToolTip(self.checkbutton_mik, msg="Mines is known. ON - Мы устанавливаем бомбы, цифры ставятся автоматически."
-                                          " OFF - Мы устанавливаем цифры, положение бомб в матрице неопределено")
-        self.checkbutton_mik.select() if self.checkbutton_mik else self.checkbutton_mik.deselect()
+        # Mines is known checkbox
+        self.checkbutton_mik = tk.Checkbutton(master=self.sidebar, text="", command=self.update_mine_mode_button, bg='lightgrey')
+        self.checkbutton_mik.grid(row=2, column=0, pady=0)
+        ToolTip(self.checkbutton_mik, msg="ON - Мы устанавливаем мины, цифры ставятся автоматически."
+                                          " OFF - Мы устанавливаем цифры, положение мин в матрице неопределено")
+        self.checkbutton_mik.select() if self.mine_mode == MineMode.PREDEFINED else self.checkbutton_mik.deselect()
 
-        self.label_mik_mode = tk.Label(self.sidebar, text="(Set Bombs)")
-        self.label_mik_mode.grid(row=3, column=0, pady=5)
+        # Label for Mines is known mode
+        self.label_mik_mode = tk.Label(self.sidebar, text="(Set Bombs)", bg='lightgrey')
+        self.label_mik_mode.grid(row=3, column=0, pady=(0, 20))
 
-        self.play_button = tk.Button(master=self.sidebar, text="Play mode", command=lambda: self.set_mode(Mode.play))
+        # Play mode button
+        self.play_button = tk.Button(master=self.sidebar,
+                                     text="Play mode",
+                                     font=self.segoe_normal,
+                                     command=lambda: self.set_mode(Mode.play)
+                                     )
         self.play_button.grid(row=4, column=0, pady=5)
         ToolTip(self.play_button, msg="Выходим из режима редактирования, и можем 'играть' в текущее поле")
 
-        if self.mode == Mode.edit:
-            self.edit_button.config(font=("Helvetica", 10, "bold"))
-            self.play_button.config(font=("Helvetica", 10, "normal"))
-        elif self.mode == Mode.play:
-            self.edit_button.config(font=("Helvetica", 10, "normal"))
-            self.play_button.config(font=("Helvetica", 10, "bold"))
+        # if self.mode == Mode.edit:
+        #     self.edit_button.config(font=("Segoe UI Black", 8, "normal"))
+        #     self.play_button.config(font=("Segoe UI", 8, "normal"))
+        # elif self.mode == Mode.play:
+        #     self.edit_button.config(font=("Segoe UI", 8, "normal"))
+        #     self.play_button.config(font=("Times New Roman", 8, "bold"))
 
     def create_status_bar(self):
         self.status_bar_frame = tk.Frame(self.root)
@@ -272,182 +288,6 @@ class MinesweeperApp:
             bg='lightgray'  # Add background color to see canvas bounds
         )
         self.canvas.grid(row=0, column=0, sticky='nw')
-
-    def fill_canvas(self):
-        """Create grid using canvas instead of buttons"""
-        # Clear existing canvas items
-        self.canvas.delete("all")
-
-        # Update canvas size
-        self.canvas.config(
-            width=self.grid_width * self.cell_size,
-            height=self.grid_height * self.cell_size
-        )
-
-        # Create cells
-        for row in range(self.grid_height):
-            for col in range(self.grid_width):
-                # Calculate pixel coordinates
-                x1 = col * self.cell_size  # Changed from y to col
-                y1 = row * self.cell_size  # Changed from x to row
-                x2 = x1 + self.cell_size
-                y2 = y1 + self.cell_size
-
-                # Create cell image on canvas
-                cell_id = self.canvas.create_image(
-                    x1,  # Left coordinate
-                    y1,  # Top coordinate
-                    image=self.images["closed"],
-                    anchor="nw",  # Anchor to top-left corner
-                    tags=f"cell_{row}_{col}"  # Changed from x,y to row,col
-                )
-
-                # Store cell coordinates for later reference
-                self.cells[(row, col)] = {
-                    'id': cell_id,
-                    'coords': (x1, y1, x2, y2)
-                }
-
-        # Force update
-        self.canvas.update()
-
-    def update_status_bar(self):
-        if self.matrix.get_state == GameState.win:
-            self.status_bar.config(text="You win!")
-        elif self.matrix.get_state == GameState.fail:
-            self.status_bar.config(text="You lose!")
-        else:
-            closed_count = len(self.matrix.get_closed_cells())
-            mine_count = len(self.matrix.get_mined_cells())
-            opened_count = len(self.matrix.get_open_cells())
-            flag_count = len(self.matrix.get_flag_cells())
-            self.status_bar.config(text=f"Closed:{closed_count}, Mines:{mine_count}, Open:{opened_count}, Flags:{flag_count}")
-
-    def on_canvas_click_left(self, event):
-        """Handle left click on canvas"""
-        x, y = self.get_cell_from_coords(event.x, event.y)
-        if x is not None and y is not None:
-            self.click_cell(event, x, y, MouseButton.left)
-
-    def on_canvas_click_right(self, event):
-        """Handle right click on canvas"""
-        x, y = self.get_cell_from_coords(event.x, event.y)
-        if x is not None and y is not None:
-            self.click_cell(event, x, y, MouseButton.right)
-
-    def get_cell_from_coords(self, canvas_x, canvas_y):
-        """Convert canvas coordinates to grid coordinates"""
-        grid_x = int(canvas_y // self.cell_size)
-        grid_y = int(canvas_x // self.cell_size)
-
-        if 0 <= grid_x < self.grid_height and 0 <= grid_y < self.grid_width:
-            return grid_x, grid_y
-        return None, None
-
-    def update_grid(self):
-        """
-        Обновляет визуальное отображение в соответствии с объектом Matrix
-        """
-        for row in range(self.grid_height):
-            for col in range(self.grid_width):
-                cell = self.matrix.table[row][col]
-                image_name = cell.content.name
-                cell_id = self.cells[(row, col)]['id']
-
-                if image_name in self.images:
-                    if (self.mode == Mode.edit and self.mines_is_known is True
-                            and cell.is_closed and cell.is_mine):
-                        img = self.images['there_is_bomb']
-                    else:
-                        img = self.images[image_name]
-
-                    # Update cell image
-                    self.canvas.itemconfig(cell_id, image=img)
-                else:
-                    raise Exception(f"Image not found: {image_name}")
-
-        self.update_status_bar()
-
-    def update_mines_is_known_button(self):
-        if self.mines_is_known:
-            response = messagebox.askyesno("Warning",
-                                           "Это удалит все установленные мины с поля.")
-            if response:
-                self.mines_is_known = not self.mines_is_known
-                self.checkbutton_mik.deselect()
-                self.switch_to_mik_off()
-        else:
-            response = messagebox.askyesno("Warning",
-                                           "Все цифры станут просто открытыми ячейками (0). Можно расставить бомбы")
-            if response:
-                self.mines_is_known = not self.mines_is_known
-                self.checkbutton_mik.select()
-                self.switch_to_mik_on()
-
-    def switch_to_mik_on(self):
-        """
-        Переключение в режим "расстановка бомб"
-        """
-        # значит, у нас дана матрица с закрытыми ячейками и числами....
-        # нам нужно все числа превратить в n0
-        digits = self.matrix.get_digit_cells()
-        for d in digits:
-            d.content = asset.n0
-
-        self.label_mik_mode.config(text="(Set Bombs)")
-
-        self.update_grid()
-
-    def switch_to_mik_off(self):
-        """
-        Переключение в режим "расстановка чисел"
-        """
-        # Нам нужно убрать все "установленные бомбы"
-        self.matrix.mines = set()
-        self.label_mik_mode.config(text="(Set Digits)")
-        self.update_grid()
-
-    def set_mode(self, mode):
-        """
-        Switch from Edit to Play mode and back.
-        :param mode:
-        :return:
-        """
-        self.mode = mode
-        print(f"Mode set to: {self.mode.name}")
-
-        # Update button fonts
-        if self.mode == Mode.edit:
-            self.edit_button.config(font=("Helvetica", 10, "bold"))
-            self.play_button.config(font=("Helvetica", 10, "normal"))
-            self.images["there_is_bomb"] = tk.PhotoImage(file=asset_dir.joinpath("there_is_bomb.png"))
-        elif self.mode == Mode.play:
-            self.edit_button.config(font=("Helvetica", 10, "normal"))
-            self.play_button.config(font=("Helvetica", 10, "bold"))
-            self.images["there_is_bomb"] = tk.PhotoImage(file=asset_dir.joinpath("closed.png"))
-        self.update_grid()
-
-    def set_smile(self, state: GameState):
-        match state:
-            case GameState.playing:
-                self.smile.config(image=self.images['face_smile'])
-            case GameState.win:
-                self.smile.config(image=self.images['face_win'])
-            case GameState.fail:
-                self.smile.config(image=self.images['face_fail'])
-            case GameState.waiting:
-                self.smile.config(image=self.images['face_smile'])
-
-    def set_fail(self):
-        self.set_smile(GameState.fail)
-        self.update_grid()
-        if self.use_timer:
-            self.timer.stop()
-
-    def set_win(self):
-        self.set_smile(GameState.win)
-        if self.use_timer:
-            self.timer.stop()
 
     def create_fresh_board(self, game: Game = None):
         print('Starting new game')
@@ -500,120 +340,98 @@ class MinesweeperApp:
         else:
             messagebox.showerror("Invalid Size", "Width and height must be between 1 and 50.")
 
-    def click_cell(self, event, x: int, y: int, button: MouseButton):
-        if self.matrix.get_state == GameState.waiting:
-            self.matrix.set_state(GameState.playing)
-            if self.use_timer:
-                self.timer.start()
 
-        if self.matrix.get_state == GameState.playing:
-            # print(f'Clicked: {button.name}')
-            if self.mode == Mode.play:
-                self.play_cell(x, y, button)
-            elif self.mode == Mode.edit:
-                # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
-                # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
-                if self.mines_is_known:
-                    self.edit_cell_bomb_mode(x, y, button)
-                else:
-                    self.edit_cell_digit_mode(x, y, button)
+    def fill_canvas(self):
+        """Create grid using canvas instead of buttons"""
+        # Clear existing canvas items
+        self.canvas.delete("all")
 
-            self.update_grid()
-            self.update_status_bar()
+        # Update canvas size
+        self.canvas.config(
+            width=self.grid_width * self.cell_size,
+            height=self.grid_height * self.cell_size
+        )
 
-    def play_cell(self, x, y, button):
-        current_cell = self.matrix.table[x][y]
-        print(f'Click: {button}')
+        # Create cells
+        for row in range(self.grid_height):
+            for col in range(self.grid_width):
+                # Calculate pixel coordinates
+                x1 = col * self.cell_size  # Changed from y to col
+                y1 = row * self.cell_size  # Changed from x to row
+                x2 = x1 + self.cell_size
+                y2 = y1 + self.cell_size
 
-        if button == MouseButton.left:
-            self.matrix.play_left_button(current_cell)
-        elif button == MouseButton.right:
-            self.matrix.play_right_button(current_cell)
-        else:
-            raise Exception('Unknown button')
+                # Create cell image on canvas
+                cell_id = self.canvas.create_image(
+                    x1,  # Left coordinate
+                    y1,  # Top coordinate
+                    image=self.images["closed"],
+                    anchor="nw",  # Anchor to top-left corner
+                    tags=f"cell_{row}_{col}"  # Changed from x,y to row,col
+                )
 
-        if self.matrix.get_state == GameState.fail:
-            print('Gave over')
-            self.set_fail()
+                # Store cell coordinates for later reference
+                self.cells[(row, col)] = {
+                    'id': cell_id,
+                    'coords': (x1, y1, x2, y2)
+                }
+
+        # Force update
+        self.canvas.update()
+
+    def update_status_bar(self):
         if self.matrix.get_state == GameState.win:
-            self.set_win()
+            self.status_bar.config(text="You win!")
+        elif self.matrix.get_state == GameState.fail:
+            self.status_bar.config(text="You lose!")
+        else:
+            closed_count = len(self.matrix.get_closed_cells())
+            mine_count = len(self.matrix.get_mined_cells())
+            opened_count = len(self.matrix.get_open_cells())
+            flag_count = len(self.matrix.get_flag_cells())
+            self.status_bar.config(text=f"Closed:{closed_count}, Mines:{mine_count}, Open:{opened_count}, Flags:{flag_count}")
 
-    #
-    # В МАЙН.ТК ОСТАЛОСЬ ПРОВЕРИТЬ ТОЛЬКО ЭТИ ДВА МЕТОДА
-    # ОСТАЛЬНОЕ В ЛОГИКЕ MATRIX play_left_button И play_right_button
-    #
-
-    def edit_cell_bomb_mode(self, x, y, button):
+    def update_grid(self):
         """
-        Нам нужно итерировать состояние ячейки по нескольким ассетам ПЛЮС
-        закрытая ячейка с бомбой. Для этого введен псевдо-ассет there_is_bomb, который на самом деле является
-        ЗАКРЫТОЙ ЯЧЕЙКОЙ плюс мина в matrix.mines.
+        Обновляет визуальное отображение в соответствии с объектом Matrix
         """
-        cell: Cell = self.matrix.table[x][y]
-        content = self.matrix.table[x][y].content
-        is_mined = cell.is_mine
+        for row in range(self.grid_height):
+            for col in range(self.grid_width):
+                cell = self.matrix.table[row][col]
+                image_name = cell.content.name
+                cell_id = self.cells[(row, col)]['id']
 
-        match content, is_mined, button:
-            case asset.closed, False, MouseButton.left:
-                # закрытая - ставим мину (ассет при этом не меняется - остается closed)
-                cell.set_mine()
-            case asset.closed, True, MouseButton.left:
-                # мина -> открываем
-                cell.remove_mine()
-                cell.asset = asset.n0
-            case _, False, MouseButton.left:
-                # открытая -> закрываем
-                cell.asset = asset.closed
-            case asset.flag, _, MouseButton.right:
-                # удаляем флаг
-                cell.remove_flag()
-            case asset.closed, _, MouseButton.right:
-                # устанавливаем флаг
-                cell.set_flag()
+                if image_name in self.images:
+                    if (self.mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED
+                            and cell.is_closed and cell.is_mined):
+                        img = self.images['there_is_bomb']
+                    else:
+                        img = self.images[image_name]
 
-        # обновляем цифры вокруг
-        cells_to_update = self.matrix.around_opened_cells(cell)
-        for c in cells_to_update:
-            mines = len(self.matrix.around_mined_cells(c))
-            c.content = asset.open_cells[mines]
+                    # Update cell image
+                    self.canvas.itemconfig(cell_id, image=img)
+                else:
+                    raise Exception(f"Image not found: {image_name}")
 
-        # и в самой ячейке (если она открылась)
-        if cell.is_empty:
-            mines = len(self.matrix.around_mined_cells(cell))
-            cell.content = asset.open_cells[mines]
+        self.update_status_bar()
 
-    def edit_cell_digit_mode(self, x, y, button):
-
-
-        # =-----
-
-        cell: Cell = self.matrix.table[x][y]
-        content = self.matrix.table[x][y].content
-        rotating_states = [asset.closed, asset.n0, asset.n1, asset.n2, asset.n3, asset.n4, asset.n5, asset.n6, asset.n7,
-                           asset.n8]
-
-        print(f'Is flag: {content==asset.flag}')
-        match content, button:
-
-            case asset.flag, MouseButton.right:
-                # удаляем флаг
-                cell.remove_flag()
-                print('rem f')
-
-            case content, MouseButton.right:
-                # устанавливаем флаг
-                cell.set_flag()
-                print('set f')
-
-            case content, MouseButton.left:
-                if content in rotating_states:
-                    next_asset = rotating_states[(rotating_states.index(content) + 1) % len(rotating_states)]
-                    cell.content = next_asset
-                    print('Assign:', cell.content)
-                pass
-
-            case _:
-                print('None equals')
+    def update_mine_mode_button(self):
+        if self.mine_mode == MineMode.PREDEFINED:
+            response = messagebox.askyesno("Warning",
+                                           "Это удалит все установленные мины с поля.")
+            if response:
+                self.mine_mode = MineMode.UNDEFINED
+                self.checkbutton_mik.deselect()
+                self.switch_to_mik_off()
+                print("Switched to Mines is known - OFF")
+        else:
+            response = messagebox.askyesno("Warning",
+                                           "Все цифры станут просто открытыми ячейками (0). Можно будет расставить бомбы")
+            if response:
+                self.mine_mode = MineMode.PREDEFINED
+                self.checkbutton_mik.select()
+                self.switch_to_mik_on()
+                print("Switched to Mines is known - ON")
 
     def update_mine_counter(self):
         count = len(self.matrix.get_mined_cells()) - len(self.matrix.get_flag_cells())
@@ -627,46 +445,170 @@ class MinesweeperApp:
         for i, digit in enumerate(time_str):
             self.led_timer[i].config(image=self.images[f"led{digit}"])
 
+    def switch_to_mik_on(self):
+        """
+        Переключение в режим "расстановка бомб"
+        """
+        # значит, у нас дана матрица с закрытыми ячейками и числами....
+        # нам нужно все числа превратить в n0
+        digits = self.matrix.get_digit_cells()
+        for d in digits:
+            d.content = asset.n0
+
+        self.label_mik_mode.config(text="(Set Bombs)")
+
+        self.update_grid()
+
+    def switch_to_mik_off(self):
+        """
+        Переключение в режим "расстановка чисел"
+        """
+        # Нам нужно убрать все "установленные бомбы"
+        self.matrix.mines = set()
+        self.label_mik_mode.config(text="(Set Digits)")
+        self.update_grid()
+
+    def set_mode(self, mode: Mode):
+        """
+        Switch from Edit to Play mode and back.
+        :param mode: New mode to set
+        """
+        # Проверка валидности смены режима
+        if mode == self.mode:
+            return
+
+        if mode == Mode.play and self.mine_mode == MineMode.UNDEFINED:
+            print("Cannot switch to play mode: mines are not defined")
+            return
+
+        # Обновление режима
+        print(f"Switch mode to: {mode.name}")
+        self.mode = mode
+
+        # Обновление UI
+        edit_font = self.segoe_bold if mode == Mode.edit else self.segoe_normal
+        play_font = self.segoe_bold if mode == Mode.play else self.segoe_normal
+        # self.edit_button.config(font=("Helvetica", 10, edit_font))
+
+        self.edit_button.config(font=edit_font)
+        self.play_button.config(font=play_font)
+
+        # Управление доступностью чекбокса
+        self.checkbutton_mik.config(state='normal' if mode == Mode.edit else 'disabled')
+
+        # Обновление изображения
+        image_name = "there_is_bomb.png" if mode == Mode.edit else "closed.png"
+        image_path = asset_dir.joinpath(image_name)
+
+        try:
+            self.images["there_is_bomb"] = tk.PhotoImage(file=image_path)
+        except tk.TclError as e:
+            print(f"Failed to load image {image_path}: {e}")
+            # Здесь можно добавить fallback-изображение
+
+        self.update_grid()
+
+    def set_smile(self, state: GameState):
+        match state:
+            case GameState.playing:
+                self.smile.config(image=self.images['face_smile'])
+            case GameState.win:
+                self.smile.config(image=self.images['face_win'])
+            case GameState.fail:
+                self.smile.config(image=self.images['face_fail'])
+            case GameState.waiting:
+                self.smile.config(image=self.images['face_smile'])
+
+    def set_fail(self):
+        self.set_smile(GameState.fail)
+        self.update_grid()
+        if self.use_timer:
+            self.timer.stop()
+
+    def set_win(self):
+        self.set_smile(GameState.win)
+        if self.use_timer:
+            self.timer.stop()
+
+    def on_canvas_click_left(self, event):
+        """Handle left click on canvas"""
+        cell = self.get_cell_from_coords(event.x, event.y)
+        if cell is not None:
+            self.click_cell(event, cell, MouseButton.left)
+
+    def on_canvas_click_right(self, event):
+        """Handle right click on canvas"""
+        cell = self.get_cell_from_coords(event.x, event.y)
+        if cell is not None:
+            self.click_cell(event, cell, MouseButton.right)
+
+    def get_cell_from_coords(self, canvas_x, canvas_y) -> Cell | None:
+        """Convert canvas coordinates to grid coordinates"""
+        grid_x = int(canvas_y // self.cell_size)
+        grid_y = int(canvas_x // self.cell_size)
+
+        if 0 <= grid_x < self.grid_height and 0 <= grid_y < self.grid_width:
+            cell = self.matrix.table[grid_x][grid_y]
+            return cell
+        return None
+
+    def click_cell(self, event, cell: Cell, button: MouseButton):
+        if self.matrix.get_state == GameState.waiting:
+            self.matrix.set_state(GameState.playing)
+            if self.use_timer:
+                self.timer.start()
+
+        if self.matrix.get_state == GameState.playing:
+            # print(f'Clicked: {button.name}')
+            if self.mode == Mode.play:
+                self.play_cell(cell, button)
+            elif self.mode == Mode.edit:
+                # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
+                # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
+                if self.mine_mode == MineMode.PREDEFINED:
+                    self.matrix.click_edit_mines(cell, button)
+                else:
+                    self.matrix.click_edit_digits(cell, button)
+
+            self.update_grid()
+            self.update_status_bar()
+
+    def play_cell(self, cell, button):
+        print(f'Click: {button}')
+
+        if button == MouseButton.left:
+            self.matrix.click_play_left_button(cell)
+        elif button == MouseButton.right:
+            self.matrix.click_play_right_button(cell)
+        else:
+            raise Exception('Unknown button')
+
+        if self.matrix.get_state == GameState.fail:
+            print('Gave over')
+            self.set_fail()
+        if self.matrix.get_state == GameState.win:
+            self.set_win()
+
     def save_matrix(self):
-
-        # method 1
-        # w, h = self.root.winfo_reqwidth(), self.root.winfo_reqheight()
-        # x, y = self.root.winfo_rootx(), self.root.winfo_rootx()
-
-        # method 2
-        # coordinates = self.root.geometry()
-        # size, x, y = coordinates.split('+')
-        # x, y = int(x), int(y)
-        # w, h = map(int, size.split('x'))
-        # print(coordinates)
-        # print(w, h)
-        # print(x, y)
-
-        # method 3
-        (x1, y1, x2, y2) = GetWindowRect(GetForegroundWindow())
-
-        # -----------
-        # remove 9 px as shadow
-        self.matrix.region_x1 = x1+9
-        self.matrix.region_y1 = y1
-        self.matrix.region_x2 = x2-9
-        self.matrix.region_y2 = y2-9
-        self.matrix.save(mode="tk")
+        self.matrix.save(mine_mode=self.mine_mode)
 
     def load_matrix(self):
         file_path = filedialog.askopenfilename(
-            initialdir=os.path.dirname(__file__),
-            filetypes=[("Pickle files", "*.pickle")])
+            initialdir=os.path.dirname(__file__) + '/saves',
+            filetypes=[("txt", "*.txt")])
         if file_path:
-            with open(file_path, 'rb') as inp:
-                self.matrix = pickle.load(inp)
-                self.matrix.display()
+            # with open(file_path, 'rb') as inp:
+            #     self.matrix = pickle.load(inp)
+            #     self.matrix.display()
+            #
 
+            self.matrix.load(file_path)
             w, h = self.matrix.width, self.matrix.height
             g = Game(w, h, bombs=0)
             self.set_custom_size(g)
             self.update_grid()
             print("Field loaded successfully!")
+
 
     def on_closing(self):
         self.timer.stop()  # Stop the timer thread
