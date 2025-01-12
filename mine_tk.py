@@ -49,8 +49,6 @@ class Mode(IntEnum):
 asset_dir = Path(__file__).resolve().parent / 'asset' / 'asset_svg'
 
 
-
-
 class GameTimer:
     def __init__(self, update_callback: Callable[[int], None]):
         """
@@ -109,9 +107,6 @@ class GameTimer:
             return self.seconds
 
 
-
-
-
 class MinesweeperApp:
     def __init__(self, root):
         self.root = root
@@ -121,21 +116,16 @@ class MinesweeperApp:
         self.current_game = beginner
         self.grid_width = self.current_game.width
         self.grid_height = self.current_game.height
-        self.px = 24  # размер ячейки в px
+        self.cell_size = 24  # размер ячейки в px
         self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
 
         self.use_timer = True
         self.timer = GameTimer(self.update_timer_display)
-        # old timer
-        # self.timer_thread = None
-        # self.timer_running = False
-        # self.start_time = None
 
         self.matrix = PlayMatrix()  # we need matrix initialized matrix for create status bar
         self.matrix.initialize(height=self.grid_height, width=self.grid_width)
         self.matrix.create_new_game(n_bombs=self.current_game.bombs)
 
-        self.buttons = {}
         self.mode = Mode.edit
         self.mines_is_known = True
         self.load_images()
@@ -143,10 +133,20 @@ class MinesweeperApp:
         self.create_top_frame()
         self.create_status_bar()
         self.create_menu()
+        
+        # Add this line to properly place the grid_frame
         self.grid_frame = tk.Frame(self.root)
-        self.create_grid()
+        self.grid_frame.grid(row=1, column=1, sticky='nw')  # Add grid configuration
+        
+        self.cells = {}
+        self.create_canvas()
+        self.fill_canvas()
         self.create_sidebar()
         self.create_fresh_board(game=beginner)
+
+        # Bind canvas events
+        self.canvas.bind("<Button-1>", self.on_canvas_click_left)
+        self.canvas.bind("<Button-3>", self.on_canvas_click_right)
 
     def load_images(self):
         self.images = {
@@ -265,45 +265,54 @@ class MinesweeperApp:
         self.status_bar = tk.Label(self.status_bar_frame, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.grid(row=1, column=0, columnspan=2, sticky='we')
 
-    def create_grid1(self):
-        # TODO if create_grid1 or create_grid
-        # Clear existing buttons
-        for widget in self.grid_frame.winfo_children():
-            widget.destroy()
+    def create_canvas(self):
+        self.canvas = tk.Canvas(
+            self.grid_frame,
+            width=self.grid_width * self.cell_size,
+            height=self.grid_height * self.cell_size,
+            highlightthickness=0,  # Remove border
+            bg='lightgray'  # Add background color to see canvas bounds
+        )
+        self.canvas.grid(row=0, column=0, sticky='nw')
 
-        self.grid_frame.grid(row=1, column=1, sticky='nw')
+    def fill_canvas(self):
+        """Create grid using canvas instead of buttons"""
+        # Clear existing canvas items
+        self.canvas.delete("all")
 
-        for x in range(self.grid_height):
-            for y in range(self.grid_width):
-                btn = tk.Button(self.grid_frame,
-                                # command=lambda x=x, y=y: self.click_cell(x, y, 'aaa'),
-                                image=self.images["closed"],
-                                highlightthickness=0,
-                                borderwidth=0,
-                                )
-                btn.bind("<Button-1>", lambda event, x=x, y=y: self.click_cell(event, x, y, MouseButton.left))
-                btn.bind("<Button-3>", lambda event, x=x, y=y: self.click_cell(event, x, y, MouseButton.right))
-                btn.grid(row=x, column=y)
-                self.buttons[(x, y)] = btn
+        # Update canvas size
+        self.canvas.config(
+            width=self.grid_width * self.cell_size,
+            height=self.grid_height * self.cell_size
+        )
 
-    def create_grid(self):
-        # Clear existing buttons
-        for widget in self.grid_frame.winfo_children():
-            widget.grid_remove()
+        # Create cells
+        for row in range(self.grid_height):
+            for col in range(self.grid_width):
+                # Calculate pixel coordinates
+                x1 = col * self.cell_size  # Changed from y to col
+                y1 = row * self.cell_size  # Changed from x to row
+                x2 = x1 + self.cell_size
+                y2 = y1 + self.cell_size
 
-        self.grid_frame.grid(row=1, column=1, sticky='nw')
+                # Create cell image on canvas
+                cell_id = self.canvas.create_image(
+                    x1,  # Left coordinate
+                    y1,  # Top coordinate
+                    image=self.images["closed"],
+                    anchor="nw",  # Anchor to top-left corner
+                    tags=f"cell_{row}_{col}"  # Changed from x,y to row,col
+                )
 
-        for x in range(self.grid_height):
-            for y in range(self.grid_width):
-                if (x, y) not in self.buttons:
-                    btn = tk.Button(self.grid_frame,
-                                    image=self.images["closed"],
-                                    highlightthickness=0,
-                                    borderwidth=0)
-                    btn.bind("<Button-1>", lambda event, x=x, y=y: self.click_cell(event, x, y, MouseButton.left))
-                    btn.bind("<Button-3>", lambda event, x=x, y=y: self.click_cell(event, x, y, MouseButton.right))
-                    self.buttons[(x, y)] = btn
-                self.buttons[(x, y)].grid(row=x, column=y)
+                # Store cell coordinates for later reference
+                self.cells[(row, col)] = {
+                    'id': cell_id,
+                    'coords': (x1, y1, x2, y2)
+                }
+
+        # Force update
+        self.canvas.update()
+
 
     def update_status_bar(self):
         if self.matrix.get_state == GameState.win:
@@ -317,29 +326,49 @@ class MinesweeperApp:
             flag_count = len(self.matrix.get_flag_cells())
             self.status_bar.config(text=f"Closed:{closed_count}, Mines:{mine_count}, Open:{opened_count}, Flags:{flag_count}")
 
+
+
+    def on_canvas_click_left(self, event):
+        """Handle left click on canvas"""
+        x, y = self.get_cell_from_coords(event.x, event.y)
+        if x is not None and y is not None:
+            self.click_cell(event, x, y, MouseButton.left)
+
+    def on_canvas_click_right(self, event):
+        """Handle right click on canvas"""
+        x, y = self.get_cell_from_coords(event.x, event.y)
+        if x is not None and y is not None:
+            self.click_cell(event, x, y, MouseButton.right)
+
+    def get_cell_from_coords(self, canvas_x, canvas_y):
+        """Convert canvas coordinates to grid coordinates"""
+        grid_x = int(canvas_y // self.cell_size)
+        grid_y = int(canvas_x // self.cell_size)
+
+        if 0 <= grid_x < self.grid_height and 0 <= grid_y < self.grid_width:
+            return grid_x, grid_y
+        return None, None
+
+
     def update_grid(self):
         """
         Обновляет визуальное отображение в соответствии с объектом Matrix
         """
-        for x in range(self.grid_height):
-            for y in range(self.grid_width):
-
-                # TODO если ячейка УЖЕ соотв. матрице, не нужно ее обновлять, это только отнимает процессорное время
-
-                cell = self.matrix.table[x][y]
+        for row in range(self.grid_height):
+            for col in range(self.grid_width):
+                cell = self.matrix.table[row][col]
                 image_name = cell.content.name
-                button = self.buttons[(x, y)]
+                cell_id = self.cells[(row, col)]['id']
 
                 if image_name in self.images:
-
                     if (self.mode == Mode.edit and self.mines_is_known is True
                             and cell.is_closed and cell.is_mine):
                         img = self.images['there_is_bomb']
                     else:
                         img = self.images[image_name]
 
-                    if button.cget("image") != str(img):
-                        button.config(image=img)
+                    # Update cell image
+                    self.canvas.itemconfig(cell_id, image=img)
                 else:
                     raise Exception(f"Image not found: {image_name}")
 
@@ -458,11 +487,17 @@ class MinesweeperApp:
             self.current_game = game
             self.grid_width = width
             self.grid_height = height
-            self.create_grid()
+
+            # Update canvas size
+            self.canvas.config(
+                width=self.grid_width * self.cell_size,
+                height=self.grid_height * self.cell_size
+            )
+            self.fill_canvas()
 
             self.root.update_idletasks()  # Ensure the grid is created before resizing
-            geom_x = self.px * width + self.sidebar.winfo_width()
-            geom_y = self.px * height + self.status_bar_frame.winfo_height() + self.top_frame.winfo_height()
+            geom_x = self.cell_size * width + self.sidebar.winfo_width()
+            geom_y = self.cell_size * height + self.status_bar_frame.winfo_height() + self.top_frame.winfo_height()
             # geom_x = max(geom_x, 250)
             # geom_y = max(geom_y, 80)
             self.root.geometry(f"{geom_x}x{geom_y}")
