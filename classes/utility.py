@@ -5,6 +5,11 @@ from config import config
 from mouse_controller import MouseButton
 
 
+class MineMode(IntEnum):
+    PREDEFINED = 0
+    UNDEFINED = 1
+
+
 class GameState(IntEnum):
     playing = 0
     win = 1

@@ -37,9 +37,12 @@ class Configuration(object):
         bool_val = config.getboolean('section_a', 'bool_val')
         int_val = config.getint('section_a', 'int_val')
         """
-        self.asset = conf.get('main', 'asset')
+        # system
+        self.patterns_dir = conf.get('system', 'patterns_dir')
+        self.save_dir = conf.get('system', 'save_dir')
 
         # main
+        self.asset = conf.get('main', 'asset')
         self.seconds_beetwen_games = conf.getint('main', 'seconds_beetwen_games')
 
         # game

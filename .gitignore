@@ -5,8 +5,6 @@ private/
 *.whl
 test/
 game_*/
-screenshot2.png
-output.png
 settings.local.ini
 side_projects/
 mine_tk.cmd
@@ -14,3 +12,4 @@ mine_tk.exe
 mine_tk.spec
 build/
 dist/
+saves/

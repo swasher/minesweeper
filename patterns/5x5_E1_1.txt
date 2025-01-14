@@ -1,0 +1,14 @@
+[properties]
+width = 5
+height = 5
+mode = UNDEFINED
+
+[matrix]
+× × × × ×
+× × × × ×
+1 1 1 1 1
+· · · · ·
+· · · · ·
+
+[solution]
+EMPTY 2 2

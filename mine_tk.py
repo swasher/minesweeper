@@ -26,12 +26,14 @@ from pathlib import Path
 from win32gui import GetWindowRect, GetForegroundWindow
 from enum import IntEnum
 from typing import Callable
+from PIL import Image
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog
 from tkinter import font
 from tktooltip import ToolTip
 
+import asset
 from asset import *
 from classes import PlayMatrix
 from classes import MineMode
@@ -47,7 +49,7 @@ class Mode(IntEnum):
     edit = 1
 
 
-asset_dir = Path(__file__).resolve().parent / 'asset' / 'asset_svg'
+tk_asset = Path(__file__).resolve().parent / 'asset' / 'asset_svg'
 
 
 class GameTimer:
@@ -121,18 +123,20 @@ class MinesweeperApp:
         self.current_game = beginner
         self.grid_width = self.current_game.width
         self.grid_height = self.current_game.height
-        self.cell_size = 24  # размер ячейки в px
+        self.cell_size = get_square_image_size(asset.n0.filename)  # размер ячейки в px. Для моего набора asset_tk должно получаться 24px.
         self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
 
         self.use_timer = True
         self.timer = GameTimer(self.update_timer_display)
 
-        self.matrix = PlayMatrix()  # we need matrix initialized matrix for create status bar
-        self.matrix.initialize(height=self.grid_height, width=self.grid_width)
+        # todo switch to __init__
+        self.matrix = PlayMatrix(height=self.grid_height, width=self.grid_width)  # we need matrix initialized matrix for create status bar
+        # self.matrix = PlayMatrix()
+        # self.matrix.initialize(height=self.grid_height, width=self.grid_width)
+
         self.matrix.create_new_game(n_bombs=self.current_game.bombs)
 
         self.mode = Mode.edit
-        self.mine_mode = MineMode.PREDEFINED
         self.load_images()
 
         self.create_top_frame()
@@ -151,6 +155,7 @@ class MinesweeperApp:
 
         # Bind canvas events
         self.canvas.bind("<Button-1>", self.on_canvas_click_left)
+        self.canvas.bind("<Button-2>", self.on_canvas_click_middle)  # for testing purpose
         self.canvas.bind("<Button-3>", self.on_canvas_click_right)
 
         if matrix_file:
@@ -253,7 +258,8 @@ class MinesweeperApp:
         self.checkbutton_mik.grid(row=2, column=0, pady=0)
         ToolTip(self.checkbutton_mik, msg="ON - Мы устанавливаем мины, цифры ставятся автоматически."
                                           " OFF - Мы устанавливаем цифры, положение мин в матрице неопределено")
-        self.checkbutton_mik.select() if self.mine_mode == MineMode.PREDEFINED else self.checkbutton_mik.deselect()
+
+        self.checkbutton_mik.select() if self.matrix.mine_mode == MineMode.PREDEFINED else self.checkbutton_mik.deselect()
 
         # Label for Mines is known mode
         self.label_mik_mode = tk.Label(self.sidebar, text="(Set Bombs)", bg='lightgrey')
@@ -303,11 +309,15 @@ class MinesweeperApp:
 
         self.timer.reset()
         self.set_custom_size(game)
+
+        # todo __init__
         self.matrix = PlayMatrix()
-        self.matrix.initialize(self.grid_width, self.grid_height)
+        self.matrix = PlayMatrix(self.grid_width, self.grid_height)
+        # self.matrix.initialize(height=self.grid_height, width=self.grid_width)
+
         self.matrix.create_new_game(n_bombs=game.bombs)
-        print('State:', self.matrix.get_state.name)
-        self.set_smile(self.matrix.get_state)
+        print('State:', self.matrix.game_state.name)
+        self.set_smile(self.matrix.game_state)
 
         self.update_grid()
         self.matrix.display()
@@ -342,7 +352,6 @@ class MinesweeperApp:
         else:
             messagebox.showerror("Invalid Size", "Width and height must be between 1 and 50.")
 
-
     def fill_canvas(self):
         """Create grid using canvas instead of buttons"""
         # Clear existing canvas items
@@ -372,6 +381,7 @@ class MinesweeperApp:
                     tags=f"cell_{row}_{col}"  # Changed from x,y to row,col
                 )
 
+
                 # Store cell coordinates for later reference
                 self.cells[(row, col)] = {
                     'id': cell_id,
@@ -382,9 +392,9 @@ class MinesweeperApp:
         self.canvas.update()
 
     def update_status_bar(self):
-        if self.matrix.get_state == GameState.win:
+        if self.matrix.game_state == GameState.win:
             self.status_bar.config(text="You win!")
-        elif self.matrix.get_state == GameState.fail:
+        elif self.matrix.game_state == GameState.fail:
             self.status_bar.config(text="You lose!")
         else:
             closed_count = len(self.matrix.get_closed_cells())
@@ -404,7 +414,7 @@ class MinesweeperApp:
                 cell_id = self.cells[(row, col)]['id']
 
                 if image_name in self.images:
-                    if (self.mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED
+                    if (self.mode == Mode.edit and self.matrix.mine_mode == MineMode.PREDEFINED
                             and cell.is_closed and cell.is_mined):
                         img = self.images['there_is_bomb']
                     else:
@@ -418,22 +428,24 @@ class MinesweeperApp:
         self.update_status_bar()
 
     def update_mine_mode_button(self):
-        if self.mine_mode == MineMode.PREDEFINED:
+        if self.matrix.mine_mode == MineMode.PREDEFINED:
             response = messagebox.askyesno("Warning",
                                            "Это удалит все установленные мины с поля.")
             if response:
-                self.mine_mode = MineMode.UNDEFINED
+                self.matrix.mine_mode = MineMode.UNDEFINED
                 self.checkbutton_mik.deselect()
                 self.switch_to_mik_off()
-                print("Switched to Mines is known - OFF")
+                # self.set_mine_mode(MineMode.UNDEFINED)
+                print("Switched to MineMode.UNDEFINED")
         else:
             response = messagebox.askyesno("Warning",
                                            "Все цифры станут просто открытыми ячейками (0). Можно будет расставить бомбы")
             if response:
-                self.mine_mode = MineMode.PREDEFINED
+                self.matrix.mine_mode = MineMode.PREDEFINED
                 self.checkbutton_mik.select()
                 self.switch_to_mik_on()
-                print("Switched to Mines is known - ON")
+                # self.set_mine_mode(MineMode.PREDEFINED)
+                print("Switched to MineMode.PREDEFINED")
 
     def update_mine_counter(self):
         count = len(self.matrix.get_mined_cells()) - len(self.matrix.get_flag_cells())
@@ -470,6 +482,13 @@ class MinesweeperApp:
         self.label_mik_mode.config(text="(Set Digits)")
         self.update_grid()
 
+    def set_mine_mode(self, mine_mode: MineMode):
+        match mine_mode:
+            case mine_mode.PREDEFINED:
+                pass
+            case mine_mode.UNDEFINED:
+                pass
+
     def set_mode(self, mode: Mode):
         """
         Switch from Edit to Play mode and back.
@@ -479,7 +498,7 @@ class MinesweeperApp:
         if mode == self.mode:
             return
 
-        if mode == Mode.play and self.mine_mode == MineMode.UNDEFINED:
+        if mode == Mode.play and self.matrix.mine_mode == MineMode.UNDEFINED:
             print("Cannot switch to play mode: mines are not defined")
             return
 
@@ -500,7 +519,7 @@ class MinesweeperApp:
 
         # Обновление изображения
         image_name = "there_is_bomb.png" if mode == Mode.edit else "closed.png"
-        image_path = asset_dir.joinpath(image_name)
+        image_path = tk_asset.joinpath(image_name)
 
         try:
             self.images["there_is_bomb"] = tk.PhotoImage(file=image_path)
@@ -544,6 +563,38 @@ class MinesweeperApp:
         if cell is not None:
             self.click_cell(event, cell, MouseButton.right)
 
+    def on_canvas_click_middle(self, event):
+        """
+        DEMO
+
+        Подсвечивает ячейку при нажатии средней кнопки мыши
+        """
+        print('Click middle')
+        cell = self.get_cell_from_coords(event.x, event.y)
+        if cell is None:
+            return
+
+        # Получаем координаты ячейки
+        row, col = cell.row, cell.col
+        coords = self.cells[(row, col)]['coords']
+
+        # Удаляем старую подсветку, если есть
+        self.canvas.delete('highlight')
+
+        # Создаем полупрозрачный прямоугольник подсветки
+        highlight = self.canvas.create_rectangle(
+            coords[0], coords[1], coords[2], coords[3],
+            fill='red',
+            stipple='gray50',  # Делаем заливку полупрозрачной
+            tags='highlight'
+        )
+
+        # Поднимаем подсветку над ячейкой, но под возможными другими элементами
+        self.canvas.tag_raise(highlight, self.cells[(row, col)]['id'])
+
+        # Автоматически убираем подсветку через 2000мс
+        # self.root.after(2000, lambda: self.canvas.delete('highlight'))
+
     def get_cell_from_coords(self, canvas_x, canvas_y) -> Cell | None:
         """Convert canvas coordinates to grid coordinates"""
         grid_x = int(canvas_y // self.cell_size)
@@ -555,19 +606,19 @@ class MinesweeperApp:
         return None
 
     def click_cell(self, event, cell: Cell, button: MouseButton):
-        if self.matrix.get_state == GameState.waiting:
-            self.matrix.set_state(GameState.playing)
+        if self.matrix.game_state == GameState.waiting:
+            self.matrix.game_state = GameState.playing
             if self.use_timer:
                 self.timer.start()
 
-        if self.matrix.get_state == GameState.playing:
+        if self.matrix.game_state == GameState.playing:
             # print(f'Clicked: {button.name}')
             if self.mode == Mode.play:
                 self.play_cell(cell, button)
             elif self.mode == Mode.edit:
                 # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
                 # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
-                if self.mine_mode == MineMode.PREDEFINED:
+                if self.matrix.mine_mode == MineMode.PREDEFINED:
                     self.matrix.click_edit_mines(cell, button)
                 else:
                     self.matrix.click_edit_digits(cell, button)
@@ -585,14 +636,14 @@ class MinesweeperApp:
         else:
             raise Exception('Unknown button')
 
-        if self.matrix.get_state == GameState.fail:
+        if self.matrix.game_state == GameState.fail:
             print('Gave over')
             self.set_fail()
-        if self.matrix.get_state == GameState.win:
+        if self.matrix.game_state == GameState.win:
             self.set_win()
 
     def save_matrix(self):
-        self.matrix.save(mine_mode=self.mine_mode)
+        self.matrix.save()
 
     def load_matrix(self, matrix_file=None):
         save_storage_dir = Path(__file__).resolve().parent / 'saves'
@@ -619,10 +670,33 @@ class MinesweeperApp:
         self.root.destroy()  # Close the application
 
 
-def main(load_matrix=None):
-    root = tk.Tk()
-    app = MinesweeperApp(root, load_matrix)
-    root.mainloop()
+def get_square_image_size(filename):
+    """
+    Возвращает размер квадратного изображения (ширину или высоту, так как они равны).
+    Если изображение не квадратное, вызывает исключение ValueError.
+
+    :param filename: Имя файла изображения (например, 'image.png')
+    :return: Размер стороны квадратного изображения в пикселях
+    :raises ValueError: Если изображение не квадратное
+    :raises Exception: Если произошла ошибка при открытии изображения
+    """
+    try:
+        # Открываем изображение
+        with Image.open(filename) as img:
+            # Получаем размеры изображения
+            width, height = img.size
+
+            # Проверяем, что изображение квадратное
+            if width != height:
+                raise ValueError("Изображение не является квадратным.")
+
+            # Возвращаем размер (ширину или высоту, так как они равны)
+            return width
+
+    except Exception as e:
+        # Перехватываем и выводим ошибку, если что-то пошло не так
+        raise Exception(f"Ошибка при обработке изображения: {e}")
+
 
 
 if __name__ == "__main__":
@@ -630,4 +704,6 @@ if __name__ == "__main__":
     parser.add_argument('--matrix', type=str, help='Load the matrix from file')
     args = parser.parse_args()
 
-    main(args.matrix)  # Запускаем приложение с параметром из командной строки
+    root = tk.Tk()
+    app = MinesweeperApp(root, args.matrix)
+    root.mainloop()

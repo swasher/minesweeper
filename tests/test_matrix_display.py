@@ -9,9 +9,8 @@ from config import config
 @pytest.fixture
 def matrix():
     """Creates a 3x3 matrix for testing display functionality."""
-    m = PlayMatrix()
-    m.initialize(width=3, height=3)
-    
+    m = PlayMatrix(width=3, height=3)
+
     # Fill matrix with closed cells
     for row in range(3):
         for col in range(3):

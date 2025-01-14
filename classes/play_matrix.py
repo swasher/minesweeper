@@ -7,17 +7,45 @@ from .matrix import Matrix
 from .cell import Cell
 from .utility import GameState
 from mouse_controller import MouseButton
+from .matrix import MineMode
 
 
 class PlayMatrix(Matrix):
+
+
+    def __int__(self, width, height):
+        """
+        Создаем матрицу со всеми закрытыми ячейками.
+        Такая матрица не свящана с экраном.
+
+        :return:
+        """
+
+        # TODO Скорее всего есть смысл заменить "это" на обычный __init__, и каждый раз
+        #  (при необходимсоти) пересоздавать объект (вызывая super).
+
+        self.height = height
+        self.width = width
+        self.table = np.full((height, width), Cell)
+
+        for row in range(height):  # cell[строка][столбец]
+            for col in range(width):
+                self.table[row, col] = Cell(self, row, col)
+
+        self.lastclicked = self.table[0, 0]
 
     # initialize_without_screen
     def initialize(self, width, height):
         """
         Создаем матрицу со всеми закрытыми ячейками.
         Такая матрица не свящана с экраном.
+
         :return:
         """
+
+        # TODO Скорее всего есть смысл заменить "это" на обычный __init__, и каждый раз
+        #  (при необходимсоти) пересоздавать объект (вызывая super).
+
         self.height = height
         self.width = width
         self.table = np.full((height, width), Cell)
@@ -39,7 +67,7 @@ class PlayMatrix(Matrix):
         :param n_bombs: Number of bombs to place
         :return:
         """
-        self.set_state(GameState.waiting)
+        self.game_state = GameState.waiting
         self.mines = set()  # Initialize the set to store mine positions
 
         for row, col in product(range(self.height), range(self.width)):
@@ -53,6 +81,7 @@ class PlayMatrix(Matrix):
             if (row, col) not in self.mines:
                 self.mines.add((row, col))
                 placed_mines += 1
+        self.mine_mode = MineMode.PREDEFINED
 
     def check_for_win(self):
         """
@@ -96,7 +125,7 @@ class PlayMatrix(Matrix):
                     # Game over!
                     # print("Game Over!")
                     self.reveal_mines_fail(cell)
-                    self.set_state(GameState.fail)
+                    self.game_state = GameState.fail
                     return
                 else:
                     mines = len(self.around_mined_cells(cell))
@@ -106,7 +135,7 @@ class PlayMatrix(Matrix):
                     if self.check_for_win():
                         # print("You Win!")
                         self.reveal_mines_win()
-                        self.set_state(GameState.win)
+                        self.game_state = GameState.win
                         return
 
                     # Если вокруг ячейки нет бомб (n0), открываем все соседние ячейки
