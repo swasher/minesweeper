@@ -12,7 +12,6 @@ from .matrix import MineMode
 
 class PlayMatrix(Matrix):
 
-
     def __init__(self, width, height):
         """
         Создаем матрицу со всеми закрытыми ячейками.
@@ -20,32 +19,7 @@ class PlayMatrix(Matrix):
 
         :return:
         """
-
-        # TODO Скорее всего есть смысл заменить "это" на обычный __init__, и каждый раз
-        #  (при необходимсоти) пересоздавать объект (вызывая super).
-
-        self.height = height
-        self.width = width
-        self.table = np.full((height, width), Cell)
-
-        for row in range(height):  # cell[строка][столбец]
-            for col in range(width):
-                self.table[row, col] = Cell(self, row, col)
-
-        self.lastclicked = self.table[0, 0]
-
-    # initialize_without_screen
-    def initialize(self, width, height):
-        """
-        Создаем матрицу со всеми закрытыми ячейками.
-        Такая матрица не свящана с экраном.
-
-        :return:
-        """
-
-        # TODO Скорее всего есть смысл заменить "это" на обычный __init__, и каждый раз
-        #  (при необходимсоти) пересоздавать объект (вызывая super).
-
+        super().__init__()
         self.height = height
         self.width = width
         self.table = np.full((height, width), Cell)

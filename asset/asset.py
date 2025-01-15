@@ -36,7 +36,7 @@ import cv2 as cv
 from config import config
 
 
-class Asset(object):
+class Asset:
     """
     Тип Asset инкапсулиет растровае изображения ячеек и других объектов игрового поля в объекты.
     """
