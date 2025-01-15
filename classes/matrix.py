@@ -115,7 +115,7 @@ class Matrix:
         """
         print('---DISPLAY---')
 
-        if self.mine_mode:
+        if self.mine_mode == MineMode.PREDEFINED:
             matrix_view = [
                 ' '.join(
                     asset.there_is_bomb.symbol
@@ -302,9 +302,9 @@ class Matrix:
         Если в матрице есть бомбы - то FAIL (бомбы - это открытое изображение бомбы после проигрыша)
         :return:
         """
-        bombs = self.get_bombs_cells()
-        if len(bombs):
-            self.game_status = GameState.fail
+        revealed_bombs = self.get_bombs_cells()
+        if len(revealed_bombs):
+            self.game_state = GameState.fail
             return True
 
     @property

@@ -48,8 +48,7 @@ class Mode(IntEnum):
     play = 0
     edit = 1
 
-
-tk_asset = Path(__file__).resolve().parent / 'asset' / 'asset_svg'
+tk_asset = Path(__file__).resolve().parent / 'asset' / 'asset_tk'
 
 
 class GameTimer:
@@ -311,8 +310,8 @@ class MinesweeperApp:
         self.set_custom_size(game)
 
         # todo __init__
-        self.matrix = PlayMatrix()
         self.matrix = PlayMatrix(self.grid_width, self.grid_height)
+        # self.matrix = PlayMatrix()
         # self.matrix.initialize(height=self.grid_height, width=self.grid_width)
 
         self.matrix.create_new_game(n_bombs=game.bombs)
@@ -627,8 +626,6 @@ class MinesweeperApp:
             self.update_status_bar()
 
     def play_cell(self, cell, button):
-        print(f'Click: {button}')
-
         if button == MouseButton.left:
             self.matrix.click_play_left_button(cell)
         elif button == MouseButton.right:

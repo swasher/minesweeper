@@ -334,8 +334,13 @@ def recursive_wrapper():
         if config.arena:
             # TODO find_board принимает только 1 аргумент!!!!
             col_values, row_values, region = find_board(asset.closed, board)
-            matrix = SolveMatrix()
-            matrix.initialize_from_screen(row_values, col_values, region)
+
+            # todo __init__
+            # matrix = SolveMatrix()
+            # matrix.initialize_from_screen(row_values, col_values, region)
+            matrix = SolveMatrix(row_values, col_values, region)
+
+
         matrix.update()
 
     print('\n=============')
@@ -401,8 +406,11 @@ if __name__ == '__main__':
         listener.start()  # Запускаем слушатель в отдельном потоке
 
     col_values, row_values, region = find_board(asset.closed)
-    matrix = SolveMatrix()
-    matrix.initialize(row_values, col_values, region)
+
+    # todo __init__
+    # matrix = SolveMatrix()
+    # matrix.initialize(row_values, col_values, region)
+    matrix = SolveMatrix(row_values, col_values, region)
 
     # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.
     # bombs = matrix.bomb_qty(0.87)

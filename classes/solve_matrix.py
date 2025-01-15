@@ -13,12 +13,12 @@ import win32ui
 import win32con
 
 from config import config
+from .utility import MineMode
 
 
 class SolveMatrix(Matrix):
 
-    #initialize_from_screen
-    def initialize(self, row_values: list[int], col_values: list[int], region: tuple[int, int, int, int]):
+    def __init__(self, row_values: list[int], col_values: list[int], region: tuple[int, int, int, int]):
         """
         Заполняет Matrix пустыми объектами Cell с экрана,
         настраивая взаимосвязь между экраном и Matrix.
@@ -34,6 +34,7 @@ class SolveMatrix(Matrix):
         self.width = len(col_values)
 
         self.table = np.full((self.height, self.width), Cell)
+        self.mine_mode = MineMode.UNDEFINED
 
         template = asset.closed.raster
         h, w = template.shape[:2]
@@ -50,6 +51,40 @@ class SolveMatrix(Matrix):
                 self.table[row, col] = c
 
         self.lastclicked = self.table[0, 0]
+
+    #initialize_from_screen
+    # def initialize(self, row_values: list[int], col_values: list[int], region: tuple[int, int, int, int]):
+    #     """
+    #     Заполняет Matrix пустыми объектами Cell с экрана,
+    #     настраивая взаимосвязь между экраном и Matrix.
+    #     Каждый объект Cell при этом становится привязан к конкретному месту на экране.
+    #     :param row_values: list[int] - список координат верхнего левого угла строк
+    #     :param col_values: list[int] - список координат верхнего левого угла столбцов
+    #     :param region: list[int, int, int, int] - четыре координаты окна
+    #     """
+    #     self.region_x1, self.region_y1, self.region_x2, self.region_y2 = region
+    #
+    #     self.image = self.get_image()
+    #     self.height = len(row_values)
+    #     self.width = len(col_values)
+    #
+    #     self.table = np.full((self.height, self.width), Cell)
+    #
+    #     template = asset.closed.raster
+    #     h, w = template.shape[:2]
+    #
+    #     for row, coordy in enumerate(row_values):  # cell[строка][столбец]
+    #         for col, coordx in enumerate(col_values):
+    #             abscoordx = coordx + self.region_x1
+    #             abscoordy = coordy + self.region_y1
+    #             c = Cell(self, row, col, coordx, coordy, abscoordx, abscoordy, w, h)
+    #             image_cell = self.image_cell(c)
+    #             c.image = image_cell
+    #             c.update_cell(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
+    #             c.hash = c.hashing()
+    #             self.table[row, col] = c
+    #
+    #     self.lastclicked = self.table[0, 0]
 
     def get_image(self) -> ndarray:
         """

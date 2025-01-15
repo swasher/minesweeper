@@ -13,7 +13,7 @@ from .matrix import MineMode
 class PlayMatrix(Matrix):
 
 
-    def __int__(self, width, height):
+    def __init__(self, width, height):
         """
         Создаем матрицу со всеми закрытыми ячейками.
         Такая матрица не свящана с экраном.
