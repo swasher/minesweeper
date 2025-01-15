@@ -48,7 +48,7 @@ class Mode(IntEnum):
     edit = 1
 
 
-asset_dir = Path(__file__).resolve().parent / 'asset' / 'asset_svg'
+asset_dir = Path(__file__).resolve().parent / 'asset' / 'asset_tk'
 
 
 class GameTimer:
@@ -620,7 +620,6 @@ class MinesweeperApp:
             self.set_custom_size(g)
             self.update_grid()
             print("Field loaded successfully!")
-
 
     def on_closing(self):
         self.timer.stop()  # Stop the timer thread

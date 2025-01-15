@@ -1,4 +1,4 @@
-_GREEN := "\033[32m[%s]\033[0m %s\n" # Green text for "printf"
+TTTT_GREEN := "\033[32m[%s]\033[0m %s\n" # Green text for "printf"
 _RED := "\033[31m[%s]\033[0m %s\n" # Red text for "printf"
 .SILENT:
 .PHONY: all

@@ -210,6 +210,8 @@ def do_strategy(strategy):
     if have_a_move:
 
         # debug
+        print(config.turn_by_turn)
+        print(bool(config.turn_by_turn))
         if config.turn_by_turn:
             for c in cells:
                 c.mark_cell_debug(Color.green)
