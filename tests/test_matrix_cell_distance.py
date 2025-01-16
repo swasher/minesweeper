@@ -1,14 +1,14 @@
 import pytest
 import math
 
-from classes import SolveMatrix
+from classes import ScreenMatrix
 from classes import Cell
 
 
 @pytest.fixture
 def matrix():
     """Create a 3x4 matrix with unique cells for testing."""
-    m = SolveMatrix(width=4, height=3)
+    m = ScreenMatrix(width=4, height=3)
     for row in range(3):
         for col in range(4):
             m.table[row, col] = Cell(m, row=row, col=col)
@@ -30,13 +30,13 @@ def cells(matrix):
 
 def test_same_cell(cells):
     """Тест расстояния между одной и той же ячейкой (должно быть 0)."""
-    distance = SolveMatrix.cell_distance(cells['center'], cells['same'])
+    distance = ScreenMatrix.cell_distance(cells['center'], cells['same'])
     assert distance == 0.0
 
 
 def test_horizontal_distance(cells):
     """Тест расстояния между горизонтально расположенными ячейками."""
-    distance = SolveMatrix.cell_distance(cells['center'], cells['right'])
+    distance = ScreenMatrix.cell_distance(cells['center'], cells['right'])
     assert distance == 1.0
 
 
@@ -49,26 +49,26 @@ def test_various_distances(matrix, cell1_pos, cell2_pos, expected):
     """Тест различных расстояний между ячейками."""
     cell1 = Cell(matrix, row=cell1_pos[0], col=cell1_pos[1])
     cell2 = Cell(matrix, row=cell2_pos[0], col=cell2_pos[1])
-    distance = SolveMatrix.cell_distance(cell1, cell2)
+    distance = ScreenMatrix.cell_distance(cell1, cell2)
     assert distance == expected
 
 
 def test_diagonal_distance(cells):
     """Тест расстояния по диагонали (должно быть √2)."""
-    distance = SolveMatrix.cell_distance(cells['center'], cells['diagonal'])
+    distance = ScreenMatrix.cell_distance(cells['center'], cells['diagonal'])
     assert math.isclose(distance, math.sqrt(2), rel_tol=1e-9)
 
 
 def test_negative_coordinates(cells):
     """Тест работы с отрицательными координатами."""
-    distance = SolveMatrix.cell_distance(cells['center'], cells['negative'])
+    distance = ScreenMatrix.cell_distance(cells['center'], cells['negative'])
     # Расстояние от (1,1) до (-1,-1) должно быть 2√2
     assert math.isclose(distance, 2 * math.sqrt(2), rel_tol=1e-9)
 
 
 def test_far_distance(cells):
     """Тест расстояния между далеко расположенными ячейками."""
-    distance = SolveMatrix.cell_distance(cells['center'], cells['far'])
+    distance = ScreenMatrix.cell_distance(cells['center'], cells['far'])
     expected = math.hypot(4 - 1, 5 - 1)  # от (1,1) до (4,5)
     assert math.isclose(distance, expected, rel_tol=1e-9)
 
@@ -78,8 +78,8 @@ def test_commutative_property(matrix):
     cell1 = Cell(matrix, row=1, col=2)
     cell2 = Cell(matrix, row=3, col=5)
 
-    distance_forward = SolveMatrix.cell_distance(cell1, cell2)
-    distance_backward = SolveMatrix.cell_distance(cell2, cell1)
+    distance_forward = ScreenMatrix.cell_distance(cell1, cell2)
+    distance_backward = ScreenMatrix.cell_distance(cell2, cell1)
 
     assert math.isclose(distance_forward, distance_backward, rel_tol=1e-9)
 
@@ -95,5 +95,5 @@ def test_positive_distance(matrix, row1, col1, row2, col2):
     """Тест что расстояние всегда положительное."""
     cell1 = Cell(matrix, row=row1, col=col1)
     cell2 = Cell(matrix, row=row2, col=col2)
-    distance = SolveMatrix.cell_distance(cell1, cell2)
+    distance = ScreenMatrix.cell_distance(cell1, cell2)
     assert distance >= 0

@@ -32,8 +32,6 @@ from tkinter import filedialog, messagebox, simpledialog
 from tkinter import font
 from tktooltip import ToolTip
 
-import asset
-from asset import *
 from classes import PlayMatrix
 from classes import MineMode
 from classes import Cell
@@ -41,6 +39,10 @@ from classes import Game
 from classes import GameState
 from classes import beginner, beginner_new, intermediate, expert
 from mouse_controller import MouseButton
+
+import asset
+asset.init('asset_tk')
+from asset import *
 
 
 class Mode(IntEnum):
@@ -159,13 +161,13 @@ class MinesweeperApp:
             self.load_matrix(matrix_file)
     def load_images(self):
         self.images = {
-            "closed": tk.PhotoImage(file=asset.closed.filename),
+            "closed": tk.PhotoImage(file=closed.filename),
             "bomb": tk.PhotoImage(file=asset.bomb.filename),
             "bomb_red": tk.PhotoImage(file=asset.bomb_red.filename),
             "bomb_wrong": tk.PhotoImage(file=asset.bomb_wrong.filename),
             "flag": tk.PhotoImage(file=asset.flag.filename),
-            "there_is_bomb": tk.PhotoImage(file=asset.there_is_bomb.filename),
-            "0": tk.PhotoImage(file=asset.n0.filename),
+            "there_is_bomb": tk.PhotoImage(file=there_is_bomb.filename),
+            "0": tk.PhotoImage(file=n0.filename),
             "1": tk.PhotoImage(file=asset.n1.filename),
             "2": tk.PhotoImage(file=asset.n2.filename),
             "3": tk.PhotoImage(file=asset.n3.filename),
@@ -584,7 +586,7 @@ class MinesweeperApp:
             self.update_status_bar()
 
     def play_cell(self, cell, button):
-        print(f'Click: {button}')
+        # print(f'Click: {button}')
 
         if button == MouseButton.left:
             self.matrix.click_play_left_button(cell)

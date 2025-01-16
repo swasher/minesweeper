@@ -1,3 +1,9 @@
+"""
+
+FULLY DEPRECATED
+
+"""
+
 import time
 import msvcrt
 import threading

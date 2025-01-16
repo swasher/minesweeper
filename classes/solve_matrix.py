@@ -3,7 +3,8 @@ import numpy as np
 from numpy import ndarray
 from .matrix import Matrix
 from .cell import Cell
-from asset import asset
+import asset
+from asset import *
 import mss
 import mss.tools
 import cv2 as cv
@@ -15,7 +16,7 @@ from config import config
 from .utility import MineMode
 
 
-class SolveMatrix(Matrix):
+class ScreenMatrix(Matrix):
 
     def __init__(self, row_values: list[int], col_values: list[int], region: tuple[int, int, int, int]):
         """
@@ -110,7 +111,7 @@ class SolveMatrix(Matrix):
         # TODO Это факен шайзе, какие прецижена в методе Матрицы?
         precision = 0.9
         image = self.get_image()
-        template = asset.win.raster
+        template = win.raster
 
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)

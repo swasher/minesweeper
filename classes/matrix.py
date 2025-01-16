@@ -12,10 +12,10 @@ import numpy as np
 from itertools import product
 
 from asset import *
+
 from .cell import Cell
 import mouse_controller
 from mouse_controller import MouseButton as mb
-from datetime import datetime
 from .board import board
 from config import config
 from .utility import GameState, MineMode
@@ -30,8 +30,10 @@ get_closed - возвращает только закрытые и НЕ отме
 class Matrix:
     """
     Описывает набор ячеек игрового поля и реализует логику.
-    В этой части собраны методы, общие как для Tk-версии (наследник play_matrix), так
-    и для Solver'а (наследник solve_matrix)
+    В этой части собраны методы, общие как для Tk-версии (наследник PlayMatrix), так
+    и для экранной версии (наследник ScreenMatrix)
+
+    Так же используется для тестирования алгоритмов.
     """
     def __init__(self, width: int = 0, height: int = 0):
         self.io = MatrixIO(self)
@@ -118,7 +120,7 @@ class Matrix:
         if self.mine_mode == MineMode.PREDEFINED:
             matrix_view = [
                 ' '.join(
-                    asset.there_is_bomb.symbol
+                    there_is_bomb.symbol
                     if ((row, col) in self.mines and not self.table[row, col].is_flag)  # -> показываем мину, если по коорд. row, col находится мина И в ячейке нет флага
                     else self.table[row, col].content.symbol
                     for col in range(self.width))

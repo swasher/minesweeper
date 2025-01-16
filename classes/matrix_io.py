@@ -49,8 +49,7 @@ from datetime import datetime
 from .utility import MineMode
 from .cell import Cell
 from config import config
-
-
+from asset import *
 
 
 
@@ -175,22 +174,19 @@ class MatrixIO:
             FileNotFoundError: Если файл не найден
             ValueError: Если формат файла некорректен
         """
-        import os
-        from asset import asset
-
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Save file not found: {file_path}")
 
         # Словарь для обратного преобразования: буква -> asset
         symbol_to_asset = {
-            asset.closed.symbol: asset.closed,
-            asset.flag.symbol: asset.flag,
-            asset.there_is_bomb.symbol: asset.there_is_bomb,
-            asset.bomb_wrong.symbol: asset.bomb_wrong,
+            closed.symbol: closed,
+            flag.symbol: flag,
+            there_is_bomb.symbol: there_is_bomb,
+            bomb_wrong.symbol: bomb_wrong,
         }
 
         # Добавляем цифры от 0 до 8
-        for i, digit_asset in enumerate(asset.open_cells):
+        for i, digit_asset in enumerate(open_cells):
             symbol_to_asset[digit_asset.symbol] = digit_asset
 
         current_section = None
@@ -254,9 +250,10 @@ class MatrixIO:
                     elif type == "MINE":
                         solution_mine_coords.append((int(x), int(y)))
 
-                    # return empty_coords, mine_coords
 
         # Инициализируем матрицу
+        self.matrix.width = self.width
+        self.matrix.height = self.height
         self.matrix.table = np.full((self.height, self.width), Cell)
         self.matrix.mines = mines.copy()
         self.matrix.mine_mode = loaded_mine_mode
@@ -276,9 +273,6 @@ class MatrixIO:
         print(f'Matrix loaded from {file_path}')
         self.matrix.display()
 
-
-
-
     def write_save(self, text_matrix: list[str]) -> bool:
         ok = True
         return ok
@@ -289,6 +283,3 @@ class MatrixIO:
         matrix_height = None
         solutions_mines = None
         solutions_empty = None
-
-
-

@@ -1,12 +1,9 @@
-# __all__ = ['solver_R1', 'solver_B1', 'solver_E2', 'solver_B2', 'solver_noguess', 'noguess_finish']
-from .solver_R1 import *
-from .solver_R1_corner import *
-from .solver_R1_smart import *
-from .solver_B1 import *
-from .solver_E1 import *
-from .solver_B2 import *
-from .solver_E2 import *
-from .solver_B1E1 import *
-from .solver_human import *
-from .solver_gauss import *
-from .solver_noguess import *
+from .solver_R1 import solver_R1
+from .solver_B1 import solver_B1
+from .solver_B2 import solver_B2
+from .solver_E1 import solver_E1
+from .solver_E2 import solver_E2
+from .solver_B1E1 import solver_B1E1
+from .solver_noguess import solver_noguess
+
+__all__ = ['solver_R1', 'solver_B1', 'solver_E2', 'solver_B2', 'solver_noguess', 'noguess_finish']

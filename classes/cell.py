@@ -8,9 +8,8 @@ import win32con
 import xxhash
 from enum import IntEnum
 
-
+import asset
 from asset import *
-from asset import bombs, digits, open_cells, all_cell_types
 import mouse_controller
 from config import config
 from util import point_in_rect
@@ -19,13 +18,13 @@ from .utility import Color
 
 if TYPE_CHECKING:
     from asset import Asset
-    from classes import SolveMatrix, PlayMatrix
+    from classes import ScreenMatrix, PlayMatrix
     from numpy import ndarray
 
 
 class Cell:
 
-    def __init__(self, matrix: SolveMatrix | PlayMatrix,
+    def __init__(self, matrix: ScreenMatrix | PlayMatrix,
                  row: int, col: int,
                  coordx: int = 0, coordy: int = 0,
                  abscoordx: int = 0, abscoordy: int = 0,
@@ -173,7 +172,7 @@ class Cell:
 
             precision = 0.8
 
-            for pattern in all_cell_types:  # list_patterns imported from cell_pattern
+            for pattern in asset.all_cell_types:  # list_patterns imported from cell_pattern
                 template = pattern.raster
                 res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)

@@ -2,13 +2,13 @@ import pytest
 import numpy as np
 from typing import List, Tuple
 from classes import Cell
-from classes import SolveMatrix
+from classes import ScreenMatrix
 
 
 @pytest.fixture
 def matrix():
     """Create a 3x4 matrix with unique cells for testing."""
-    m = SolveMatrix(width=4, height=3)
+    m = ScreenMatrix(width=4, height=3)
     for row in range(3):
         for col in range(4):
             m.table[row, col] = Cell(m, row=row, col=col)
@@ -18,7 +18,7 @@ def matrix():
 @pytest.fixture
 def small_matrix():
     """Create a 2x2 matrix with unique cells."""
-    m = SolveMatrix(width=2, height=2)
+    m = ScreenMatrix(width=2, height=2)
     for row in range(2):
         for col in range(2):
             m.table[row, col] = Cell(m, row=row, col=col)
@@ -28,7 +28,7 @@ def small_matrix():
 @pytest.fixture
 def tiny_matrix():
     """Create a 1x1 matrix with a single cell."""
-    m = SolveMatrix(width=1, height=1)
+    m = ScreenMatrix(width=1, height=1)
     m.table[0, 0] = Cell(m, row=0, col=0)
     return m
 
@@ -146,7 +146,7 @@ def test_neighbor_values(matrix):
 def test_matrix_dimensions(dimensions):
     """Test that the method works with different matrix dimensions."""
     height, width = dimensions
-    m = SolveMatrix(width=width, height=height)
+    m = ScreenMatrix(width=width, height=height)
 
     # Fill matrix with cells
     for row in range(height):

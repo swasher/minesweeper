@@ -23,11 +23,13 @@ import time
 
 from typing import Callable
 
-from asset import asset
+import asset
+from asset import *
+
 from classes import board
 
 from util import search_pattern_in_image
-from classes import SolveMatrix
+from classes import ScreenMatrix
 from classes import Action
 from classes import Color
 from classes import Cell
@@ -338,9 +340,9 @@ def recursive_wrapper():
             col_values, row_values, region = find_board(asset.closed, board)
 
             # todo __init__
-            # matrix = SolveMatrix()
+            # matrix = ScreenMatrix()
             # matrix.initialize_from_screen(row_values, col_values, region)
-            matrix = SolveMatrix(row_values, col_values, region)
+            matrix = ScreenMatrix(row_values, col_values, region)
 
 
         matrix.update()
@@ -407,12 +409,12 @@ if __name__ == '__main__':
         listener = Listener(on_press=on_press)
         listener.start()  # Запускаем слушатель в отдельном потоке
 
-    col_values, row_values, region = find_board(asset.closed)
+    col_values, row_values, region = find_board(asset=closed)
 
     # todo __init__
-    # matrix = SolveMatrix()
+    # matrix = ScreenMatrix()
     # matrix.initialize(row_values, col_values, region)
-    matrix = SolveMatrix(row_values, col_values, region)
+    matrix = ScreenMatrix(row_values, col_values, region)
 
     # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.
     # bombs = matrix.bomb_qty(0.87)

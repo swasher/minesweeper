@@ -2,12 +2,15 @@ from itertools import product
 import numpy as np
 import random
 
-from asset import *
 from .matrix import Matrix
 from .cell import Cell
 from .utility import GameState
 from mouse_controller import MouseButton
 from .matrix import MineMode
+
+import asset
+asset.init('asset_tk')
+from asset import *
 
 
 class PlayMatrix(Matrix):

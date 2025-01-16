@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from classes import SolveMatrix
+from classes import ScreenMatrix
 from classes import Cell
 from asset import asset
 
@@ -22,7 +22,7 @@ Each test verifies both the count of closed cells and ensures that returned cell
 @pytest.fixture
 def matrix():
     """Creates a 3x3 matrix with all cells initially closed."""
-    m = SolveMatrix(width=3, height=3)
+    m = ScreenMatrix(width=3, height=3)
     # Fill matrix with cells
     for row in range(3):
         for col in range(3):
@@ -113,7 +113,7 @@ def test_various_positions(matrix, pos, expected_count):
 
 def test_1x1_matrix():
     """Test with 1x1 matrix (no neighbors)."""
-    tiny_matrix = SolveMatrix(width=1, height=1)
+    tiny_matrix = ScreenMatrix(width=1, height=1)
     tiny_matrix.table[0, 0] = Cell(tiny_matrix, row=0, col=0)
     tiny_matrix.table[0, 0].asset = asset.closed
     
