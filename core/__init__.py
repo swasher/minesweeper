@@ -1,3 +1,11 @@
+"""
+
+ТУТ АЦКИЙ БАГ. ПОЛУЧАЕТСЯ, ЧТО КАКУЮ МАТРИЦУ Я ПЕРВУЮ ИМПОРТИРУЮ, С ТАКИМ ПУТЕМ
+И ИНИЦИАЛИЗИРУЮТСЯ АССЕТЫ, ТО ЕСТЬ ЕСЛИ Я ВВЕРХ ПОСТАВЛЮ PlayMatrix, ТО ЗАТЕМ В
+ScreenMatrix У МЕНЯ УЖЕ БУДЕТ ПУТЬ К АССЕТУ asset_tk
+
+"""
+
 from .solve_matrix import ScreenMatrix
 from .play_matrix import PlayMatrix
 from .matrix import Matrix
