@@ -32,25 +32,24 @@ from tkinter import filedialog, messagebox, simpledialog
 from tkinter import font
 from tktooltip import ToolTip
 
-from classes import PlayMatrix
-from classes import MineMode
-from classes import Cell
-from classes import Game
-from classes import GameState
-from classes import beginner, beginner_new, intermediate, expert
-from mouse_controller import MouseButton
+import assets
+asset_dir = 'asset_tk'
+assets.init(asset_dir)
+from assets import *
+# asset'ы должны инициализироваться до импорта остальных модулей Core, ВРОДЕ КАК
 
-import asset
-asset.init('asset_tk')
-from asset import *
+from core import PlayMatrix
+from core import MineMode
+from core import Cell
+from core import Game
+from core import GameState
+from core import beginner, beginner_new, intermediate, expert
+from mouse_controller import MouseButton
 
 
 class Mode(IntEnum):
     play = 0
     edit = 1
-
-
-asset_dir = Path(__file__).resolve().parent / 'asset' / 'asset_tk'
 
 
 class GameTimer:
@@ -130,8 +129,7 @@ class MinesweeperApp:
         self.use_timer = True
         self.timer = GameTimer(self.update_timer_display)
 
-        self.matrix = PlayMatrix(height=self.grid_height, width=self.grid_width)  # we need matrix initialized matrix for create status bar
-        # self.matrix.initialize(height=self.grid_height, width=self.grid_width)
+        self.matrix = PlayMatrix(height=self.grid_height, width=self.grid_width)
         self.matrix.create_new_game(n_bombs=self.current_game.bombs)
 
         self.mode = Mode.edit
@@ -162,33 +160,33 @@ class MinesweeperApp:
     def load_images(self):
         self.images = {
             "closed": tk.PhotoImage(file=closed.filename),
-            "bomb": tk.PhotoImage(file=asset.bomb.filename),
-            "bomb_red": tk.PhotoImage(file=asset.bomb_red.filename),
-            "bomb_wrong": tk.PhotoImage(file=asset.bomb_wrong.filename),
-            "flag": tk.PhotoImage(file=asset.flag.filename),
+            "bomb": tk.PhotoImage(file=bomb.filename),
+            "bomb_red": tk.PhotoImage(file=bomb_red.filename),
+            "bomb_wrong": tk.PhotoImage(file=assets.bomb_wrong.filename),
+            "flag": tk.PhotoImage(file=assets.flag.filename),
             "there_is_bomb": tk.PhotoImage(file=there_is_bomb.filename),
             "0": tk.PhotoImage(file=n0.filename),
-            "1": tk.PhotoImage(file=asset.n1.filename),
-            "2": tk.PhotoImage(file=asset.n2.filename),
-            "3": tk.PhotoImage(file=asset.n3.filename),
-            "4": tk.PhotoImage(file=asset.n4.filename),
-            "5": tk.PhotoImage(file=asset.n5.filename),
-            "6": tk.PhotoImage(file=asset.n6.filename),
-            "7": tk.PhotoImage(file=asset.n7.filename),
-            "8": tk.PhotoImage(file=asset.n8.filename),
-            "led0": tk.PhotoImage(file=asset.led0.filename),
-            "led1": tk.PhotoImage(file=asset.led1.filename),
-            "led2": tk.PhotoImage(file=asset.led2.filename),
-            "led3": tk.PhotoImage(file=asset.led3.filename),
-            "led4": tk.PhotoImage(file=asset.led4.filename),
-            "led5": tk.PhotoImage(file=asset.led5.filename),
-            "led6": tk.PhotoImage(file=asset.led6.filename),
-            "led7": tk.PhotoImage(file=asset.led7.filename),
-            "led8": tk.PhotoImage(file=asset.led8.filename),
-            "led9": tk.PhotoImage(file=asset.led9.filename),
-            "face_smile": tk.PhotoImage(file=asset.smile.filename),
-            "face_win": tk.PhotoImage(file=asset.win.filename),
-            "face_fail": tk.PhotoImage(file=asset.fail.filename),
+            "1": tk.PhotoImage(file=assets.n1.filename),
+            "2": tk.PhotoImage(file=assets.n2.filename),
+            "3": tk.PhotoImage(file=assets.n3.filename),
+            "4": tk.PhotoImage(file=assets.n4.filename),
+            "5": tk.PhotoImage(file=assets.n5.filename),
+            "6": tk.PhotoImage(file=assets.n6.filename),
+            "7": tk.PhotoImage(file=assets.n7.filename),
+            "8": tk.PhotoImage(file=assets.n8.filename),
+            "led0": tk.PhotoImage(file=assets.led0.filename),
+            "led1": tk.PhotoImage(file=assets.led1.filename),
+            "led2": tk.PhotoImage(file=assets.led2.filename),
+            "led3": tk.PhotoImage(file=assets.led3.filename),
+            "led4": tk.PhotoImage(file=assets.led4.filename),
+            "led5": tk.PhotoImage(file=assets.led5.filename),
+            "led6": tk.PhotoImage(file=assets.led6.filename),
+            "led7": tk.PhotoImage(file=assets.led7.filename),
+            "led8": tk.PhotoImage(file=assets.led8.filename),
+            "led9": tk.PhotoImage(file=assets.led9.filename),
+            "face_smile": tk.PhotoImage(file=smile.filename),
+            "face_win": tk.PhotoImage(file=win.filename),
+            "face_fail": tk.PhotoImage(file=fail.filename),
         }
 
     def create_top_frame(self):
@@ -308,7 +306,6 @@ class MinesweeperApp:
         self.timer.reset()
         self.set_custom_size(game)
         self.matrix = PlayMatrix(self.grid_width, self.grid_height)
-        # self.matrix.initialize(self.grid_width, self.grid_height)
         self.matrix.create_new_game(n_bombs=game.bombs)
         print('State:', self.matrix.game_state.name)
         self.set_smile(self.matrix.game_state)
@@ -409,8 +406,7 @@ class MinesweeperApp:
                 cell_id = self.cells[(row, col)]['id']
 
                 if image_name in self.images:
-                    if (self.mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED
-                            and cell.is_closed and cell.is_mined):
+                    if (self.mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED and cell.is_closed and cell.is_mined):
                         img = self.images['there_is_bomb']
                     else:
                         img = self.images[image_name]
@@ -460,7 +456,7 @@ class MinesweeperApp:
         # нам нужно все числа превратить в n0
         digits = self.matrix.get_digit_cells()
         for d in digits:
-            d.content = asset.n0
+            d.content = assets.n0
 
         self.label_mik_mode.config(text="(Set Bombs)")
 
@@ -505,13 +501,14 @@ class MinesweeperApp:
 
         # Обновление изображения
         image_name = "there_is_bomb.png" if mode == Mode.edit else "closed.png"
-        image_path = asset_dir.joinpath(image_name)
+        image_path = Path(__file__).resolve().parent / 'assets' / Path(asset_dir).joinpath(image_name)
+        self.images["there_is_bomb"] = tk.PhotoImage(file=image_path)
 
-        try:
-            self.images["there_is_bomb"] = tk.PhotoImage(file=image_path)
-        except tk.TclError as e:
-            print(f"Failed to load image {image_path}: {e}")
-            # Здесь можно добавить fallback-изображение
+        # try:
+        #     self.images["there_is_bomb"] = tk.PhotoImage(file=image_path)
+        # except tk.TclError as e:
+        #     print(f"Failed to load image {image_path}: {e}")
+        #     # Здесь можно добавить fallback-изображение
 
         self.update_grid()
 

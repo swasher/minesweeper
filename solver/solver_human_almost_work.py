@@ -10,7 +10,7 @@ import threading
 from pynput import mouse
 from threading import Timer
 
-from classes import Action
+from core import Action
 
 
 def exists(var):

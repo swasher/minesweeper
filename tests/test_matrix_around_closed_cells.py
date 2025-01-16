@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
-from classes import ScreenMatrix
-from classes import Cell
-from asset import asset
+from core import ScreenMatrix
+from core import Cell
+from assets import asset
 
 """
 The tests cover:

@@ -28,7 +28,7 @@ import numpy as np
 
 import mouse_controller
 import random
-from classes import Action
+from core import Action
 
 """
 См. pics/clusters.png

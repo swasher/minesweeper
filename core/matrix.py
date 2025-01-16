@@ -11,7 +11,7 @@ from enum import IntEnum
 import numpy as np
 from itertools import product
 
-from asset import *
+from assets import *
 
 from .cell import Cell
 import mouse_controller
@@ -213,6 +213,15 @@ class Matrix:
         """
         mines = list([x for x in self.around_cells(cell) if x.is_mined])
         return mines
+
+    def around_mined_num(self, cell) -> int:
+        """
+        Возвращает количество ячеек-мин вокруг ячейки cell.
+        Используется для tk-версии с известно расположенными минами.
+        :param cell: instance of Cell class
+        :return: int
+        """
+        return len(self.around_mined_cells(cell))
 
     def get_closed_cells(self) -> list[Cell]:
         """

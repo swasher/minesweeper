@@ -62,10 +62,6 @@ for file_name in pics:
 
 """
 
-class Foo:
-    def __init__(self):
-        pass
-
 class Asset:
     """
     Тип Asset инкапсулиет растровае изображения ячеек и других объектов игрового поля в объекты.
@@ -92,12 +88,25 @@ class Asset:
     def __repr__(self):
         return '<'+self.name+'>'
 
+    def __hash__(self):
+        return hash((self.name, self.filename))  # Используем кортеж для вычисления хэша
+
+    def __eq__(self, other):
+        if isinstance(other, Asset):
+            return self.name == other.name and self.filename == other.filename
+        return False
+
     @property
     def raster(self):
         try:
             return cv.imread(self.filename, cv.IMREAD_COLOR)
         except:
             raise Exception(f'Problem reading image. {self.filename}')
+
+
+# Функция для поиска экземпляра в наборе ассетов по значению value
+def find_asset_by_value(asset: set, target_value: int) -> Asset:
+    return next((item for item in asset if item.value == target_value), None)
 
 
 def initialize_assets(custom_path=None):
@@ -107,9 +116,11 @@ def initialize_assets(custom_path=None):
     else:
         dir_path = Path(__file__).resolve().parent / config.asset
 
-    # не во всех играх есть такие ячейки, но для совместимости оставляем всегда
-    there_is_bomb_png = dir_path.joinpath('there_is_bomb.png') if config.tk else None
-    noguess_png = dir_path.joinpath('no_guess.png') if config.allow_noguess else None,
+    # DEPRECATED
+    # there_is_bomb_png = dir_path.joinpath('there_is_bomb.png') if config.tk else None
+    # noguess_png = dir_path.joinpath('no_guess.png') if config.allow_noguess else None
+    #
+    # Я в итоге решил просто недостающие элементы сделать заглушками и загружать всегда
 
     assets = {
         'n0': Asset('0', dir_path.joinpath('0.png'), 0, '·'),
@@ -129,14 +140,13 @@ def initialize_assets(custom_path=None):
         'bomb_wrong': Asset('bomb_wrong', dir_path.joinpath('bomb_wrong.png'), None, '⚐'),
         'flag': Asset('flag', dir_path.joinpath('flag.png'), None, '⚑'),
 
-        'no_guess': Asset('no_guess', noguess_png, None, '🕂'),
-        'there_is_bomb': Asset('there_is_bomb', there_is_bomb_png, None, 'ơ'),
+        'no_guess': Asset('no_guess', dir_path.joinpath('no_guess.png'), None, '🕂'),
+        'there_is_bomb': Asset('there_is_bomb', dir_path.joinpath('there_is_bomb.png'), None, 'ơ'),
 
         # smile
         'fail': Asset('fail', dir_path.joinpath('face_lose.png')),
         'win': Asset('win', dir_path.joinpath('face_win.png')),
         'smile': Asset('smile', dir_path.joinpath('face_unpressed.png')),
-
 
         'led0': Asset('led_0', dir_path.joinpath('LED_0.png'), 0),
         'led1': Asset('led_2', dir_path.joinpath('LED_1.png'), 1),

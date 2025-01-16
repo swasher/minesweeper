@@ -1,5 +1,5 @@
-from .play_matrix import PlayMatrix
 from .solve_matrix import ScreenMatrix
+from .play_matrix import PlayMatrix
 from .matrix import Matrix
 from .matrix import MineMode
 from .cell import Cell

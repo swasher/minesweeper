@@ -1,6 +1,6 @@
 from random import randrange
-from classes import Cell
-from classes import Action
+from core import Cell
+from core import Action
 
 
 def solver_R1(matrix) -> ([Cell], Action):

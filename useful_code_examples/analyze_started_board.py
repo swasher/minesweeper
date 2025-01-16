@@ -13,7 +13,7 @@ import win32con
 from config import config
 from util import search_pattern_in_image_for_red_bombs
 from util import search_pattern_in_image_universal
-from asset import smile
+from assets import smile
 
 
 def search_smile():

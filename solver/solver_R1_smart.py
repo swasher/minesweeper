@@ -4,7 +4,7 @@ import mouse_controller
 import config
 import icecream as ic
 from util import pause
-from classes import Action
+from core import Action
 
 def solver_R1_smart(matrix):
     """

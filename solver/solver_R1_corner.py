@@ -1,6 +1,6 @@
 from random import randrange
 import mouse_controller
-from classes import Action
+from core import Action
 
 def solver_R1_corner(matrix):
     """

@@ -11,7 +11,7 @@ from pynput import mouse
 from threading import Timer
 from datetime import datetime
 
-from classes import Action
+from core import Action
 
 
 def exists(var):

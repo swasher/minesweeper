@@ -7,10 +7,10 @@ from .cell import Cell
 from .utility import GameState
 from mouse_controller import MouseButton
 from .matrix import MineMode
-
-import asset
-asset.init('asset_tk')
-from asset import *
+from assets import find_asset_by_value
+import assets
+assets.init('asset_tk')
+from assets import *
 
 
 class PlayMatrix(Matrix):
@@ -48,7 +48,7 @@ class PlayMatrix(Matrix):
         self.mines = set()  # Initialize the set to store mine positions
 
         for row, col in product(range(self.height), range(self.width)):
-            self.table[row, col].content = asset.closed
+            self.table[row, col].content = assets.closed
 
         placed_mines = 0
         while placed_mines < n_bombs:
@@ -96,7 +96,7 @@ class PlayMatrix(Matrix):
         """
 
         match cell.content:
-            case asset.closed:
+            case assets.closed:
                 # открываем ячейку
                 if cell.is_mined:
                     # Game over!
@@ -105,8 +105,9 @@ class PlayMatrix(Matrix):
                     self.game_state = GameState.fail
                     return
                 else:
-                    mines = len(self.around_mined_cells(cell))
-                    cell.content = asset.open_cells[mines]
+                    mines = self.around_mined_num(cell)
+                    cell.content = find_asset_by_value(open_cells, target_value=mines)
+                    # cell.content = assets.open_cells[mines]
 
                     # make check for win
                     if self.check_for_win():
@@ -120,7 +121,7 @@ class PlayMatrix(Matrix):
                         for neighbor in self.around_closed_cells(cell):
                             self.click_play_left_button(neighbor)
 
-            case cell.content if cell.content in asset.digits:
+            case cell.content if cell.content in assets.digits:
                 # если кол-во бомб вокруг совпадаем с цифрой - открываем все закрытые ячейки вокруг мины.
                 # это поведение выполняется рекурсивно для всех соседних ячеек.
                 flagged_cells = self.around_flagged_cells(cell)
@@ -136,9 +137,9 @@ class PlayMatrix(Matrix):
 
     def click_play_right_button(self, cell):
         match cell.content:
-            case asset.closed:
+            case assets.closed:
                 cell.content = flag
-            case asset.flag:
+            case assets.flag:
                 cell.content = closed
 
     def click_edit_mines(self, cell, button):
@@ -173,24 +174,24 @@ class PlayMatrix(Matrix):
         # обновляем цифры вокруг
         cells_to_update = self.around_opened_cells(cell)
         for c in cells_to_update:
-            mines = len(self.around_mined_cells(c))
-            c.content = asset.open_cells[mines]
+            mines = self.around_mined_num(c)
+            c.content = find_asset_by_value(open_cells, target_value=mines)
 
         # и в самой ячейке (если она открылась)
         if cell.is_empty:
-            mines = len(self.around_mined_cells(cell))
-            cell.content = asset.open_cells[mines]
+            mines = self.around_mined_num(cell)
+            cell.content = find_asset_by_value(open_cells, target_value=mines)
 
     def click_edit_digits(self, cell, button):
         """
         Нажатие на ячейку в режиме редактирования цифр
         """
-        rotating_states = [asset.closed, asset.n0, asset.n1, asset.n2, asset.n3,
-                           asset.n4, asset.n5, asset.n6, asset.n7, asset.n8]
+        rotating_states = [assets.closed, assets.n0, assets.n1, assets.n2, assets.n3,
+                           assets.n4, assets.n5, assets.n6, assets.n7, assets.n8]
 
         match cell.content, button:
 
-            case asset.flag, MouseButton.right:
+            case assets.flag, MouseButton.right:
                 # удаляем флаг
                 cell.remove_flag()
             case content, MouseButton.right:
@@ -204,8 +205,8 @@ class PlayMatrix(Matrix):
     def reveal_mines_fail(self, cell):
         bombs = self.get_mined_cells()
         for b in bombs:
-            b.content = asset.bomb
-        cell.content = asset.bomb_red
+            b.content = assets.bomb
+        cell.content = assets.bomb_red
 
     def reveal_mines_win(self):
         bombs = self.get_mined_cells()

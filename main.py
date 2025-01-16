@@ -23,16 +23,16 @@ import time
 
 from typing import Callable
 
-import asset
-from asset import *
+import assets
+from assets import *
 
-from classes import board
+from core import board
 
 from util import search_pattern_in_image
-from classes import ScreenMatrix
-from classes import Action
-from classes import Color
-from classes import Cell
+from core import ScreenMatrix
+from core import Action
+from core import Color
+from core import Cell
 
 from solver import solver_R1
 from solver import solver_R1_corner
@@ -42,7 +42,6 @@ from solver import solver_E1
 from solver import solver_E2
 from solver import solver_B2
 from solver import solver_B1E1
-from solver import solver_human, solver_human_almost_work
 from solver import solver_gauss
 from solver import solver_noguess
 
@@ -92,18 +91,20 @@ def initialize():
     q = queue.Queue()
 
 
-def find_board(closedcell):
+def find_board():
     """
     Находит поле сапера на экране и возвращает координаты клеток и область, в которой находится доска.
 
     :param board: global variable
-    :param pattern: объект Pattern, который содержит изображения клеток; мы будем искать на экране закрытую клетку (pattern.closed)
+    :param closedcell: объект Pattern, который содержит изображения клеток; мы будем искать на экране закрытую клетку (pattern.closed)
     :param asset: класс (не инстанс!) Asset, в котором содержится информация о "доске" - а именно размер полей в пикселях,
             от клеток до края "доски". Именно это поле (region), а не весь экран, мы в дальнейшем будем "сканировать".
     :return cells_coord_x: [array of int] Координаты строк (верхних левых углов клеток, относительно доски)
     :return cells_coord_y: [array of int] Координаты столбцов (верхних левых углов клеток, относительно доски)
     :return region: [x1, y1, x2, y2] координаты доски сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол. Включает всю доску с полями вокруг.
     """
+    closedcell = closed
+
     print('Try finding board...')
     with mss.mss() as sct:
         region = mss.mss().monitors[0]
@@ -148,7 +149,6 @@ def find_board(closedcell):
         win32gui.Rectangle(dc, region_x1, region_y1, region_x2, region_y2)
 
     return cells_coord_x, cells_coord_y, region
-
 
 
 def draw():
@@ -310,7 +310,7 @@ def recursive_wrapper():
         i = 0
         before = time.perf_counter()
 
-        if config.noguess:  # режим 'первый ход без отгадывания'
+        if config.no_guess:  # режим 'первый ход без отгадывания'
             do_strategy(solver_noguess)
             matrix.update()
 
@@ -337,13 +337,8 @@ def recursive_wrapper():
         matrix.reset()
         if config.arena:
             # TODO find_board принимает только 1 аргумент!!!!
-            col_values, row_values, region = find_board(asset.closed, board)
-
-            # todo __init__
-            # matrix = ScreenMatrix()
-            # matrix.initialize_from_screen(row_values, col_values, region)
+            col_values, row_values, region = find_board(assets.closed, board)
             matrix = ScreenMatrix(row_values, col_values, region)
-
 
         matrix.update()
 
@@ -409,11 +404,8 @@ if __name__ == '__main__':
         listener = Listener(on_press=on_press)
         listener.start()  # Запускаем слушатель в отдельном потоке
 
-    col_values, row_values, region = find_board(asset=closed)
+    col_values, row_values, region = find_board()
 
-    # todo __init__
-    # matrix = ScreenMatrix()
-    # matrix.initialize(row_values, col_values, region)
     matrix = ScreenMatrix(row_values, col_values, region)
 
     # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.

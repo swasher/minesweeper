@@ -49,7 +49,7 @@ from datetime import datetime
 from .utility import MineMode
 from .cell import Cell
 from config import config
-from asset import *
+from assets import *
 
 
 

@@ -3,8 +3,8 @@ import numpy as np
 from numpy import ndarray
 from .matrix import Matrix
 from .cell import Cell
-import asset
-from asset import *
+import assets
+from assets import *
 import mss
 import mss.tools
 import cv2 as cv
@@ -37,7 +37,7 @@ class ScreenMatrix(Matrix):
         self.table = np.full((self.height, self.width), Cell)
         self.mine_mode = MineMode.UNDEFINED
 
-        template = asset.closed.raster
+        template = assets.closed.raster
         h, w = template.shape[:2]
 
         for row, coordy in enumerate(row_values):  # cell[строка][столбец]
@@ -47,7 +47,10 @@ class ScreenMatrix(Matrix):
                 c = Cell(self, row, col, coordx, coordy, abscoordx, abscoordy, w, h)
                 image_cell = self.image_cell(c)
                 c.image = image_cell
+
+                # POSSIBLE DEPRECATED
                 c.update_cell(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
+
                 c.hash = c.hashing()
                 self.table[row, col] = c
 
@@ -143,7 +146,7 @@ class ScreenMatrix(Matrix):
         # НА САМОМ ДЕЛЕ, PRECISION ПОДОБРАН В search_pattern_in_image_for_red_bombs
 
         found_digits = []
-        for pattern in asset.red_digits:  # list_patterns imported from cell_pattern
+        for pattern in assets.red_digits:  # list_patterns imported from cell_pattern
             template = pattern.raster
 
             # result = util.find_templates(template, crop_img, precision)

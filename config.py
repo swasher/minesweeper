@@ -46,7 +46,7 @@ class Configuration(object):
         self.seconds_beetwen_games = conf.getint('main', 'seconds_beetwen_games')
 
         # game
-        self.noguess = conf.getboolean('game', 'no_guess')
+        self.no_guess = conf.getboolean('game', 'no_guess')
         self.noflag = conf.getboolean('game', 'noflag')
         self.arena = conf.getboolean('game', 'arena')
         self.need_win_parties = conf.getint('game', 'need_win_parties')

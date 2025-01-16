@@ -1,8 +1,8 @@
 import itertools
 
 from solver.classes import create_roots
-from classes import Action
-from classes import Cell
+from core import Action
+from core import Cell
 
 
 def solver_B2(matrix) -> ([Cell], Action):

@@ -8,8 +8,8 @@ import win32con
 import xxhash
 from enum import IntEnum
 
-import asset
-from asset import *
+import assets
+from assets import *
 import mouse_controller
 from config import config
 from util import point_in_rect
@@ -17,8 +17,8 @@ from util import random_point_in_square
 from .utility import Color
 
 if TYPE_CHECKING:
-    from asset import Asset
-    from classes import ScreenMatrix, PlayMatrix
+    from assets import Asset
+    from core import ScreenMatrix, PlayMatrix
     from numpy import ndarray
 
 
@@ -104,7 +104,7 @@ class Cell:
 
     @property
     def is_noguess(self):
-        return True if self.content == noguess else False
+        return True if self.content == no_guess else False
 
     def set_flag(self):
         self.content = flag
@@ -161,7 +161,7 @@ class Cell:
 
     def update_cell(self, crop):
         """
-        Обновляет содержимое ячейки в соответствии с полем Minesweeper
+        Обновляет содержимое ячейки в соответствии с ячейком на экране.
         :param crop: актуальное изображение ячейки
         :return: None
         """
@@ -172,7 +172,7 @@ class Cell:
 
             precision = 0.8
 
-            for pattern in asset.all_cell_types:  # list_patterns imported from cell_pattern
+            for pattern in assets.all_cell_types:  # list_patterns imported from cell_pattern
                 template = pattern.raster
                 res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)

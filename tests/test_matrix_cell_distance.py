@@ -1,8 +1,8 @@
 import pytest
 import math
 
-from classes import ScreenMatrix
-from classes import Cell
+from core import ScreenMatrix
+from core import Cell
 
 
 @pytest.fixture

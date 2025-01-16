@@ -1,8 +1,9 @@
-from .asset import Asset, initialize_assets
+from .asset import Asset, initialize_assets, find_asset_by_value
 
 # Объявляем все переменные как None изначально
 bomb_wrong = bomb_red = bomb = flag = closed = None
 n0 = n1 = n2 = n3 = n4 = n5 = n6 = n7 = n8 = None
+led0 = led1 = led2 = led3 = led4 = led5 = led6 = led7 = led8 = led9 = None
 win = fail = smile = None
 bombs = digits = open_cells = all_cell_types = led_digits = None
 there_is_bomb = no_guess = None
@@ -12,6 +13,7 @@ def init(custom_path=None):
     """Инициализирует все ассеты и делает их доступными для импорта"""
     global bomb_wrong, bomb_red, bomb, flag, closed
     global n0, n1, n2, n3, n4, n5, n6, n7, n8
+    global led0, led1, led2, led3, led4, led5, led6, led7, led8, led9
     global win, fail, smile
     global bombs, digits, open_cells, led_digits, all_cell_types
     global no_guess, there_is_bomb
@@ -27,6 +29,10 @@ def init(custom_path=None):
     closed = assets['closed']
     no_guess = assets['no_guess']
     there_is_bomb = assets['there_is_bomb']
+
+    win = assets['win']
+    fail = assets['fail']
+    smile = assets['smile']
 
     n0 = assets['n0']
     n1 = assets['n1']
@@ -54,7 +60,10 @@ def init(custom_path=None):
     digits = {n1, n2, n3, n4, n5, n6, n7, n8}
     open_cells = {n0, n1, n2, n3, n4, n5, n6, n7, n8}
     bombs = {bomb, bomb_red, bomb_wrong}
-    all_cell_types = {closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, bomb_red, bomb_wrong, there_is_bomb, no_guess}
+    all_cell_types = {closed, n0, n1, n2, n3, n4, n5, n6, n7, n8, flag, bomb, bomb_red, bomb_wrong, there_is_bomb}
+
+    all_cell_types.add(no_guess)
+    all_cell_types.add(there_is_bomb)
 
     return assets
 
@@ -64,9 +73,10 @@ init()
 
 __all__ = [
     'bomb_wrong', 'bomb_red', 'bomb', 'flag', 'closed',
-    'n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8',
+    'n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'led0',
     'win', 'fail', 'smile',
     'led_digits', 'digits', 'open_cells', 'bombs', 'all_cell_types',
     'there_is_bomb', 'no_guess',
-    'init'  # Добавляем функцию init в __all__
+    'find_asset_by_value',
+    'init',
 ]

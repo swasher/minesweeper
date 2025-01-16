@@ -2,7 +2,7 @@ import sys
 from config import config
 from pathlib import Path
 from solver import solver_E2
-from classes import Matrix
+from core import Matrix
 
 
 def solve(algo, pattern):
@@ -10,10 +10,10 @@ def solve(algo, pattern):
     Test solve engine on saved board
     :return:
     """
-    file_exercise = Path(__file__).parent / config.patterns_dir / pattern
+    pattern_file = Path(__file__).parent / config.patterns_dir / pattern
 
     matrix = Matrix(0, 0)
-    matrix.load(file_path=file_exercise)
+    matrix.load(file_path=pattern_file)
 
     cells, button = algo(matrix)
     print('Cells', cells)

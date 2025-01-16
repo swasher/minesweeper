@@ -1,9 +1,9 @@
 import itertools
 from solver.classes import create_roots
 
-from classes import Action
-from classes import Color
-from classes import Cell
+from core import Action
+from core import Color
+from core import Cell
 
 
 def solver_E2(matrix, debug=False) -> ([Cell], Action):

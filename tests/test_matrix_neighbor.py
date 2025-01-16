@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 from typing import List, Tuple
-from classes import Cell
-from classes import ScreenMatrix
+from core import Cell
+from core import ScreenMatrix
 
 
 @pytest.fixture

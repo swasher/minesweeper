@@ -76,29 +76,32 @@ NoFlag должен, по логике, работать так:
 Обычно, при импорте asset мы получаем набор ассетов, указанных в ini - `asset = asset_vienna`:
 
 ```python
-from asset import *
+from assets import *
+
 print(n0.filename)
 # or
-import asset
-print(asset.n0.filename)
+import assets
 
-> asset_vienna\0.png
+print(assets.n0.filename)
+
+> asset_vienna\0.
+png
 ```
 
 В модуле asset в __init__ есть функция init, которая может переинициализировать ассеты из заданной директории.
 Это нужно для Tk-версии, которая использует свой ассет независимо от того, что установлено в `settings.ini`.
 
-
 ```python
-import asset
+import assets
 
-asset.init('asset_tk')
-from asset import *
+assets.init('asset_tk')
+from assets import *
 
 print(n0.filename)
-print(asset.n0.filename)
+print(assets.n0.filename)
 
-> asset_tk\0.png
+> asset_tk\0.
+png
 ```
 
 Обращаю внимание на последовательность действий

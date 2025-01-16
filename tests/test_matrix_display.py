@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
-from classes import PlayMatrix
-from classes import Cell
-from asset import asset
+from core import PlayMatrix
+from core import Cell
+from assets import asset
 from config import config
 
 

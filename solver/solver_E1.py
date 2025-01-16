@@ -1,5 +1,5 @@
-from classes import Cell
-from classes import Action
+from core import Cell
+from core import Action
 
 
 def solver_E1(matrix) -> ([Cell], Action):
