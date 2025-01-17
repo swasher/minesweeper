@@ -1,10 +1,6 @@
 import time
 import numpy as np
 from numpy import ndarray
-from .matrix import Matrix
-from .cell import Cell
-import assets
-from assets import *
 import mss
 import mss.tools
 import cv2 as cv
@@ -13,7 +9,11 @@ import win32ui
 import win32con
 
 from config import config
-from .utility import MineMode
+
+from ..matrix import Matrix
+from ..cell import Cell
+from ..utility import MineMode
+from assets import *  # Ассеты уже инициализированы в __init__.py
 
 
 class ScreenMatrix(Matrix):
@@ -37,7 +37,7 @@ class ScreenMatrix(Matrix):
         self.table = np.full((self.height, self.width), Cell)
         self.mine_mode = MineMode.UNDEFINED
 
-        template = assets.closed.raster
+        template = closed.raster
         h, w = template.shape[:2]
 
         for row, coordy in enumerate(row_values):  # cell[строка][столбец]

@@ -38,7 +38,7 @@ assets.init(asset_dir)
 from assets import *
 # asset'ы должны инициализироваться до импорта остальных модулей Core, ВРОДЕ КАК
 
-from core import PlayMatrix
+from core.tk import TkMatrix
 from core import MineMode
 from core import Cell
 from core import Game
@@ -129,7 +129,7 @@ class MinesweeperApp:
         self.use_timer = True
         self.timer = GameTimer(self.update_timer_display)
 
-        self.matrix = PlayMatrix(height=self.grid_height, width=self.grid_width)
+        self.matrix = TkMatrix(height=self.grid_height, width=self.grid_width)
         self.matrix.create_new_game(n_bombs=self.current_game.bombs)
 
         self.mode = Mode.edit
@@ -305,7 +305,7 @@ class MinesweeperApp:
 
         self.timer.reset()
         self.set_custom_size(game)
-        self.matrix = PlayMatrix(self.grid_width, self.grid_height)
+        self.matrix = TkMatrix(self.grid_width, self.grid_height)
         self.matrix.create_new_game(n_bombs=game.bombs)
         print('State:', self.matrix.game_state.name)
         self.set_smile(self.matrix.game_state)

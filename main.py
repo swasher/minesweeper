@@ -29,7 +29,7 @@ from assets import *
 from core import board
 
 from util import search_pattern_in_image
-from core import ScreenMatrix
+from core.screen import ScreenMatrix
 from core import Action
 from core import Color
 from core import Cell

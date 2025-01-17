@@ -2,18 +2,16 @@ from itertools import product
 import numpy as np
 import random
 
-from .matrix import Matrix
-from .cell import Cell
-from .utility import GameState
+from ..matrix import Matrix
+from ..matrix import MineMode
+from ..cell import Cell
+from ..utility import GameState
 from mouse_controller import MouseButton
-from .matrix import MineMode
-from assets import find_asset_by_value
-import assets
-assets.init('asset_tk')
+
 from assets import *
 
 
-class PlayMatrix(Matrix):
+class TkMatrix(Matrix):
 
     def __init__(self, width, height):
         """
@@ -48,7 +46,7 @@ class PlayMatrix(Matrix):
         self.mines = set()  # Initialize the set to store mine positions
 
         for row, col in product(range(self.height), range(self.width)):
-            self.table[row, col].content = assets.closed
+            self.table[row, col].content = closed
 
         placed_mines = 0
         while placed_mines < n_bombs:
@@ -94,53 +92,54 @@ class PlayMatrix(Matrix):
         :param cell:
         :return:
         """
+        if cell.is_closed:
+            # открываем ячейку
+            if cell.is_mined:
+                # Game over!
+                # print("Game Over!")
+                self.reveal_mines_fail(cell)
+                self.game_state = GameState.fail
+                return
+            else:
+                mines = self.around_mined_num(cell)
+                cell.content = find_asset_by_value(open_cells, target_value=mines)
+                # cell.content = assets.open_cells[mines]
 
-        match cell.content:
-            case assets.closed:
-                # открываем ячейку
-                if cell.is_mined:
-                    # Game over!
-                    # print("Game Over!")
-                    self.reveal_mines_fail(cell)
-                    self.game_state = GameState.fail
+                # make check for win
+                if self.check_for_win():
+                    # print("You Win!")
+                    self.reveal_mines_win()
+                    self.game_state = GameState.win
                     return
-                else:
-                    mines = self.around_mined_num(cell)
-                    cell.content = find_asset_by_value(open_cells, target_value=mines)
-                    # cell.content = assets.open_cells[mines]
 
-                    # make check for win
-                    if self.check_for_win():
-                        # print("You Win!")
-                        self.reveal_mines_win()
-                        self.game_state = GameState.win
-                        return
-
-                    # Если вокруг ячейки нет бомб (n0), открываем все соседние ячейки
-                    if cell.is_empty:
-                        for neighbor in self.around_closed_cells(cell):
-                            self.click_play_left_button(neighbor)
-
-            case cell.content if cell.content in assets.digits:
-                # если кол-во бомб вокруг совпадаем с цифрой - открываем все закрытые ячейки вокруг мины.
-                # это поведение выполняется рекурсивно для всех соседних ячеек.
-                flagged_cells = self.around_flagged_cells(cell)
-                # print('Detect flagged cells:', flagged_cells)
-
-                ### todo надо так if self.get_num_flags() == cell.content.value:
-                # но почему-то не работает - ПРОВЕРИТЬ!!!
-                # не работает потому, что get_
-
-                if len(flagged_cells) == cell.content.value:
+                # Если вокруг ячейки нет бомб (n0), открываем все соседние ячейки
+                if cell.is_empty:
                     for neighbor in self.around_closed_cells(cell):
                         self.click_play_left_button(neighbor)
 
-    def click_play_right_button(self, cell):
-        match cell.content:
-            case assets.closed:
-                cell.content = flag
-            case assets.flag:
-                cell.content = closed
+        elif cell.content in digits:
+            # если кол-во бомб вокруг совпадаем с цифрой - открываем все закрытые ячейки вокруг мины.
+            # это поведение выполняется рекурсивно для всех соседних ячеек.
+            flagged_cells = self.around_flagged_cells(cell)
+            # print('Detect flagged cells:', flagged_cells)
+
+            ### todo надо так if self.get_num_flags() == cell.content.value:
+            # но почему-то не работает - ПРОВЕРИТЬ!!!
+            # не работает потому, что get_
+
+            if len(flagged_cells) == cell.content.value:
+                for neighbor in self.around_closed_cells(cell):
+                    self.click_play_left_button(neighbor)
+
+    @staticmethod
+    def click_play_right_button(cell):
+        # todo может перенести это в метод Cell, а не Matrix?
+        if cell.is_closed:
+            cell.content = flag
+        elif cell.is_flag:
+            cell.content = closed
+        else:
+            pass  # do none if right click on other cells
 
     def click_edit_mines(self, cell, button):
         """
@@ -203,16 +202,19 @@ class PlayMatrix(Matrix):
                     cell.content = next_asset
 
     def reveal_mines_fail(self, cell):
-        bombs = self.get_mined_cells()
-        for b in bombs:
-            b.content = assets.bomb
-        cell.content = assets.bomb_red
+        mines = self.get_mined_cells()
+        for m in mines:
+            m.content = bomb
+        cell.content = bomb_red
 
     def reveal_mines_win(self):
-        bombs = self.get_mined_cells()
-        for b in bombs:
-            if b.content == closed:
-                b.content = flag
+        """
+        Если мы открыли все ячейки (кроме мин), то все оставшиеся закрытые ячейки с минами помечаются флагами
+        """
+        mines = self.get_mined_cells()
+        for m in mines:
+            if m.content == closed:
+                m.content = flag
 
     def bomb_qty(self) -> int:
         """

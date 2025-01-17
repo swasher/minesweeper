@@ -12,7 +12,7 @@ dummy:
 	echo Do not run without arguments! $(_R)
 
 exe:
-	pyinstaller --onefile --windowed --add-data="asset:asset" --add-data="settings.ini:." --add-data="settings.local.ini:." --hidden-import "tkinter" mine_tk.py
+	pyinstaller --onefile --windowed --add-data="assets/asset_tk:assets/asset_tk" --add-data="settings.ini:." --add-data="settings.local.ini:." --hidden-import "tkinter" mine_tk.py
 
 test:
 	pytest
