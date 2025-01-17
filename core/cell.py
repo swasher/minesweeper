@@ -179,8 +179,6 @@ class Cell:
             #         self.content = pattern
             #         break
 
-
-
             pattern, _ = find_matching_pattern(crop, all_cell_types)
             if pattern:
                 self.content = pattern
