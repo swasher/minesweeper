@@ -220,3 +220,6 @@ class PlayMatrix(Matrix):
         :return:
         """
         return len(self.mines)
+
+
+__all__ = ['PlayMatrix']

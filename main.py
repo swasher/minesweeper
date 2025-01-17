@@ -408,6 +408,7 @@ if __name__ == '__main__':
 
     matrix = ScreenMatrix(row_values, col_values, region)
 
+
     # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.
     # bombs = matrix.bomb_qty(0.87)
     # print(bombs)

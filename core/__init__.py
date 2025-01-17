@@ -6,8 +6,8 @@ ScreenMatrix У МЕНЯ УЖЕ БУДЕТ ПУТЬ К АССЕТУ asset_tk
 
 """
 
-from .solve_matrix import ScreenMatrix
-from .play_matrix import PlayMatrix
+from .screen_matrix import ScreenMatrix
+# from .play_matrix import PlayMatrix
 from .matrix import Matrix
 from .matrix import MineMode
 from .cell import Cell

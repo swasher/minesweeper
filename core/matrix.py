@@ -98,7 +98,10 @@ class Matrix:
         d = math.hypot(cell1.row - cell2.row, cell1.col - cell2.col)
         return d
 
-    def matrix_to_text(self):
+    def matrix_to_text(self) -> list[str]:
+        """
+        Используется в методе сохранении матрицы в файл.
+        """
         matrix = []
         for row in range(self.height):
             line = ''
@@ -531,8 +534,12 @@ class Matrix:
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
         face_coord_y = self.region_y1 + board.smile_y_coord
         mouse_controller.click(face_coord_x, face_coord_y, mb.left)
-        for c in self.table.flat:
-            # deprecated
-            # c.status = 'closed'
-            c.type = asset.closed
+
+        # todo но более феншуйно обновить с экрана и проверить - все ячейки должны стать закрытыми
+        self.fill_with_closed()
+
         time.sleep(config.screen_refresh_lag * 10)
+
+    def fill_with_closed(self):
+        for c in self.table.flat:
+            c.content = closed
