@@ -1,38 +1,30 @@
-import random
-import time
 import sys
-import os
+import time
+import threading
+import random
 import queue
-import cv2 as cv
 import mss
+import cv2 as cv
 import numpy as np
 from pynput.keyboard import Key, Listener
-import timeit
-from datetime import datetime
 from icecream import ic
 import win32gui
 import win32api
-
-from config import config
-from util import pause
-from util import cell_coordinates
-
-import threading
 import ctypes
-import time
 
-from typing import Callable
-
-import assets
 from assets import *
+from config import config
 
-from core import board
-
-from util import search_pattern_in_image
 from core.screen import ScreenMatrix
 from core import Action
 from core import Color
 from core import Cell
+from core import board
+
+from screen_controller import search_pattern_in_image
+from screen_controller import cell_coordinates
+from util import controlled_pause
+
 
 from solver import solver_R1
 from solver import solver_R1_corner
@@ -72,11 +64,11 @@ and second number - it is COLUMN: table[row, col]
  
 For example, [1, 2] - it's second row and third column.
 
-        axis 1
-       col0  col1  col2
-a row0
-x row1
-i row2 
+             axis 1
+        col0  col1  col2
+a  row0
+x  row1
+i  row2 
 s
 0
 
@@ -329,7 +321,7 @@ def recursive_wrapper():
         # пауза примерно `seconds_beetwen_games` секунд, если оно не ноль (с разбросом sigma=1.5)
         if config.seconds_beetwen_games:
             t = abs(random.gauss(config.seconds_beetwen_games, 1.5))
-            pause(t)
+            controlled_pause(t)
 
         contin = (bool(need_win) and win < need_win) or (bool(need_total) and total < need_total)
         if not contin:
@@ -407,6 +399,8 @@ if __name__ == '__main__':
     col_values, row_values, region = find_board()
 
     matrix = ScreenMatrix(row_values, col_values, region)
+    print('Matrix creted:')
+    matrix.display()
 
 
     # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.

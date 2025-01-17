@@ -14,6 +14,7 @@ from ..matrix import Matrix
 from ..cell import Cell
 from ..utility import MineMode
 from assets import *  # Ассеты уже инициализированы в __init__.py
+from screen_controller import search_pattern_in_image_for_red_bombs
 
 
 class ScreenMatrix(Matrix):
@@ -49,7 +50,14 @@ class ScreenMatrix(Matrix):
                 c.image = image_cell
 
                 # POSSIBLE DEPRECATED
-                c.update_cell(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
+                c.read_cell_from_screen(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
+
+                """
+                TODO BUG 
+                
+                вот в этом месте ячейка с вместо closed получает content there_is_bomb
+                """
+
 
                 c.hash = c.hashing()
                 self.table[row, col] = c
@@ -103,7 +111,7 @@ class ScreenMatrix(Matrix):
         self.image = self.get_image()
         for cell in self.get_closed_cells():
             crop = self.image_cell(cell)
-            cell.update_cell(crop)
+            cell.read_cell_from_screen(crop)
 
     @property
     def you_win(self):
@@ -146,12 +154,12 @@ class ScreenMatrix(Matrix):
         # НА САМОМ ДЕЛЕ, PRECISION ПОДОБРАН В search_pattern_in_image_for_red_bombs
 
         found_digits = []
-        for pattern in assets.red_digits:  # list_patterns imported from cell_pattern
+        for pattern in red_digits:  # list_patterns imported from cell_pattern
             template = pattern.raster
 
             # result = util.find_templates(template, crop_img, precision)
             # result = util.search_pattern_in_image_for_red_bombs(template, crop_img, precision)
-            result = util.search_pattern_in_image_for_red_bombs_on_work(template, crop_img, precision)
+            result = search_pattern_in_image_for_red_bombs_on_work(template, crop_img, precision)
 
             # `result` - это list of tuple
             # каждый кортеж содержит список из трех числ:
@@ -266,3 +274,5 @@ class ScreenMatrix(Matrix):
             mem_dc.DeleteDC()
             win32gui.ReleaseDC(hdesktop, desktop_dc)
 
+
+__all__ = ['ScreenMatrix']

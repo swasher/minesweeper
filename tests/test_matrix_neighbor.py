@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from typing import List, Tuple
 from core import Cell
-from core import ScreenMatrix
+from core.screen import ScreenMatrix
 
 
 @pytest.fixture

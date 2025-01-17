@@ -1,20 +1,17 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-import cv2 as cv
-import win32api
 import win32gui
-import win32con
 import xxhash
-from enum import IntEnum
 
-import assets
-from assets import *
 import mouse_controller
 from config import config
+from screen_controller.scan import find_matching_pattern
 from util import point_in_rect
 from util import random_point_in_square
 from .utility import Color
+from assets import *
+
 
 if TYPE_CHECKING:
     from assets import Asset
@@ -159,7 +156,7 @@ class Cell:
         intdigits = h.intdigest()
         return intdigits
 
-    def update_cell(self, crop):
+    def read_cell_from_screen(self, crop):
         """
         Обновляет содержимое ячейки в соответствии с ячейком на экране.
         :param crop: актуальное изображение ячейки
@@ -170,28 +167,23 @@ class Cell:
         if self.hash != new_hash:
             self.hash = new_hash
 
-            precision = 0.8
+            # precision = 0.8
+            #
+            # for pattern in assets.all_cell_types:  # list_patterns imported from cell_pattern
+            #     template = pattern.raster
+            #     res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
+            #     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+            #     # print(f'Cell {self.row}:{self.col} compared with <{pattern.name}> with result {max_val}')
+            #     pattern.similarity = max_val
+            #     if max_val > precision:
+            #         self.content = pattern
+            #         break
 
-            for pattern in assets.all_cell_types:  # list_patterns imported from cell_pattern
-                template = pattern.raster
-                res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
-                min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-                # print(f'Cell {self.row}:{self.col} compared with <{pattern.name}> with result {max_val}')
-                pattern.similarity = max_val
-                if max_val > precision:
-                    self.content = pattern
-                    # deprecated
-                    # self.status = pattern.name
-                    break
 
-            # deprecated
-            # был вариант находить для каждого паттерна индекс "похожести" и выбирать наибольший
-            # но по сути все совпадения имеют индекс более 0,9999 или 1,0, так что нет смысла заморачиваться
-            # best_match = sorted(list_patterns, key=lambda x: x.similarity, reverse=True)[0]
-            # print(best_match.similarity)
-            # if best_match.similarity > precision:
-            #     self.status = best_match.name
 
+            pattern, _ = find_matching_pattern(crop, all_cell_types)
+            if pattern:
+                self.content = pattern
             else:  # если перебор for не дал результатов
                 print(f'Update board: Cell {self.row}x{self.col} do not match anything. Exit')
                 exit()

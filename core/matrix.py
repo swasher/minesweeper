@@ -48,18 +48,6 @@ class Matrix:
         #  для унификации расположения однотипных методов.
         self.mines = set()  # set of bombs for Tk playing
 
-
-    def initialize(self):
-        """
-        Инициализация матрицы.
-        Выполняется в дочерних классах либо экранной матрицей, либо для Tk пустыми ячейками.
-        Дочерние классы имеют различные сигнатуры параметров!
-
-        TODO переделать, чтобы вся инициализация выполнялась в __init__.
-         При необходимости создавать новый объект, а не переинициализировать старый.
-        """
-        pass
-
     def save(self):
         text = self.matrix_to_text()
         self.io.save(text)
@@ -188,6 +176,14 @@ class Matrix:
         """
         flagged_cells = list([x for x in self.around_cells(cell) if x.is_flag])
         return flagged_cells
+
+    def around_flagged_num(self, cell) -> int:
+        """
+        Возвращает количество ячеек-флагов вокруг ячейки cell
+        :param cell: instance of Cell class
+        :return: array of Cell instances
+        """
+        return len(self.around_flagged_cells(cell))
 
     def around_digit_cells(self, cell) -> list[Cell]:
         """

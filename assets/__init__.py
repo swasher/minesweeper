@@ -73,7 +73,8 @@ init()
 
 __all__ = [
     'bomb_wrong', 'bomb_red', 'bomb', 'flag', 'closed',
-    'n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'led0',
+    'n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8',
+    'led0', 'led1', 'led2', 'led3', 'led4', 'led5', 'led6', 'led7', 'led8', 'led9',
     'win', 'fail', 'smile',
     'led_digits', 'digits', 'open_cells', 'bombs', 'all_cell_types',
     'there_is_bomb', 'no_guess',

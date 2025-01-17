@@ -1,7 +1,7 @@
 import pytest
 import math
 
-from core import ScreenMatrix
+from core.screen import ScreenMatrix
 from core import Cell
 
 

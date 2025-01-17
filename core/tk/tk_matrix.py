@@ -103,7 +103,6 @@ class TkMatrix(Matrix):
             else:
                 mines = self.around_mined_num(cell)
                 cell.content = find_asset_by_value(open_cells, target_value=mines)
-                # cell.content = assets.open_cells[mines]
 
                 # make check for win
                 if self.check_for_win():
@@ -120,14 +119,7 @@ class TkMatrix(Matrix):
         elif cell.content in digits:
             # если кол-во бомб вокруг совпадаем с цифрой - открываем все закрытые ячейки вокруг мины.
             # это поведение выполняется рекурсивно для всех соседних ячеек.
-            flagged_cells = self.around_flagged_cells(cell)
-            # print('Detect flagged cells:', flagged_cells)
-
-            ### todo надо так if self.get_num_flags() == cell.content.value:
-            # но почему-то не работает - ПРОВЕРИТЬ!!!
-            # не работает потому, что get_
-
-            if len(flagged_cells) == cell.content.value:
+            if self.around_flagged_num(cell) == cell.content.value:
                 for neighbor in self.around_closed_cells(cell):
                     self.click_play_left_button(neighbor)
 
@@ -141,7 +133,7 @@ class TkMatrix(Matrix):
         else:
             pass  # do none if right click on other cells
 
-    def click_edit_mines(self, cell, button):
+    def click_edit_mines_predefined(self, cell, button):
         """
         Нажатие на ячейку в режиме редактирования мин.
 
@@ -181,25 +173,20 @@ class TkMatrix(Matrix):
             mines = self.around_mined_num(cell)
             cell.content = find_asset_by_value(open_cells, target_value=mines)
 
-    def click_edit_digits(self, cell, button):
+    def click_edit_mines_undefined(self, cell, button):
         """
         Нажатие на ячейку в режиме редактирования цифр
         """
-        rotating_states = [assets.closed, assets.n0, assets.n1, assets.n2, assets.n3,
-                           assets.n4, assets.n5, assets.n6, assets.n7, assets.n8]
+        rotating_states = [closed, n0, n1, n2, n3, n4, n5, n6, n7, n8]
 
-        match cell.content, button:
-
-            case assets.flag, MouseButton.right:
-                # удаляем флаг
-                cell.remove_flag()
-            case content, MouseButton.right:
-                # устанавливаем флаг
-                cell.set_flag()
-            case content, MouseButton.left:
-                if content in rotating_states:
-                    next_asset = rotating_states[(rotating_states.index(content) + 1) % len(rotating_states)]
-                    cell.content = next_asset
+        if cell.is_flag and button == MouseButton.right:
+            cell.remove_flag()
+        elif not cell.is_flag and button == MouseButton.right:
+            cell.set_flag()
+        elif button == MouseButton.left:
+            if cell.content in rotating_states:
+                next_asset = rotating_states[(rotating_states.index(cell.content) + 1) % len(rotating_states)]
+                cell.content = next_asset
 
     def reveal_mines_fail(self, cell):
         mines = self.get_mined_cells()
@@ -224,4 +211,4 @@ class TkMatrix(Matrix):
         return len(self.mines)
 
 
-__all__ = ['PlayMatrix']
+__all__ = ['TkMatrix']

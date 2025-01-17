@@ -1,15 +1,15 @@
 import pytest
 import numpy as np
-from core import PlayMatrix
+from core.tk import TkMatrix
 from core import Cell
-from assets import asset
+from assets import *
 from config import config
 
 
 @pytest.fixture
 def matrix():
     """Creates a 3x3 matrix for testing display functionality."""
-    m = PlayMatrix(width=3, height=3)
+    m = TkMatrix(width=3, height=3)
 
     # Fill matrix with closed cells
     for row in range(3):
@@ -30,15 +30,15 @@ def test_all_closed(matrix, capsys):
     # Check returned matrix view
     assert len(matrix_view) == 3  # 3 rows
     assert all(len(row.split()) == 3 for row in matrix_view)  # 3 columns
-    assert all(cell == asset.closed.symbol for row in matrix_view for cell in row.split())
+    assert all(cell == closed.symbol for row in matrix_view for cell in row.split())
 
 
 def test_mixed_cells(matrix, capsys):
     """Test display with mix of different cell contents."""
     # Set up different cell contents
-    matrix.table[0, 0].content = asset.n1  # Open with 1 mine
-    matrix.table[0, 1].content = asset.flag  # Flag
-    matrix.table[1, 1].content = asset.n0  # Empty cell
+    matrix.table[0, 0].content = n1  # Open with 1 mine
+    matrix.table[0, 1].content = flag  # Flag
+    matrix.table[1, 1].content = n0  # Empty cell
     
     matrix_view = matrix.display()
     captured = capsys.readouterr()
@@ -48,8 +48,8 @@ def test_mixed_cells(matrix, capsys):
     
     # Verify first row content
     first_row = matrix_view[0].split()
-    assert first_row[0] == asset.n1.symbol  # "1"
-    assert first_row[1] == asset.flag.symbol  # Flag symbol
+    assert first_row[0] == n1.symbol  # "1"
+    assert first_row[1] == flag.symbol  # Flag symbol
 
 
 def test_with_mines(matrix, capsys):
@@ -66,20 +66,20 @@ def test_with_mines(matrix, capsys):
     
     # Check that mines are displayed correctly when cell is closed
     first_row = matrix_view[0].split()
-    assert first_row[0] == asset.there_is_bomb.symbol
+    assert first_row[0] == there_is_bomb.symbol
     
     # Add a flag over a mine
-    matrix.table[0, 0].content = asset.flag
+    matrix.table[0, 0].content = flag
     matrix_view = matrix.display()
     
     # Mine should not be visible when flagged
     first_row = matrix_view[0].split()
-    assert first_row[0] == asset.flag.symbol
+    assert first_row[0] == flag.symbol
 
 
 # def test_empty_matrix():
 #     """Test display with empty/zero-sized matrix."""
-#     empty_matrix = PlayMatrix()
+#     empty_matrix = TkMatrix()
 #     empty_matrix.initialize(width=0, height=0)
 #
 #     matrix_view = empty_matrix.display()
@@ -88,29 +88,27 @@ def test_with_mines(matrix, capsys):
 
 def test_single_cell(capsys):
     """Test display with 1x1 matrix."""
-    tiny_matrix = PlayMatrix()
-    tiny_matrix.initialize(width=1, height=1)
+    tiny_matrix = TkMatrix(width=1, height=1)
     tiny_matrix.table[0, 0] = Cell(tiny_matrix, row=0, col=0)
-    tiny_matrix.table[0, 0].content = asset.closed
+    tiny_matrix.table[0, 0].content = closed
     
     matrix_view = tiny_matrix.display()
     captured = capsys.readouterr()
     
     assert len(matrix_view) == 1
     assert len(matrix_view[0].split()) == 1
-    assert matrix_view[0].split()[0] == asset.closed.symbol
+    assert matrix_view[0].split()[0] == closed.symbol
 
 
 def test_rectangular_matrix(capsys):
     """Test display with non-square matrix."""
-    rect_matrix = PlayMatrix()
-    rect_matrix.initialize(width=2, height=3)
-    
+    rect_matrix = TkMatrix(width=2, height=3)
+
     # Fill with closed cells
     for row in range(3):
         for col in range(2):
             rect_matrix.table[row, col] = Cell(rect_matrix, row=row, col=col)
-            rect_matrix.table[row, col].content = asset.closed
+            rect_matrix.table[row, col].content = closed
     
     matrix_view = rect_matrix.display()
     captured = capsys.readouterr()
@@ -123,12 +121,12 @@ def test_all_cell_contents(matrix, capsys):
     """Test display with all possible cell contents."""
     # Set up one of each possible cell content
     contents = [
-        (0, 0, asset.closed),
-        (0, 1, asset.flag),
-        (0, 2, asset.open_cells[0]),
-        (1, 0, asset.open_cells[1]),
-        (1, 1, asset.open_cells[2]),
-        (1, 2, asset.bomb),
+        (0, 0, closed),
+        (0, 1, flag),
+        (0, 2, open_cells[0]),
+        (1, 0, open_cells[1]),
+        (1, 1, open_cells[2]),
+        (1, 2, bomb),
     ]
     
     for row, col, content in contents:

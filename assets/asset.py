@@ -89,11 +89,11 @@ class Asset:
         return '<'+self.name+'>'
 
     def __hash__(self):
-        return hash((self.name, self.filename))  # Используем кортеж для вычисления хэша
+        return hash(self.name)  # Используем кортеж для вычисления хэша
 
     def __eq__(self, other):
         if isinstance(other, Asset):
-            return self.name == other.name and self.filename == other.filename
+            return self.name == other.name
         return False
 
     @property

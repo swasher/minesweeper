@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from core import ScreenMatrix
+from core.screen import ScreenMatrix
 from core import Cell
 from assets import asset
 

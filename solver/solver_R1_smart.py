@@ -3,7 +3,6 @@ from random import randrange
 import mouse_controller
 import config
 import icecream as ic
-from util import pause
 from core import Action
 
 def solver_R1_smart(matrix):

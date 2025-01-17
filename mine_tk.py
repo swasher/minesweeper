@@ -32,10 +32,10 @@ from tkinter import filedialog, messagebox, simpledialog
 from tkinter import font
 from tktooltip import ToolTip
 
-import assets
-asset_dir = 'asset_tk'
-assets.init(asset_dir)
-from assets import *
+# import assets
+# asset_dir = 'asset_tk'
+# assets.init(asset_dir)
+
 # asset'ы должны инициализироваться до импорта остальных модулей Core, ВРОДЕ КАК
 
 from core.tk import TkMatrix
@@ -45,7 +45,7 @@ from core import Game
 from core import GameState
 from core import beginner, beginner_new, intermediate, expert
 from mouse_controller import MouseButton
-
+from assets import *
 
 class Mode(IntEnum):
     play = 0
@@ -132,7 +132,7 @@ class MinesweeperApp:
         self.matrix = TkMatrix(height=self.grid_height, width=self.grid_width)
         self.matrix.create_new_game(n_bombs=self.current_game.bombs)
 
-        self.mode = Mode.edit
+        self.edit_mode = Mode.edit
         self.mine_mode = MineMode.PREDEFINED
         self.load_images()
 
@@ -157,33 +157,49 @@ class MinesweeperApp:
 
         if matrix_file:
             self.load_matrix(matrix_file)
+
+    @property
+    def mine_mode(self) -> MineMode:
+        """Возвращает режим расположения мин
+        Фактически proxy к свойству Matrix.
+        """
+        return self.matrix.mine_mode
+
+    @mine_mode.setter
+    def mine_mode(self, mode: MineMode):
+        """Устанавливает режим расположения мин
+        Фактически proxy к свойству Matrix.
+        """
+        self.matrix.mine_mode = mode
+
     def load_images(self):
         self.images = {
             "closed": tk.PhotoImage(file=closed.filename),
             "bomb": tk.PhotoImage(file=bomb.filename),
             "bomb_red": tk.PhotoImage(file=bomb_red.filename),
-            "bomb_wrong": tk.PhotoImage(file=assets.bomb_wrong.filename),
-            "flag": tk.PhotoImage(file=assets.flag.filename),
+            "bomb_wrong": tk.PhotoImage(file=bomb_wrong.filename),
+            "flag": tk.PhotoImage(file=flag.filename),
             "there_is_bomb": tk.PhotoImage(file=there_is_bomb.filename),
+            "there_is_bomb_": tk.PhotoImage(file=there_is_bomb.filename),
             "0": tk.PhotoImage(file=n0.filename),
-            "1": tk.PhotoImage(file=assets.n1.filename),
-            "2": tk.PhotoImage(file=assets.n2.filename),
-            "3": tk.PhotoImage(file=assets.n3.filename),
-            "4": tk.PhotoImage(file=assets.n4.filename),
-            "5": tk.PhotoImage(file=assets.n5.filename),
-            "6": tk.PhotoImage(file=assets.n6.filename),
-            "7": tk.PhotoImage(file=assets.n7.filename),
-            "8": tk.PhotoImage(file=assets.n8.filename),
-            "led0": tk.PhotoImage(file=assets.led0.filename),
-            "led1": tk.PhotoImage(file=assets.led1.filename),
-            "led2": tk.PhotoImage(file=assets.led2.filename),
-            "led3": tk.PhotoImage(file=assets.led3.filename),
-            "led4": tk.PhotoImage(file=assets.led4.filename),
-            "led5": tk.PhotoImage(file=assets.led5.filename),
-            "led6": tk.PhotoImage(file=assets.led6.filename),
-            "led7": tk.PhotoImage(file=assets.led7.filename),
-            "led8": tk.PhotoImage(file=assets.led8.filename),
-            "led9": tk.PhotoImage(file=assets.led9.filename),
+            "1": tk.PhotoImage(file=n1.filename),
+            "2": tk.PhotoImage(file=n2.filename),
+            "3": tk.PhotoImage(file=n3.filename),
+            "4": tk.PhotoImage(file=n4.filename),
+            "5": tk.PhotoImage(file=n5.filename),
+            "6": tk.PhotoImage(file=n6.filename),
+            "7": tk.PhotoImage(file=n7.filename),
+            "8": tk.PhotoImage(file=n8.filename),
+            "led0": tk.PhotoImage(file=led0.filename),
+            "led1": tk.PhotoImage(file=led1.filename),
+            "led2": tk.PhotoImage(file=led2.filename),
+            "led3": tk.PhotoImage(file=led3.filename),
+            "led4": tk.PhotoImage(file=led4.filename),
+            "led5": tk.PhotoImage(file=led5.filename),
+            "led6": tk.PhotoImage(file=led6.filename),
+            "led7": tk.PhotoImage(file=led7.filename),
+            "led8": tk.PhotoImage(file=led8.filename),
+            "led9": tk.PhotoImage(file=led9.filename),
             "face_smile": tk.PhotoImage(file=smile.filename),
             "face_win": tk.PhotoImage(file=win.filename),
             "face_fail": tk.PhotoImage(file=fail.filename),
@@ -269,13 +285,6 @@ class MinesweeperApp:
                                      )
         self.play_button.grid(row=4, column=0, pady=5)
         ToolTip(self.play_button, msg="Выходим из режима редактирования, и можем 'играть' в текущее поле")
-
-        # if self.mode == Mode.edit:
-        #     self.edit_button.config(font=("Segoe UI Black", 8, "normal"))
-        #     self.play_button.config(font=("Segoe UI", 8, "normal"))
-        # elif self.mode == Mode.play:
-        #     self.edit_button.config(font=("Segoe UI", 8, "normal"))
-        #     self.play_button.config(font=("Times New Roman", 8, "bold"))
 
     def create_status_bar(self):
         self.status_bar_frame = tk.Frame(self.root)
@@ -373,7 +382,6 @@ class MinesweeperApp:
                     tags=f"cell_{row}_{col}"  # Changed from x,y to row,col
                 )
 
-
                 # Store cell coordinates for later reference
                 self.cells[(row, col)] = {
                     'id': cell_id,
@@ -406,10 +414,14 @@ class MinesweeperApp:
                 cell_id = self.cells[(row, col)]['id']
 
                 if image_name in self.images:
-                    if (self.mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED and cell.is_closed and cell.is_mined):
+                    cell_is_closed = cell.is_closed
+                    if (self.edit_mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED and cell_is_closed and cell.is_mined):
+                    # if (self.edit_mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED and cell.is_closed and cell.is_mined):
                         img = self.images['there_is_bomb']
+                        print('bomb!')
                     else:
                         img = self.images[image_name]
+                        print('no bomb!')
 
                     # Update cell image
                     self.canvas.itemconfig(cell_id, image=img)
@@ -477,7 +489,7 @@ class MinesweeperApp:
         :param mode: New mode to set
         """
         # Проверка валидности смены режима
-        if mode == self.mode:
+        if mode == self.edit_mode:
             return
 
         if mode == Mode.play and self.mine_mode == MineMode.UNDEFINED:
@@ -486,7 +498,7 @@ class MinesweeperApp:
 
         # Обновление режима
         print(f"Switch mode to: {mode.name}")
-        self.mode = mode
+        self.edit_mode = mode
 
         # Обновление UI
         edit_font = self.segoe_bold if mode == Mode.edit else self.segoe_normal
@@ -500,15 +512,12 @@ class MinesweeperApp:
         self.checkbutton_mik.config(state='normal' if mode == Mode.edit else 'disabled')
 
         # Обновление изображения
-        image_name = "there_is_bomb.png" if mode == Mode.edit else "closed.png"
-        image_path = Path(__file__).resolve().parent / 'assets' / Path(asset_dir).joinpath(image_name)
-        self.images["there_is_bomb"] = tk.PhotoImage(file=image_path)
-
-        # try:
-        #     self.images["there_is_bomb"] = tk.PhotoImage(file=image_path)
-        # except tk.TclError as e:
-        #     print(f"Failed to load image {image_path}: {e}")
-        #     # Здесь можно добавить fallback-изображение
+        # deprecated image_name = "there_is_bomb.png" if mode == Mode.edit else "closed.png"
+        # deprecated  image_path = Path(__file__).resolve().parent / 'assets' / Path(asset_dir).joinpath(image_name)
+        if mode == Mode.edit:
+            self.images["there_is_bomb"] = self.images["there_is_bomb_"]
+        else:
+            self.images["there_is_bomb"] = self.images['closed']
 
         self.update_grid()
 
@@ -569,15 +578,15 @@ class MinesweeperApp:
 
         if self.matrix.game_state == GameState.playing:
             # print(f'Clicked: {button.name}')
-            if self.mode == Mode.play:
+            if self.edit_mode == Mode.play:
                 self.play_cell(cell, button)
-            elif self.mode == Mode.edit:
+            elif self.edit_mode == Mode.edit:
                 # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
                 # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
                 if self.mine_mode == MineMode.PREDEFINED:
-                    self.matrix.click_edit_mines(cell, button)
+                    self.matrix.click_edit_mines_predefined(cell, button)
                 else:
-                    self.matrix.click_edit_digits(cell, button)
+                    self.matrix.click_edit_mines_undefined(cell, button)
 
             self.update_grid()
             self.update_status_bar()

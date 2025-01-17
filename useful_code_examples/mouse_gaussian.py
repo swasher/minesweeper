@@ -25,3 +25,33 @@ print(type(s))
 
 for i in s:
   print(f'{i:2f}')
+
+
+
+def gauss_duration():
+    """
+    NOT USED
+    Testing gaussian function for randomize time beetween clicks
+
+    Look at action there:
+    https://replit.com/@swasher/Gaussian-distribution-for-Minesweeper-mouse-duration
+
+    В данный момент для скорости мыши используется mouse.human_mouse_speed
+    """
+    if config.mouse_duration > 0:
+        mu = config.mouse_duration      # Значение в "центре" колокола
+        sigma = config.mouse_gaussian   # Значения " по бокам" колокола, то есть отклонение от центра
+        # deprecated
+        # gauss = np.random.normal(mu, sigma, 1000)
+        # gauss = gauss[gauss > config.minimum_delay]     # remove all negative and very small
+        # return random.choice(gauss)
+        gauss = abs(random.gauss(mu, sigma))
+        return gauss
+    else:
+        return 0
+
+
+if __name__ == '__main__':
+    from timeit import Timer
+    t = Timer(lambda: gauss_duration())
+    print(t.timeit(number=1000))
