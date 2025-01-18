@@ -151,12 +151,29 @@ class MinesweeperApp:
         self.create_fresh_board(game=beginner)
 
         # Bind canvas events
-        self.canvas.bind("<Button-1>", self.on_canvas_click_left)
+        # self.canvas.bind("<Button-1>", self.on_canvas_click_left)
         self.canvas.bind("<Button-2>", self.on_canvas_click_middle)  # for testing purpose
         self.canvas.bind("<Button-3>", self.on_canvas_click_right)
 
+        # Add new mouse press/release bindings
+        # Левую кнопку мы отдельно обрабатываем нажатия и отпускания.
+        # При нажатии подсвечиваем вокруг закрытые ячейки, а при отпускании выполняем логику.
+        # Так же если нажата закрытая ячейка, то на время нажатия она становится n0 (вдавленной)
+        self.canvas.bind("<ButtonPress-1>", self.on_left_mouse_press)
+        self.canvas.bind("<ButtonRelease-1>", self.on_left_mouse_release)
+
         if matrix_file:
             self.load_matrix(matrix_file)
+
+        # Добавляем словарь для хранения внешних обработчиков событий
+        # ДЛЯ ВНЕШНЕЙ ПОДСВЕТКИ ЯЧЕЕК
+        self.external_handlers = {
+            'on_cell_highlight': None,
+            'on_cell_click': None,
+            'on_game_state_change': None
+        }
+
+
 
     @property
     def mine_mode(self) -> MineMode:
@@ -415,13 +432,10 @@ class MinesweeperApp:
 
                 if image_name in self.images:
                     cell_is_closed = cell.is_closed
-                    if (self.edit_mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED and cell_is_closed and cell.is_mined):
-                    # if (self.edit_mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED and cell.is_closed and cell.is_mined):
+                    if self.edit_mode == Mode.edit and self.mine_mode == MineMode.PREDEFINED and cell_is_closed and cell.is_mined:
                         img = self.images['there_is_bomb']
-                        print('bomb!')
                     else:
                         img = self.images[image_name]
-                        print('no bomb!')
 
                     # Update cell image
                     self.canvas.itemconfig(cell_id, image=img)
@@ -543,11 +557,11 @@ class MinesweeperApp:
         if self.use_timer:
             self.timer.stop()
 
-    def on_canvas_click_left(self, event):
-        """Handle left click on canvas"""
-        cell = self.get_cell_from_coords(event.x, event.y)
-        if cell is not None:
-            self.click_cell(event, cell, MouseButton.left)
+    # def on_canvas_click_left(self, event):
+    #     """Handle left click on canvas"""
+    #     cell = self.get_cell_from_coords(event.x, event.y)
+    #     if cell is not None:
+    #         self.click_cell(event, cell, MouseButton.left)
 
     def on_canvas_click_right(self, event):
         """Handle right click on canvas"""
@@ -556,9 +570,38 @@ class MinesweeperApp:
             self.click_cell(event, cell, MouseButton.right)
 
     def on_canvas_click_middle(self, event):
+        """
+        Тест подстветки ячеек.
+        """
+        print('Middle click')
         cell = self.get_cell_from_coords(event.x, event.y)
         item_id = self.canvas.find_closest(event.x, event.y)
+        self.highlight_cell(cell.row, cell.col)
 
+    def on_left_mouse_press(self, event):
+        """Handle mouse press - show neighboring cells as pressed"""
+        if self.edit_mode == Mode.play and self.matrix.game_state in [GameState.playing, GameState.waiting]:
+            cell = self.get_cell_from_coords(event.x, event.y)
+
+            # если зажата закрытая ячейка, мы просто визуально показываем ее "зажатой"
+            if cell and cell.is_closed:
+                cell_id = self.cells[(cell.row, cell.col)]['id']
+                self.canvas.itemconfig(cell_id, image=self.images["0"])
+
+            # если зажата цифра, мы "прожимаем" закрытые ячейки вокруг на время зажатия кнопки мыши
+            if cell and cell.is_digit:
+                neighbors = self.matrix.around_closed_cells(cell)
+                for neighbor in neighbors:
+                    if neighbor.is_closed and not neighbor.is_flag:
+                        cell_id = self.cells[(neighbor.row, neighbor.col)]['id']
+                        self.canvas.itemconfig(cell_id, image=self.images["0"])
+
+    def on_left_mouse_release(self, event):
+        """Handle mouse release - restore original cell images and run logic"""
+        # выполнить логику по нажатию на ячейку
+        cell = self.get_cell_from_coords(event.x, event.y)
+        if cell is not None:
+            self.click_cell(event, cell, MouseButton.left)
 
     def get_cell_from_coords(self, canvas_x, canvas_y) -> Cell | None:
         """Convert canvas coordinates to grid coordinates"""
@@ -577,9 +620,23 @@ class MinesweeperApp:
                 self.timer.start()
 
         if self.matrix.game_state == GameState.playing:
-            # print(f'Clicked: {button.name}')
             if self.edit_mode == Mode.play:
-                self.play_cell(cell, button)
+
+                # run logic
+                if button == MouseButton.left:
+                    self.matrix.click_play_left_button(cell)
+                elif button == MouseButton.right:
+                    self.matrix.click_play_right_button(cell)
+                else:
+                    raise Exception('Unknown button')
+
+                # after logic had run, we check new game state
+                if self.matrix.game_state == GameState.fail:
+                    print('Gave over')
+                    self.set_fail()
+                if self.matrix.game_state == GameState.win:
+                    self.set_win()
+
             elif self.edit_mode == Mode.edit:
                 # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
                 # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
@@ -590,22 +647,6 @@ class MinesweeperApp:
 
             self.update_grid()
             self.update_status_bar()
-
-    def play_cell(self, cell, button):
-        # print(f'Click: {button}')
-
-        if button == MouseButton.left:
-            self.matrix.click_play_left_button(cell)
-        elif button == MouseButton.right:
-            self.matrix.click_play_right_button(cell)
-        else:
-            raise Exception('Unknown button')
-
-        if self.matrix.game_state == GameState.fail:
-            print('Gave over')
-            self.set_fail()
-        if self.matrix.game_state == GameState.win:
-            self.set_win()
 
     def save_matrix(self):
         self.matrix.save()
@@ -632,6 +673,67 @@ class MinesweeperApp:
     def on_closing(self):
         self.timer.stop()  # Stop the timer thread
         self.root.destroy()  # Close the application
+
+    ##########################
+    # Методы обеспечивающие внешнюю подсветку ячеек
+    ##########################
+
+    def register_handler(self, event_name: str, handler_function):
+        """
+        Регистрирует внешний обработчик событий
+
+        Args:
+            event_name: Название события ('on_cell_highlight', 'on_cell_click', 'on_game_state_change')
+            handler_function: Функция-обработчик
+        """
+        if event_name in self.external_handlers:
+            self.external_handlers[event_name] = handler_function
+
+    def highlight_cell(self, row: int, col: int, color: str = 'yellow', duration_ms: int = 500):
+        """
+        Подсвечивает указанную ячейку
+
+        Args:
+            row: Номер строки
+            col: Номер столбца
+            color: Цвет подсветки (любой валидный цвет Tkinter)
+            duration_ms: Продолжительность подсветки в миллисекундах
+        """
+        if not (0 <= row < self.grid_height and 0 <= col < self.grid_width):
+            raise ValueError(f"Invalid cell coordinates: {row}, {col}")
+
+        coords = self.cells[(row, col)]['coords']
+
+        # Удаляем старую подсветку
+        self.canvas.delete('highlight')
+
+        # Создаем новую подсветку
+        highlight = self.canvas.create_rectangle(
+            coords[0], coords[1], coords[2], coords[3],
+            fill=color,
+            stipple='gray50',
+            tags='highlight'
+        )
+        self.canvas.tag_raise(highlight, self.cells[(row, col)]['id'])
+
+        # Уведомляем внешний обработчик
+        if self.external_handlers['on_cell_highlight']:
+            self.external_handlers['on_cell_highlight'](row, col, color)
+
+        # Убираем подсветку через указанное время
+        self.root.after(duration_ms, lambda: self.canvas.delete('highlight'))
+
+    def get_window_info(self) -> dict:
+        """
+        Возвращает информацию об окне приложения.
+        Используется в технологии подсветки ячеек, если она не взлетит, то можно убрать.
+        """
+        return {
+            'width': self.grid_width,
+            'height': self.grid_height,
+            'window_rect': GetWindowRect(GetForegroundWindow()),
+            'cell_size': self.cell_size
+        }
 
 
 def main(load_matrix=None):

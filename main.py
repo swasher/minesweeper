@@ -23,8 +23,8 @@ from core import board
 
 from screen_controller import search_pattern_in_image
 from screen_controller import cell_coordinates
+from screen_controller import capture_full_screen
 from util import controlled_pause
-
 
 from solver import solver_R1
 from solver import solver_R1_corner
@@ -98,13 +98,9 @@ def find_board():
     closedcell = closed
 
     print('Try finding board...')
-    with mss.mss() as sct:
-        region = mss.mss().monitors[0]
-        screenshot = sct.grab(region)
-        raw = np.array(screenshot)
-    image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
-    precision = 0.8
+    image = capture_full_screen()
 
+    precision = 0.8
     cells = search_pattern_in_image(closedcell.raster, image, precision)
     cells_coord_x, cells_coord_y = cell_coordinates(cells)
 
@@ -133,7 +129,7 @@ def find_board():
     cells_coord_x = [x-region_x1 for x in cells_coord_x]
     cells_coord_y = [y-region_y1 for y in cells_coord_y]
 
-    DEBUG_DRAW_RECTANGLE = False
+    DEBUG_DRAW_RECTANGLE = True
     if DEBUG_DRAW_RECTANGLE:
         dc = win32gui.GetDC(0)
         red = win32api.RGB(255, 0, 0)

@@ -1,7 +1,7 @@
 import cv2 as cv
+import mss
 import numpy as np
 import numpy.typing as npt
-from assets import Asset
 from util import compress_array
 
 
@@ -38,3 +38,16 @@ def cell_coordinates(cells: list[tuple[int, int, float]]) -> tuple[list[int], li
     return cells_coord_x, cells_coord_y
 
 
+def capture_full_screen() -> np.ndarray:
+    """
+    Captures the full screen and returns it as a NumPy array in BGR format.
+
+    Returns:
+        np.ndarray: The captured screen as a NumPy array in BGR format.
+    """
+    with mss.mss() as sct:
+        region = mss.mss().monitors[0]
+        screenshot = sct.grab(region)
+        raw = np.array(screenshot)
+    image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
+    return image

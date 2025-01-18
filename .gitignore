@@ -13,3 +13,5 @@ mine_tk.spec
 build/
 dist/
 saves/
+grabbed.png
+led_of_msonline.png

@@ -4,8 +4,10 @@ import cv2 as cv
 import win32gui
 from typing import Sequence
 
+
 from assets import Asset
 from .util import compare_images
+from .util import capture_full_screen
 
 
 def find_matching_pattern(image: npt.NDArray[np.uint8], patterns: set[Asset]) -> tuple[any, float]:
@@ -96,21 +98,21 @@ def search_pattern_in_image(pattern: npt.NDArray[np.uint8], image: npt.NDArray[n
             # x, y = max_loc[0], max_loc[1]
             # win32gui.Rectangle(dc, x + 3, y + 3, x + 8, y + 8)
 
-    # # DEBUG; YOU CAN SEE WHAT GRABBING
-    # # draw at each cell it's row and column number
-    # for c in cells:
-    #     x = c[1]
-    #     y = c[0]
-    #     cv.putText(image, str(x), (y + 11, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-    #     cv.putText(image, str(y), (y + 19, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-    # cv.imwrite('output.png', image)
-    # cv.imshow("Display window", image)
-    # k = cv.waitKey(0)
+    # DEBUG; YOU CAN SEE WHAT GRABBING
+    # draw at each cell it's row and column number
+    for c in cells:
+        x, y = c[1], c[0]
+        cv.putText(image, str(x), (y + 11, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+        cv.putText(image, str(y), (y + 19, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+    cv.imwrite('grabbed.png', image)
+    cv.imshow("Display window", image)
+
+    k = cv.waitKey(0)
 
     return cells
 
 
-def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArray, precision: float=0):
+def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArray, precision: float = 0):
     """
     Это немного тюнингованная версия search_pattern_in_image.
     Отличается настройками распознавания, заточенными под большие красные цифры (бомбы).
@@ -205,8 +207,8 @@ def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArr
 
 def search_pattern_in_image_universal(
     pattern: npt.NDArray,
-    image: npt.NDArray,
-    threshold: float,
+    image: npt.NDArray = None,
+    threshold: float = 0.9,
     method: int = cv.TM_CCOEFF_NORMED
 ) -> tuple[Sequence[int], float]:
     """
@@ -223,9 +225,78 @@ def search_pattern_in_image_universal(
     Returns:
         list[tuple[int, int]]: Список координат (x, y) верхнего левого угла совпадений.
     """
+
+    """
+    Тестирование:
+    
+    cv.TM_CCOEFF 
+    ===================
+        
+    ### Vienna
+    
+    ### MSOnline
+    
+    cv.TM_CCOEFF_NORMED 
+    ===================
+    
+    ### Vienna
+    
+    LED0-LED9
+    Уверенно находит, sim=0.99-1. При отсутствии нужной цифры, выдает неправильный результат с sim~0.7-0.9 
+
+    ### MSOnline
+    
+    LED0-LED9
+    Sim гораздо меньше про обнаружении, и маленькая разница между ними:
+          Обнаружение     Цифры нет, выдача ложная
+    LED0  0.89 
+    LED1  0.93             0.83
+    LED2  0.87             0.60
+    LED3  0.87             0.79
+    LED4  0.93             0.62
+
+    cv.TM_CCORR 
+    ===================
+        
+    ### Vienna
+    
+    ### MSOnline
+    
+    
+    cv.TM_CCORR_NORMED 
+    ===================
+        
+    ### Vienna
+    
+    ### MSOnline
+        
+    cv.TM_SQDIFF 
+    ===================
+        
+    ### Vienna
+    
+    ### MSOnline
+    
+    cv.TM_SQDIFF_NORMED 
+    ===================
+        
+    ### Vienna
+    
+    ### MSOnline
+
+
+    """
+
+
+
     # Проверка на пустые входные данные
-    if pattern is None or image is None:
+    if pattern is None:
         raise ValueError("Шаблон или изображение не могут быть None")
+
+    # Если изображение, в котором нужно искать, не задано, ищем по всему экрану
+    if image is None:
+        # image = fullscreen capture
+        image = capture_full_screen()
 
     # Конвертация в черно-белый формат, если изображение цветное
     if len(image.shape) == 3:
@@ -251,7 +322,6 @@ def search_pattern_in_image_universal(
 
     # Вариант из учебника
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
-
     # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
     if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
         location = min_loc
@@ -259,6 +329,29 @@ def search_pattern_in_image_universal(
     else:
         location = max_loc
         similarity = max_val
+
+    # # DEBUG; YOU CAN SEE WHAT GRABBING
+    # # draw at each cell it's row and column number
+    if True:
+        #
+        # == Написать текст ==
+        #
+        # cv.putText(image, str(x), (y + 11, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+
+        #
+        # == Нарисовать прямоугольник ==
+        #
+        # Размеры шаблона
+        template_height, template_width = pattern.shape[:2]
+        # Левый верхний угол прямоугольника
+        top_left = max_loc
+        # Правый нижний угол
+        bottom_right = (top_left[0] + template_width, top_left[1] + template_height)  # Правый нижний угол
+        cv.rectangle(image, top_left, bottom_right, (0, 255, 0), 1)
+        # сохраняем
+        cv.imwrite('grabbed.png', image)
+        cv.imshow("Display window", image)
+        k = cv.waitKey(0)
 
     # Возвращаем список координат
     return location, similarity

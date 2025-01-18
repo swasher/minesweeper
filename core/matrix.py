@@ -1,21 +1,12 @@
-import os
-import functools
 import math
-import operator
 import time
-import secrets
-import pickle
-import cv2 as cv
-from enum import IntEnum
-
 import numpy as np
-from itertools import product
 
 from assets import *
 
-from .cell import Cell
 import mouse_controller
-from mouse_controller import MouseButton as mb
+from .cell import Cell
+from mouse_controller import MouseButton
 from .board import board
 from config import config
 from .utility import GameState, MineMode
@@ -529,7 +520,7 @@ class Matrix:
 
         face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
         face_coord_y = self.region_y1 + board.smile_y_coord
-        mouse_controller.click(face_coord_x, face_coord_y, mb.left)
+        mouse_controller.click(face_coord_x, face_coord_y, MouseButton.left)
 
         # todo но более феншуйно обновить с экрана и проверить - все ячейки должны стать закрытыми
         self.fill_with_closed()
