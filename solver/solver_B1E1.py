@@ -1,4 +1,4 @@
-import util
+import utils
 from config import config
 from core import Action
 from core import Cell
@@ -53,7 +53,7 @@ def solver_B1E1(matrix) -> ([Cell], Action):
 
     if cells_b1:
         # В список cells одна и та же ячейка может попасть несколько раз (при анализе разных "цифр"). Убираем дубликаты.
-        cells_b1 = util.remove_dup(cells_b1)
+        cells_b1 = utils.remove_dup(cells_b1)
 
         # Алгоритм B1 выдает серию клеток; сортируем их в порядке "близости" к последней нажатой клетке
         cells_b1 = sorted(cells_b1, key=lambda c: matrix.cell_distance(c, matrix.lastclicked))

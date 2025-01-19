@@ -1,4 +1,4 @@
-import util
+import utils
 from core import Action
 from core import Cell
 
@@ -31,7 +31,7 @@ def solver_B1(matrix) -> ([Cell], Action):
                 cells.append(c)
 
     # В список cells одна и та же ячейка может попасть несколько раз (при анализе разных "цифр"). Убираем дубликаты.
-    cells = util.remove_dup(cells)
+    cells = utils.remove_dup(cells)
 
     """
     DEPRECATED

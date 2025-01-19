@@ -2,7 +2,7 @@ import cv2 as cv
 import mss
 import numpy as np
 import numpy.typing as npt
-from util import compress_array
+from utils import compress_array
 
 
 def compare_images(image1, image2, method=cv.TM_CCOEFF_NORMED) -> float:

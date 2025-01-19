@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 import cv2 as cv
+from pathlib import Path
 import win32gui
 from typing import Sequence
 
@@ -8,6 +9,7 @@ from typing import Sequence
 from assets import Asset
 from .util import compare_images
 from .util import capture_full_screen
+from utils import find_file
 
 
 def find_matching_pattern(image: npt.NDArray[np.uint8], patterns: set[Asset]) -> tuple[any, float]:
@@ -207,7 +209,7 @@ def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArr
 
 def search_pattern_in_image_universal(
     pattern: npt.NDArray,
-    image: npt.NDArray = None,
+    image: npt.NDArray | str = None,
     threshold: float = 0.9,
     method: int = cv.TM_CCOEFF_NORMED
 ) -> tuple[Sequence[int], float]:
@@ -218,12 +220,16 @@ def search_pattern_in_image_universal(
 
     Parameters:
         pattern (npt.NDArray): Шаблон (цветной или черно-белый массив изображения).
-        image (npt.NDArray): Исходное изображение (цветной или черно-белый массив изображения).
+        image (npt.NDArray): Исходное изображение (цветной или черно-белый массив изображения). Может принимать значения:
+          - None: поиск по всему экрану
+          - NDArray: поиск в предоставленном изображении
+          - str: если строка представляет собой путь к существующему файлу, изображение загружается из файла
         threshold (float): Пороговое значение для фильтрации совпадений.
         method (int): Метод сравнения шаблона и изображения (по умолчанию cv.TM_CCOEFF_NORMED).
 
     Returns:
-        list[tuple[int, int]]: Список координат (x, y) верхнего левого угла совпадений.
+        point(x, y): Список координат верхнего левого угла совпадений.
+        similarity: Степерь сходства найденного изображения (1 = 100%)
     """
 
     """
@@ -287,30 +293,57 @@ def search_pattern_in_image_universal(
 
     """
 
-
-
     # Проверка на пустые входные данные
     if pattern is None:
         raise ValueError("Шаблон или изображение не могут быть None")
 
-    # Если изображение, в котором нужно искать, не задано, ищем по всему экрану
-    if image is None:
-        # image = fullscreen capture
-        image = capture_full_screen()
+    match image:
+        case None:
+            # Image is None, take screenshot
+            image = capture_full_screen()
+        case str():
+            # Image is a string, read from file
+            if image_path := find_file(image):
+                image = cv.imread(image_path)
+        case np.ndarray():
+            # Image is a numpy array.
+            pass
+        case _:
+            raise ValueError("Image is Unknown type")
+
+    # # Если изображение, в котором нужно искать, не задано, ищем по всему экрану
+    # if image is None:
+    #     # image = fullscreen capture
+    #     image = capture_full_screen()
 
     # Конвертация в черно-белый формат, если изображение цветное
-    if len(image.shape) == 3:
-        image_gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    I_WANT_CONVERT_TO_GRAYSCALE = True
+    if I_WANT_CONVERT_TO_GRAYSCALE:
+        if len(image.shape) == 3:
+            image_converted = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        else:
+            image_converted = image
+        if len(pattern.shape) == 3:
+            pattern_converted = cv.cvtColor(pattern, cv.COLOR_BGR2GRAY)
+        else:
+            pattern_converted = pattern
     else:
-        image_gray = image
-
-    if len(pattern.shape) == 3:
-        pattern_gray = cv.cvtColor(pattern, cv.COLOR_BGR2GRAY)
-    else:
-        pattern_gray = pattern
+        image_converted = image
+        pattern_converted = pattern
 
     # Применяем метод matchTemplate
-    result = cv.matchTemplate(image_gray, pattern_gray, method)
+    result = cv.matchTemplate(image_converted, pattern_converted, method)
+
+    # Нормализуйте результат
+    # result_norm = cv.normalize(result, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
+    # затем можно посмотреть: cv.imshow("Display window", result)  # показываем юзеру картинку
+
+    # Пороговая обработка
+    threshold = 0.8
+    _, result_thresh = cv.threshold(result, threshold, 1.0, cv.THRESH_BINARY)
+    result_thresh = (result_thresh * 255).astype(np.uint8)
+
+
 
     # # Находим все совпадения, которые ниже или выше порога в зависимости от метода
     # if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
@@ -341,17 +374,13 @@ def search_pattern_in_image_universal(
         #
         # == Нарисовать прямоугольник ==
         #
-        # Размеры шаблона
-        template_height, template_width = pattern.shape[:2]
-        # Левый верхний угол прямоугольника
-        top_left = max_loc
-        # Правый нижний угол
+        template_height, template_width = pattern.shape[:2]  # Размеры шаблона
+        top_left = max_loc  # Левый верхний угол прямоугольника
         bottom_right = (top_left[0] + template_width, top_left[1] + template_height)  # Правый нижний угол
         cv.rectangle(image, top_left, bottom_right, (0, 255, 0), 1)
-        # сохраняем
-        cv.imwrite('grabbed.png', image)
-        cv.imshow("Display window", image)
-        k = cv.waitKey(0)
+        cv.imwrite('grabbed.png', image)  # сохраняем в файл
+        cv.imshow("Display window", result_thresh)  # показываем юзеру картинку
+        k = cv.waitKey(0)  # и ждем нажатия кнопки
 
     # Возвращаем список координат
     return location, similarity

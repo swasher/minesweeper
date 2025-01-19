@@ -24,7 +24,7 @@ from core import board
 from screen_controller import search_pattern_in_image
 from screen_controller import cell_coordinates
 from screen_controller import capture_full_screen
-from util import controlled_pause
+from utils import controlled_pause
 
 from solver import solver_R1
 from solver import solver_R1_corner

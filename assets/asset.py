@@ -149,7 +149,7 @@ def initialize_assets(custom_path=None):
         'smile': Asset('smile', dir_path.joinpath('face_unpressed.png')),
 
         'led0': Asset('led_0', dir_path.joinpath('LED_0.png'), 0),
-        'led1': Asset('led_2', dir_path.joinpath('LED_1.png'), 1),
+        'led1': Asset('led_1', dir_path.joinpath('LED_1.png'), 1),
         'led2': Asset('led_2', dir_path.joinpath('LED_2.png'), 2),
         'led3': Asset('led_3', dir_path.joinpath('LED_3.png'), 3),
         'led4': Asset('led_4', dir_path.joinpath('LED_4.png'), 4),

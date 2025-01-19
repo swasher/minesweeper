@@ -7,8 +7,8 @@ import xxhash
 import mouse_controller
 from config import config
 from screen_controller.scan import find_matching_pattern
-from util import point_in_rect
-from util import random_point_in_square
+from utils import point_in_rect
+from utils import random_point_in_square
 from .utility import Color
 from assets import *
 

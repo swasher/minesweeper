@@ -11,8 +11,8 @@ import win32api
 import win32con
 
 from config import config
-from util import search_pattern_in_image_for_red_bombs
-from util import search_pattern_in_image_universal
+from utils import search_pattern_in_image_for_red_bombs
+from utils import search_pattern_in_image_universal
 from assets import smile
 
 

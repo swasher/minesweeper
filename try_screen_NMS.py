@@ -2,7 +2,7 @@ import win32gui
 import win32api
 import cv2 as cv
 from assets import *
-from screen_controller import search_pattern_in_image_universal
+from screen_controller import search_pattern_in_image_NMS
 
 def draw_rect(x1, y1, x2, y2):
     dc = win32gui.GetDC(0)
@@ -24,10 +24,10 @@ def try_found_1_image():
     present_pattern_in_image = [led0, led1, led2, led3, led8, led9]
 
     for led in patterns:
-        location, similarity = search_pattern_in_image_universal(pattern=led.raster, image=image_file, method=method)
+        location, similarity = search_pattern_in_image_NMS(pattern=led.raster, image=image_file, method=method)
         # print('Location:', location)
         is_pattern_in_image = '+' if led in present_pattern_in_image else '-'
-        print(f'{led.name} {is_pattern_in_image} Sim: {similarity:.3f}')
+        print(f'{led.name} {is_pattern_in_image} Sim:', similarity)
 
 
 if __name__ == "__main__":
