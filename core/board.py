@@ -15,7 +15,7 @@ class Board:
 
         # Y координата для клика по смайлу
         # TODO откуда до куда эта координата ?????
-        self.smile_y_coord = config.smile_y_coord
+        # self.smile_y_coord = config.smile_y_coord
 
 
 board = Board()

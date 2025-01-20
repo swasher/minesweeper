@@ -3,27 +3,18 @@ import time
 import threading
 import random
 import queue
-import mss
-import cv2 as cv
-import numpy as np
 from pynput.keyboard import Key, Listener
 from icecream import ic
-import win32gui
-import win32api
 import ctypes
 
-from assets import *
 from config import config
 
 from core.screen import ScreenMatrix
 from core import Action
-from core import Color
 from core import Cell
-from core import board
+from core.screen import find_board
 
-from screen_controller import search_pattern_in_image
-from screen_controller import cell_coordinates
-from screen_controller import capture_full_screen
+from utils import Color
 from utils import controlled_pause
 
 from solver import solver_R1
@@ -74,83 +65,12 @@ s
 
 """
 
-
 def initialize():
     global last_click_time
     last_click_time = time.perf_counter()
 
     global q
     q = queue.Queue()
-
-
-def find_board():
-    """
-    Находит поле сапера на экране и возвращает координаты клеток и область, в которой находится доска.
-
-    :param board: global variable
-    :param closedcell: объект Pattern, который содержит изображения клеток; мы будем искать на экране закрытую клетку (pattern.closed)
-    :param asset: класс (не инстанс!) Asset, в котором содержится информация о "доске" - а именно размер полей в пикселях,
-            от клеток до края "доски". Именно это поле (region), а не весь экран, мы в дальнейшем будем "сканировать".
-    :return cells_coord_x: [array of int] Координаты строк (верхних левых углов клеток, относительно доски)
-    :return cells_coord_y: [array of int] Координаты столбцов (верхних левых углов клеток, относительно доски)
-    :return region: [x1, y1, x2, y2] координаты доски сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол. Включает всю доску с полями вокруг.
-    """
-    closedcell = closed
-
-    print('Try finding board...')
-    image = capture_full_screen()
-
-    precision = 0.8
-    cells = search_pattern_in_image(closedcell.raster, image, precision)
-    cells_coord_x, cells_coord_y = cell_coordinates(cells)
-
-    if not len(cells_coord_x + cells_coord_y):
-        print(' - not found, exit')
-        exit()
-    print(f' - found, {len(cells_coord_x)}x{len(cells_coord_y)}')
-
-    template = closedcell.raster
-    h, w = template.shape[:2]
-
-    # Это поля "игрового поля" в дополнение к самим клеткам в пикселях
-    left = board.border['left']
-    right = board.border['right']
-    top = board.border['top']
-    bottom = board.border['bottom']
-
-    region_x1 = cells_coord_x[0] - left
-    region_x2 = cells_coord_x[-1] + right + w
-    region_y1 = cells_coord_y[0] - top
-    region_y2 = cells_coord_y[-1] + bottom + h
-
-    region = (region_x1, region_y1, region_x2, region_y2)
-
-    # Делаем коррекцию координат, чтобы они было относительно доски, а не экрана.
-    cells_coord_x = [x-region_x1 for x in cells_coord_x]
-    cells_coord_y = [y-region_y1 for y in cells_coord_y]
-
-    DEBUG_DRAW_RECTANGLE = True
-    if DEBUG_DRAW_RECTANGLE:
-        dc = win32gui.GetDC(0)
-        red = win32api.RGB(255, 0, 0)
-        win32gui.SetPixel(dc, 0, 0, red)  # draw red at 0,0
-        win32gui.Rectangle(dc, region_x1, region_y1, region_x2, region_y2)
-
-    return cells_coord_x, cells_coord_y, region
-
-
-def draw():
-    """
-    TODO ДОПИЛИТЬ ФУНКЦИЮ, ЧТОБЫ ДЕЛАТЬ ДЕБАГ-КАРТИНКИ
-    :return: 
-    """
-    with mss.mss() as sct:
-        screenshot = sct.grab(sct.monitors[0])
-        raw = np.array(screenshot)
-        image = cv.cvtColor(raw, cv.COLOR_BGRA2BGR)
-        image = cv.rectangle(image, (matrix.region_x1, matrix.region_y1), (matrix.region_x2, matrix.region_y2), (0, 255, 0))
-        cv.imshow("Display window", image)
-        k = cv.waitKey(0)
 
 #
 # Вычисляется время между реальным кликами. Если нет искуственных пауз - это время, ушедшее на
@@ -188,7 +108,7 @@ def do_strategy(strategy):
     # смотрим, нашла ли Стратегия доступные для выполнения ходы
     have_a_move = bool(len(cells))
 
-    DEBUG_PRINT_EVERY_MOVE = True
+    DEBUG_PRINT_EVERY_MOVE = False
     if DEBUG_PRINT_EVERY_MOVE:
         if have_a_move:
             print(f'{name}: {cells} -> {action.__str__()}')
@@ -322,10 +242,10 @@ def recursive_wrapper():
         contin = (bool(need_win) and win < need_win) or (bool(need_total) and total < need_total)
         if not contin:
             break
-        matrix.reset()
+        matrix.click_smile()
         if config.arena:
             # TODO find_board принимает только 1 аргумент!!!!
-            col_values, row_values, region = find_board(assets.closed, board)
+            col_values, row_values, region = find_board()
             matrix = ScreenMatrix(row_values, col_values, region)
 
         matrix.update()
@@ -399,24 +319,6 @@ if __name__ == '__main__':
     matrix.display()
 
 
-    # кусочек, тестируюший распознавание кол-во бомб, написанное вверху слева на поле.
-    # bombs = matrix.bomb_qty(0.87)
-    # print(bombs)
-    # exit()
-
-    # x = 1.0
-    # while x > 0.7:
-    #     bombs = matrix.bomb_qty(x)
-    #     if bombs == 10:
-    #         print(f"{x:.3f}", bombs)
-    #     x -= 0.001
-    #
-    # exit()
-
-
-    # debug - test perfomance
-    # print(timeit.Timer(matrix.bomb_counter2).timeit(number=100))
-
 
     # Список стратегий не передается как параметр, функции обращаются к нему как к внешней переменной
     # strategies = [solver_B1, solver_E1, solver_B2, solver_E2, solver_R1]
@@ -428,7 +330,7 @@ if __name__ == '__main__':
     # strategies = [solver_gauss, solver_R1]
 
     # рабочий
-    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1]
+    strategies = [solver_B1E1, solver_B2, solver_E2, solver_R1_smart]
 
 
     config.human = False

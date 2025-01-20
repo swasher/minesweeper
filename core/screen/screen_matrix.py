@@ -15,7 +15,7 @@ from ..cell import Cell
 from ..utility import MineMode
 from assets import *  # Ассеты уже инициализированы в __init__.py
 from screen_controller import recognize_led_digits
-
+from ..board import board
 
 class ScreenMatrix(Matrix):
 
@@ -181,10 +181,11 @@ class ScreenMatrix(Matrix):
     #     bomb_qty: int = int(''.join(map(str, numbers)))
     #     return bomb_qty
 
-    def bomb_qty(self) -> int:
+    def bomb_qty(self) -> str:
         image = self.get_image()
         crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
-        recognize_led_digits()
+        qty = recognize_led_digits(crop_img)
+        return qty
 
     def cell_by_abs_coords(self, point):
         """
@@ -269,7 +270,7 @@ class ScreenMatrix(Matrix):
 
             # Ждем нажатия клавиши
             # keyboard.wait('space')
-            keyboard.read_event()
+            # input("Нажмите Enter для продолжения...")
 
             # Восстанавливаем область экрана из сохраненного битмапа
             mem_dc.BitBlt((x1, y1), (width, height), save_dc, (0, 0), win32con.SRCCOPY)

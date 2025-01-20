@@ -10,6 +10,7 @@ from mouse_controller import MouseButton
 from .board import board
 from config import config
 from .utility import GameState, MineMode
+from utils import random_point_in_circle
 from .matrix_io import MatrixIO
 
 """
@@ -276,6 +277,7 @@ class Matrix:
         cell = list([x for x in self.table.flat if x.is_noguess])
         return cell
 
+    @property
     def get_num_closed(self) -> int:
         """
         Кол-во закрытых ячеек (флаг не считается закрытой ячейкой!)
@@ -507,7 +509,7 @@ class Matrix:
     #     print(f'Matrix loaded from {file_path}')
     #     self.display()
 
-    def reset(self):
+    def click_smile(self):
         """
         Нажимает на рожицу, чтобы перезапустить поле
         TODO BUG Рожицы нет в играх на маленьких полях - на кастомных полях MinSweeper.Online шириной 7 и меньше
@@ -518,9 +520,15 @@ class Matrix:
         а Y из ассета
         """
 
-        face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
-        face_coord_y = self.region_y1 + board.smile_y_coord
-        mouse_controller.click(face_coord_x, face_coord_y, MouseButton.left)
+        # face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
+        # face_coord_y = self.region_y1 + board.smile_y_coord
+
+        x1, x2, y1, y2 = self.region_x1, self.region_x2, self.region_y1, self.region_y2
+        smile_x = int(x1 + (x2 - x1) / 2)
+        smile_y = int(y1 + config.top / 2)
+        click_point = random_point_in_circle(smile_x, smile_y, r=10)
+
+        mouse_controller.click(click_point, MouseButton.left)
 
         # todo но более феншуйно обновить с экрана и проверить - все ячейки должны стать закрытыми
         self.fill_with_closed()

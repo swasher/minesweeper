@@ -67,7 +67,7 @@ class Configuration(object):
         self.right = conf.getint(self.asset, 'right')
         self.top = conf.getint(self.asset, 'top')
         self.bottom = conf.getint(self.asset, 'bottom')
-        self.smile_y_coord = conf.getint(self.asset, 'smile_y_coord')
+        # self.smile_y_coord = conf.getint(self.asset, 'smile_y_coord')
         self.allow_noguess = conf.getboolean(self.asset, 'allow_noguess')
         self.screen_refresh_lag = conf.getfloat(self.asset, 'screen_refresh_lag')
 

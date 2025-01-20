@@ -6,5 +6,6 @@ asset_screen = config.asset
 assets.init(asset_screen)
 
 from .screen_matrix import ScreenMatrix
+from .find_board import find_board
 
-__all__ = ['ScreenMatrix']
+__all__ = ['ScreenMatrix', 'find_board']

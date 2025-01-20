@@ -9,7 +9,7 @@ from config import config
 from screen_controller.scan import find_matching_pattern
 from utils import point_in_rect
 from utils import random_point_in_square
-from .utility import Color
+from utils import Color
 from assets import *
 
 
@@ -130,10 +130,10 @@ class Cell:
         :return:
         """
         if config.mouse_randomize_xy:
-            x, y = random_point_in_square(self.abscoordx, self.abscoordy, self.w, self.h)
+            point = random_point_in_square(self.abscoordx, self.abscoordy, self.w, self.h)
         else:
-            x, y = self.abscoordx + self.w//2, self.abscoordy + self.h//2
-        mouse_controller.click(x, y, button)
+            point = self.abscoordx + self.w//2, self.abscoordy + self.h//2
+        mouse_controller.click(point, button)
 
     @property
     def digit(self) -> int | None:

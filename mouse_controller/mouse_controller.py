@@ -6,6 +6,7 @@ from config import config
 import numpy as np
 from .buttons import MouseButton as mb
 from humancursor import SystemCursor
+from utils import Point
 
 # FLAG = config.flag      # action `flag cell`
 # OPEN = config.open      # action `open cell`
@@ -101,8 +102,8 @@ def click_systemcursor_lib(x, y, button: mb):
         time.sleep(config.extra_pause_between_clicks * r)
 
 
-def click(x, y, button: mb):
+def click(p: Point, button: mb):
     if config.use_neural_mouse:
-        click_systemcursor_lib(x, y, button)
+        click_systemcursor_lib(p.x, p.y, button)
     else:
-        click_mouse_lib(x, y, button)
+        click_mouse_lib(p.x, p.y, button)

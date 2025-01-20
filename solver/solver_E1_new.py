@@ -1,12 +1,11 @@
 from core import Cell
 from core import Action
+from .classes import Turn
 
 
-def solver_E1(matrix, return_all: bool = False) -> ([Cell], Action):
+def solver_E1(matrix, return_all: bool = False) -> [Turn]:
     """
     E1 значит Empty - ищем потенциально пустые ячейки алгоритмом "один"
-
-
 
     Алгоритм:
     Проверяем все ячейки с цифрами.
@@ -25,7 +24,7 @@ def solver_E1(matrix, return_all: bool = False) -> ([Cell], Action):
         solution: list, пустой, содержащий 1 или более объектов Cell
         action: Действие, которое нужно выполнить с найденными ячейками
     """
-    cells = []
+    turns = []
     action = Action.open_digit
 
     for cell in matrix.get_digit_cells():
@@ -33,14 +32,15 @@ def solver_E1(matrix, return_all: bool = False) -> ([Cell], Action):
         flags = matrix.around_flagged_cells(cell)
 
         if cell.digit == len(flags) and len(closed):
-            cell.nearby_closed = len(matrix.around_closed_cells(cell))
-            cells.append(cell)
+            # not used in NEW version; cell.nearby_closed = len(matrix.around_closed_cells(cell))
+            turn = Turn(cell=Cell, action=action, solver=solver_E1.__name__)
+            turns.append(turn)
 
-    if cells:
+    if turns:
         if return_all:
-            solution = cells
+            return turns
         else:
-            solution = [max(cells, key=lambda item: item.nearby_closed)]
+            return [max(turns, key=lambda item: item.nearby_closed)]
 
         # if config.noflag:
         #     # todo тут говно год... Завязана логика поиска решений на тип игры (noflag)
@@ -53,9 +53,4 @@ def solver_E1(matrix, return_all: bool = False) -> ([Cell], Action):
         #     solution.mark_cell_debug()
     else:
         # если ни у одной клетки нет решения, возвращаем пустой список
-        solution = []
-
-    return solution, action
-
-
-
+        return []

@@ -100,16 +100,18 @@ def search_pattern_in_image(pattern: npt.NDArray[np.uint8], image: npt.NDArray[n
             # x, y = max_loc[0], max_loc[1]
             # win32gui.Rectangle(dc, x + 3, y + 3, x + 8, y + 8)
 
-    # DEBUG; YOU CAN SEE WHAT GRABBING
-    # draw at each cell it's row and column number
-    for c in cells:
-        x, y = c[1], c[0]
-        cv.putText(image, str(x), (y + 11, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-        cv.putText(image, str(y), (y + 19, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-    cv.imwrite('grabbed.png', image)
-    cv.imshow("Display window", image)
-
-    k = cv.waitKey(0)
+    # draw at each found cell it's row and column coordinates relatively top-left corner of screen
+    SHOW_DETECTED_CELLS = False
+    if SHOW_DETECTED_CELLS:
+        for c in cells:
+            x, y = c[0], c[1]
+            # cv.putText(image, str(x), (y + 11, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+            # cv.putText(image, str(y), (y + 19, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+            cv.putText(image, str(x), (x + 1, y + 10), cv.QT_FONT_NORMAL, 0.3, 255)
+            cv.putText(image, str(y), (x + 1, y + 20), cv.QT_FONT_NORMAL, 0.3, 255)
+        cv.imwrite('grabbed.png', image)
+        cv.imshow("Display window", image)
+        k = cv.waitKey(0)
 
     return cells
 
@@ -365,7 +367,7 @@ def search_pattern_in_image_universal(
 
     # # DEBUG; YOU CAN SEE WHAT GRABBING
     # # draw at each cell it's row and column number
-    if True:
+    if False:
         #
         # == Написать текст ==
         #

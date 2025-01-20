@@ -5,6 +5,7 @@ import config
 import icecream as ic
 from core import Action
 
+
 def solver_R1_smart(matrix):
     """
     Нажимает рандомную клетку из закрытых.
@@ -14,7 +15,10 @@ def solver_R1_smart(matrix):
     """
     action = Action.open_cell
 
-    common_risk = matrix.bomb_qty() / matrix.get_num_closed
+    bomb_qty = int(matrix.bomb_qty())
+    print(f'Bomb qty: {bomb_qty}')
+
+    common_risk = bomb_qty / matrix.get_num_closed
     closed_cells = matrix.get_closed_cells()
 
     for cell in closed_cells:

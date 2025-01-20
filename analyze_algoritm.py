@@ -25,7 +25,7 @@ if __name__ == '__main__':
     pattern = "5x5_E1_1.txt"
 
     if len(sys.argv) < 3:
-        print("Not enough arguments")
+        print("Not enough arguments (for example, '5x5_E1_1.txt')")
     else:
         action = sys.argv[1]
         if action == 'solve':

@@ -4,7 +4,8 @@ Mostly created by gpt-chat ))
 import cv2
 import numpy as np
 from assets import led_digits
-
+from utils import find_file
+from .util import capture_full_screen
 
 def upscale_image(image):
     """
@@ -107,16 +108,35 @@ def image_processing(image, ksize=(3, 5)):
     return red_mask
 
 
-def recognize_led_digits(image_path, digit_count: int = None) -> str:
+def recognize_led_digits(image_source, digit_count: int = None) -> str:
     """
     Распознаёт трёхзначное число из красных семисегментных LED-цифр на изображении.
 
-    :param image_path: Путь к файлу PNG с изображением.
-    :param led_patterns: Словарь паттернов вида {'0': led0.raster, '1': led1.raster, ...}.
-    :return: Строка из трёх символов, представляющая распознанное число.
+    Args:
+        image (npt.NDArray | str | None): Исходное изображение (цветной или черно-белый массив изображения). Может принимать значения:
+          - None: поиск по всему экрану
+          - NDArray: поиск в предоставленном изображении
+          - str: если строка представляет собой путь к существующему файлу, изображение загружается из файла
+        digit_count: Предпологаемое количество цифр, которое должно быть найдено. Напр., в кол-ве мин всегда 3.
+
+    Returns:
+        return: Строка из digit_count (если был задан) символов, представляющая распознанное число.
     """
-    # Загрузка исходного изображения
-    image = cv2.imread(image_path)
+    # todo сделать отдельную функцию в общем util типа universal_image_source()
+    match image_source:
+        case None:
+            # Image is None -> take screenshot
+            image = capture_full_screen()
+        case str():
+            # Image is a string -> read from file
+            if image_path := find_file(image_source):
+                image = cv2.imread(image_path)
+        case np.ndarray():
+            # Image is a numpy array.
+            image = image_source
+        case _:
+            raise ValueError("Image is Unknown type")
+
     if image is None:
         raise ValueError("Не удалось загрузить изображение")
 

@@ -3,16 +3,22 @@ from core import Action
 from core import Cell
 
 
-def solver_B1(matrix) -> ([Cell], Action):
+def solver_B1(matrix, return_all: bool = False) -> ([Cell], Action):
     """
     B1 - значит ищем Bомбы алгоритомом "один"
-    :param matrix:
-    :return:
 
     Алгоритм:
     Проверяем все ячейки с цифрами.
     Если цифра в ячейке равно кол-ву соседних закрытых клеток (включая клетки с флагами),
     ТО все оставшиеся неоткрытые клетки - бомбы
+
+    Args:
+        matrix: Matrix
+        return_all: Если да - возвращаем все найденные решения, если нет - одно, ближайшее к последнему клику.
+
+    Returns:
+        solution: list, пустой, содержащий 1 или более объектов Cell
+        action: Действие, которое нужно выполнить с найденными ячейками
     """
     action = Action.set_flag
     cells = []
@@ -31,7 +37,11 @@ def solver_B1(matrix) -> ([Cell], Action):
                 cells.append(c)
 
     # В список cells одна и та же ячейка может попасть несколько раз (при анализе разных "цифр"). Убираем дубликаты.
-    cells = utils.remove_dup(cells)
+    if cells:
+        if return_all:
+            cells = utils.remove_dup(cells)
+        else:
+            cells = utils.remove_dup(cells)[0]
 
     """
     DEPRECATED
