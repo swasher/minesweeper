@@ -14,7 +14,7 @@ from ..matrix import Matrix
 from ..cell import Cell
 from ..utility import MineMode
 from assets import *  # Ассеты уже инициализированы в __init__.py
-from screen_controller import search_pattern_in_image_for_red_bombs
+from screen_controller import recognize_led_digits
 
 
 class ScreenMatrix(Matrix):
@@ -134,50 +134,57 @@ class ScreenMatrix(Matrix):
 
         return False
 
-    def bomb_qty(self, precision=0) -> int:
-        """
-        Возвращает число, которое на игровом поле на счетчике бомб (сколько еще спрятанных бомб на поле)
-        :return:
-        """
+    # DEPRECATED
+    #
+    # def bomb_qty(self, precision=0) -> int:
+    #     """
+    #     Возвращает число, которое на игровом поле на счетчике бомб (сколько еще спрятанных бомб на поле)
+    #     :return:
+    #     """
+    #     image = self.get_image()
+    #     # TODO нарушена логика - это должно быть в абстракции конкретной реализаии сапера.
+    #     #      перенести это в board
+    #     crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
+    #
+    #     # precision = 0.94
+    #     # precision = 0.837
+    #
+    #     # для Minesweeper online я подбирал значения;
+    #     # дома, на 1920х1080 (zoom 24) работает 0,837 (до сотых).
+    #     # Если больше (0,84) - он не "узнает" паттерны. Если меньше (0,8) - возникают ложные срабатывания,
+    #     # например, 7 может распознать как 1.
+    #     # НА САМОМ ДЕЛЕ, PRECISION ПОДОБРАН В search_pattern_in_image_for_red_bombs
+    #
+    #     found_digits = []
+    #     for pattern in red_digits:  # list_patterns imported from cell_pattern
+    #         template = pattern.raster
+    #
+    #         # result = util.find_templates(template, crop_img, precision)
+    #         # result = util.search_pattern_in_image_for_red_bombs(template, crop_img, precision)
+    #         result = search_pattern_in_image_for_red_bombs_on_work(template, crop_img, precision)
+    #
+    #         # `result` - это list of tuple
+    #         # каждый кортеж содержит список из трех числ:
+    #         # координаты найденной цифры - x и y, и с какой точностью определилась цифра. Напр.
+    #         # [(19, 66, 1.0), (32, 66, 0.998)]
+    #         for r in result:
+    #             found_digits.append((r[0], pattern.value))
+    #
+    #     # сортируем найденные цифры по координате X
+    #     digits = sorted(found_digits, key=lambda a: a[0])
+    #
+    #     if not digits:
+    #         # raise Exception('Не удалось прочитать кол-во бомб на поле.')
+    #         return None
+    #
+    #     _, numbers = zip(*digits)
+    #     bomb_qty: int = int(''.join(map(str, numbers)))
+    #     return bomb_qty
+
+    def bomb_qty(self) -> int:
         image = self.get_image()
-        # TODO нарушена логика - это должно быть в абстракции конкретной реализаии сапера.
-        #      перенести это в board
         crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
-
-        # precision = 0.94
-        # precision = 0.837
-
-        # для Minesweeper online я подбирал значения;
-        # дома, на 1920х1080 (zoom 24) работает 0,837 (до сотых).
-        # Если больше (0,84) - он не "узнает" паттерны. Если меньше (0,8) - возникают ложные срабатывания,
-        # например, 7 может распознать как 1.
-        # НА САМОМ ДЕЛЕ, PRECISION ПОДОБРАН В search_pattern_in_image_for_red_bombs
-
-        found_digits = []
-        for pattern in red_digits:  # list_patterns imported from cell_pattern
-            template = pattern.raster
-
-            # result = util.find_templates(template, crop_img, precision)
-            # result = util.search_pattern_in_image_for_red_bombs(template, crop_img, precision)
-            result = search_pattern_in_image_for_red_bombs_on_work(template, crop_img, precision)
-
-            # `result` - это list of tuple
-            # каждый кортеж содержит список из трех числ:
-            # координаты найденной цифры - x и y, и с какой точностью определилась цифра. Напр.
-            # [(19, 66, 1.0), (32, 66, 0.998)]
-            for r in result:
-                found_digits.append((r[0], pattern.value))
-
-        # сортируем найденные цифры по координате X
-        digits = sorted(found_digits, key=lambda a: a[0])
-
-        if not digits:
-            # raise Exception('Не удалось прочитать кол-во бомб на поле.')
-            return None
-
-        _, numbers = zip(*digits)
-        bomb_qty: int = int(''.join(map(str, numbers)))
-        return bomb_qty
+        recognize_led_digits()
 
     def cell_by_abs_coords(self, point):
         """

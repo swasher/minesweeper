@@ -1,8 +1,9 @@
+"""
+Mostly created by gpt-chat ))
+"""
 import cv2
 import numpy as np
-from assets import *
-from utils import find_file
-import matplotlib.pyplot as plt
+from assets import led_digits
 
 
 def upscale_image(image):
@@ -12,7 +13,7 @@ def upscale_image(image):
     :param image: Исходное изображение.
     :return: Увеличенное изображение.
     """
-    # Увеличиваем изображение в 3 раза
+    # Увеличиваем изображение в 2 раза
     upscaled_image = cv2.resize(image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
     return upscaled_image
 
@@ -53,7 +54,7 @@ def align_to_template(image, target_size, alignment='center'):
     bottom = target_height - new_height - top
 
     # Добавляем отступы
-    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)
+    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=1)
     return padded
 
 
@@ -83,11 +84,11 @@ def resize_with_padding(image, target_size):
     right = target_width - new_width - left
 
     # Добавление отступов
-    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)
+    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=30)
     return padded
 
 
-def image_processing(image, ksize=(3, 5), ):
+def image_processing(image, ksize=(3, 5)):
     # Преобразование в оттенки серого и выделение красных объектов
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     lower_red1 = np.array([0, 100, 100])
@@ -98,7 +99,7 @@ def image_processing(image, ksize=(3, 5), ):
     mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
     red_mask = cv2.bitwise_or(mask1, mask2)
 
-    # # Уменьшение шумов с помощью морфологических операций
+    # # Объеденение сегментов LED-цифр с помощью морфологических операций
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, ksize)
     red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_OPEN, kernel)
     red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_CLOSE, kernel)
@@ -106,8 +107,7 @@ def image_processing(image, ksize=(3, 5), ):
     return red_mask
 
 
-
-def recognize_led_digits(image_path, led_patterns):
+def recognize_led_digits(image_path, digit_count: int = None) -> str:
     """
     Распознаёт трёхзначное число из красных семисегментных LED-цифр на изображении.
 
@@ -127,14 +127,14 @@ def recognize_led_digits(image_path, led_patterns):
     contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 
-    # отображение найденный контуров
-    output_image = cv2.cvtColor(red_mask, cv2.COLOR_GRAY2BGR)
-    # Нарисуйте контуры на изображении
-    cv2.drawContours(output_image, contours, -1, (0, 255, 0), 1)  # Зеленый цвет, толщина 2
-    # Отобразите изображение с контурами
-    cv2.imshow('Contours', output_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # # отображение найденный контуров
+    # output_image = cv2.cvtColor(red_mask, cv2.COLOR_GRAY2BGR)
+    # # Нарисуйте контуры на изображении
+    # cv2.drawContours(output_image, contours, -1, (0, 255, 0), 1)  # Зеленый цвет, толщина 2
+    # # Отобразите изображение с контурами
+    # cv2.imshow('Contours', output_image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 
     # Отбор контуров и сортировка по x-координате
@@ -146,9 +146,9 @@ def recognize_led_digits(image_path, led_patterns):
             digit_rois.append((x, y, w, h))
     digit_rois = sorted(digit_rois, key=lambda roi: roi[0])  # Сортировка по x-координате
 
-    # Проверка, что нашли ровно три цифры
-    if len(digit_rois) != 15:
-        raise ValueError("Не удалось корректно выделить три цифры")
+    # Если предоставлен digit_count, то должно быть обнаружено именно такое кол-во цифр
+    if digit_count and len(digit_rois) != digit_count:
+        raise ValueError(f"Не удалось корректно выделить нужное кол-во цифр: {digit_count}")
 
     # Распознавание цифр
     result = ""
@@ -172,20 +172,22 @@ def recognize_led_digits(image_path, led_patterns):
         # Сравнение с шаблонами
         best_match = None
         best_score = float("-1")
-        for digit, pattern in led_patterns.items():
+        for digit in led_digits:
+            pattern = digit.raster
             pattern_ensize = upscale_image(pattern)
             pattern_processed = image_processing(pattern_ensize)
-            pattern_desized = resize_with_padding(pattern_processed, (40, 80))
+            pattern_desized = align_to_template(pattern_processed, (40, 80))
 
             score = cv2.matchTemplate(digit_roi_resized, pattern_desized, cv2.TM_CCOEFF_NORMED).max()
             if score > best_score:
                 best_score = score
-                best_match = digit
+                best_match = str(digit.value)
 
-        # print('Score: ', best_score)
+        if __name__ == "__main__":
+            print(f'Score: {best_score:.2f} (seems to confirm with {best_match} digit)')
 
-        # if best_score < 0.8:  # Если корреляция ниже порога, игнорируем результат
-        #     raise ValueError("Слишком низкая корреляция для одной из цифр")
+        if best_score < 0.6:  # Если корреляция ниже порога, игнорируем результат
+            raise ValueError("Слишком низкая корреляция для одной из цифр")
 
         if best_match is None:
             raise ValueError("Не удалось распознать одну из цифр")
@@ -196,24 +198,15 @@ def recognize_led_digits(image_path, led_patterns):
 
 
 if __name__ == "__main__":
-    led_patterns = {
-        '0': led0.raster,
-        '1': led1.raster,
-        '2': led2.raster,
-        '3': led3.raster,
-        '4': led4.raster,
-        '5': led5.raster,
-        '6': led6.raster,
-        '7': led7.raster,
-        '8': led8.raster,
-        '9': led9.raster,
-    }
-
     # samples = ['led_mso_1.png', 'led_mso_2.png', 'led_mso_3.png', 'led_mso_4.png', 'led_mso_5.png']
     # answers = ['098', '006', '107', '366', '392']
-    samples = ['full_set.png']
+    samples = ['sample/full_set.png']
     answers = ['000412056078093']
 
     for filename, answer in zip(samples, answers):
-        result = recognize_led_digits(filename, led_patterns)
-        print(f"{answer} FOUND: {result}")
+        result = recognize_led_digits(filename)
+        recognize_eval = 'OK' if answer == result else 'BAD'
+        print(f"{answer} FOUND: {result} ={recognize_eval}")
+
+
+__all__ = ['recognize_led_digits']
