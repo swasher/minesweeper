@@ -3,7 +3,7 @@ from core import Action
 from .classes import Turn
 
 
-def solver_E1(matrix, return_all: bool = False) -> [Turn]:
+def solver_E1_new(matrix, return_all: bool = False) -> [Turn]:
     """
     E1 значит Empty - ищем потенциально пустые ячейки алгоритмом "один"
 
@@ -31,16 +31,20 @@ def solver_E1(matrix, return_all: bool = False) -> [Turn]:
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
-        if cell.digit == len(flags) and len(closed):
+        if cell.digit == len(flags) and len(closed) > 0:
+            print('entered if')
             # not used in NEW version; cell.nearby_closed = len(matrix.around_closed_cells(cell))
-            turn = Turn(cell=Cell, action=action, solver=solver_E1.__name__)
-            turns.append(turn)
+            # cell.nearby_closed = matrix.around_closed_cells(cell)
+            nearby_closed = cell.around_closed()
+            for c in nearby_closed:
+                turn = Turn(cell=c, action=action, solver=solver_E1_new.__name__)
+                if not return_all:
+                    return [turn]
+
+                turns.append(turn)
 
     if turns:
-        if return_all:
-            return turns
-        else:
-            return [max(turns, key=lambda item: item.nearby_closed)]
+        return turns
 
         # if config.noflag:
         #     # todo тут говно год... Завязана логика поиска решений на тип игры (noflag)

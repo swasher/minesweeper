@@ -48,9 +48,10 @@ class ScreenMatrix(Matrix):
                 c = Cell(self, row, col, coordx, coordy, abscoordx, abscoordy, w, h)
                 image_cell = self.image_cell(c)
                 c.image = image_cell
+                c.content = closed
 
                 # POSSIBLE DEPRECATED
-                c.read_cell_from_screen(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
+                # c.read_cell_from_screen(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
 
                 """
                 TODO BUG 

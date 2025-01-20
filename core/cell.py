@@ -103,6 +103,9 @@ class Cell:
     def is_noguess(self):
         return True if self.content == no_guess else False
 
+    def around_closed(self):
+        return self.matrix.around_closed_cells(self)
+
     def set_flag(self):
         self.content = flag
 

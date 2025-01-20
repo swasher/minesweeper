@@ -4,9 +4,9 @@ from core import Cell
 from .classes import Turn
 
 
-def solver_B1(matrix, return_all: bool = False) -> ([Turn], Action):
+def solver_B1_new(matrix, return_all: bool = False) -> ([Turn], Action):
     """
-    B1 - значит ищем Bомбы алгоритомом "один"
+    B1 - значит ищем (B)ombs алгоритомом "один"
 
     Алгоритм:
     Проверяем все ячейки с цифрами.
@@ -35,18 +35,18 @@ def solver_B1(matrix, return_all: bool = False) -> ([Turn], Action):
             # можно вернуть одну ячейку
             # return around_closed, 'right'
             if not return_all:
-                turn = Turn(cell=around_closed[0], action=action, solver=solver_B1.__name__)
+                turn = Turn(cell=around_closed[0], action=action, solver=solver_B1_new.__name__)
                 return [turn]
 
             for c in around_closed:
-                turn = Turn(cell=c, action=action, solver=solver_B1.__name__)
+                turn = Turn(cell=c, action=action, solver=solver_B1_new.__name__)
                 turns.append(turn)
 
     if not turns:
         return []
 
     # В список cells одна и та же ячейка может попасть несколько раз (при анализе разных "цифр"). Убираем дубликаты.
-    dedup_turns = utils.remove_dup(turns)
+    dedup_turns = utils.remove_duplicated_turns(turns)
     return dedup_turns
 
 
