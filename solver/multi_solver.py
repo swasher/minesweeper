@@ -16,10 +16,12 @@ def multi_solver(matrix: Matrix) -> list[Turn]:
     turns = []
     for solver in solvers:
         solutions = solver(matrix)
-        for turn in solutions:
-            print(turn.cell, turn.solver)
+
+        s = ', '.join(f'{turn.cell.row}x{turn.cell.col}' for turn in solutions)
+        print('Multisolver:', solver.__name__, s)
+
         turns.extend(solutions)
+    print('')
 
     turns = remove_duplicated_turns(turns)
-
     return turns

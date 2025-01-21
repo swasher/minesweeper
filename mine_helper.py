@@ -11,10 +11,16 @@ from core import Action
 
 from solver import multi_solver
 
+hwnd = win32gui.GetDesktopWindow()
+dc = win32gui.GetDC(0)
 
-
+red = win32api.RGB(255, 0, 0)
+green = win32api.RGB(0, 255, 0)
+blue = win32api.RGB(0, 0, 255)
 
 def do_something():
+
+
     matrix.update()
 
     turns = multi_solver(matrix)
@@ -22,11 +28,8 @@ def do_something():
     # matrix.display()
 
     # Get the desktop window handle (hwnd)
-    hwnd = win32gui.GetDesktopWindow()
-    dc = win32gui.GetDC(0)
-    red = win32api.RGB(255, 0, 0)
-    green = win32api.RGB(0, 255, 0)
-    blue = win32api.RGB(0, 0, 255)
+
+
 
     for turn in turns:
 
@@ -34,7 +37,7 @@ def do_something():
             brush = win32gui.CreateSolidBrush(green)
             pen = win32gui.CreatePen(win32con.PS_SOLID, 0, green)
         elif turn.probability == 1:  # 100% есть мина
-            brush = win32gui.CreateSolidBrush(red)  # Зеленая заливка
+            brush = win32gui.CreateSolidBrush(red)
             pen = win32gui.CreatePen(win32con.PS_SOLID, 0, red)
         else:
             # в будующем у нас будут еще промежуточные вероятности
@@ -60,7 +63,14 @@ def do_something():
     except:
         pass
     # Release the device context
-    win32gui.ReleaseDC(hwnd, dc)
+
+
+def clear_drawing(self):
+    # Очищаем нарисованное, вызывая перерисовку окна
+    win32gui.InvalidateRect(self.hwnd, None, True)
+    pass
+
+
 
 
 class MouseListener:
@@ -71,10 +81,14 @@ class MouseListener:
 
     def on_click(self, x, y, button, pressed):
         """Обработчик события клика мыши"""
+        print(button)
         if pressed:  # Реагируем только на нажатие, не на отпускание
             # Запускаем обработку в отдельном потоке
             if self.worker_thread is None or not self.worker_thread.is_alive():
-                self.worker_thread = threading.Thread(target=do_something)
+                if button == "Button.LEFT":
+                    self.worker_thread = threading.Thread(target=do_something)
+                elif button == "Button.RIGHT":
+                    self.worker_thread = threading.Thread(target=clear_drawing)
                 self.worker_thread.start()
 
     def start_listening(self):
@@ -89,6 +103,9 @@ class MouseListener:
         if self.listener:
             self.listener.stop()
             self.listener.join()
+
+        win32gui.ReleaseDC(hwnd, dc)
+
         print("Отслеживание остановлено.")
 
 if __name__ == "__main__":
