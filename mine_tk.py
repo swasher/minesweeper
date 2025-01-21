@@ -417,7 +417,7 @@ class MinesweeperApp:
             closed_count = len(self.matrix.get_closed_cells())
             mine_count = len(self.matrix.get_mined_cells())
             opened_count = len(self.matrix.get_open_cells())
-            flag_count = len(self.matrix.get_flag_cells())
+            flag_count = len(self.matrix.get_flagged_cells())
             self.status_bar.config(text=f"Closed:{closed_count}, Mines:{mine_count}, Open:{opened_count}, Flags:{flag_count}")
 
     def update_grid(self):
@@ -463,7 +463,7 @@ class MinesweeperApp:
                 print("Switched to Mines is known - ON")
 
     def update_mine_counter(self):
-        count = len(self.matrix.get_mined_cells()) - len(self.matrix.get_flag_cells())
+        count = len(self.matrix.get_mined_cells()) - len(self.matrix.get_flagged_cells())
         count_str = f"{count:03d}"
         for i, digit in enumerate(count_str):
             self.mine_counter[i].config(image=self.images[f"led{digit}"])

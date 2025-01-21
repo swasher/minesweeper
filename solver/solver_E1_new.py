@@ -3,7 +3,7 @@ from core import Action
 from .classes import Turn
 
 
-def solver_E1_new(matrix, return_all: bool = False) -> [Turn]:
+def solver_E1_new(matrix) -> [Turn]:
     """
     E1 значит Empty - ищем потенциально пустые ячейки алгоритмом "один"
 
@@ -25,22 +25,18 @@ def solver_E1_new(matrix, return_all: bool = False) -> [Turn]:
         action: Действие, которое нужно выполнить с найденными ячейками
     """
     turns = []
-    action = Action.open_digit
+    probability = 0
 
     for cell in matrix.get_digit_cells():
         closed = matrix.around_closed_cells(cell)
         flags = matrix.around_flagged_cells(cell)
 
         if cell.digit == len(flags) and len(closed) > 0:
-            print('entered if')
             # not used in NEW version; cell.nearby_closed = len(matrix.around_closed_cells(cell))
             # cell.nearby_closed = matrix.around_closed_cells(cell)
             nearby_closed = cell.around_closed()
             for c in nearby_closed:
-                turn = Turn(cell=c, action=action, solver=solver_E1_new.__name__)
-                if not return_all:
-                    return [turn]
-
+                turn = Turn(cell=c, probability=probability, solver=solver_E1_new.__name__)
                 turns.append(turn)
 
     if turns:

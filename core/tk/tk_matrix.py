@@ -72,7 +72,7 @@ class TkMatrix(Matrix):
         # Второе условие: все закрытые ячейки и флаги содержат мины
         # Получаем списки ячеек
         closed_cells = self.get_closed_cells()
-        flag_cells = self.get_flag_cells()
+        flag_cells = self.get_flagged_cells()
 
         # Проверяем, что каждая закрытая ячейка содержит мину
         for cell in closed_cells:

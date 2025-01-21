@@ -9,42 +9,36 @@ from core.screen import ScreenMatrix
 from core.screen import find_board
 from core import Action
 
-from solver import solver_B1_new
-from solver import solver_E1_new
+from solver import multi_solver
 
-solvers = [solver_E1_new]
+
 
 
 def do_something():
     matrix.update()
 
-    turns = []
-    for solver in solvers:
-        solutions = solver(matrix, return_all=True)
-        for turn in solutions:
-            print(turn.cell, turn.solver)
-        turns.extend(solutions)
+    turns = multi_solver(matrix)
 
-    matrix.display()
+    # matrix.display()
 
     # Get the desktop window handle (hwnd)
     hwnd = win32gui.GetDesktopWindow()
     dc = win32gui.GetDC(0)
     red = win32api.RGB(255, 0, 0)
-    green = win32api.RGB(255, 0, 0)
+    green = win32api.RGB(0, 255, 0)
     blue = win32api.RGB(0, 0, 255)
-
 
     for turn in turns:
 
-        if turn.action in [Action.open_cell, Action.open_digit]:
-            brush = win32gui.CreateSolidBrush(green)  # Зеленая заливка
-            pen = win32gui.CreatePen(win32con.PS_SOLID, 0, green)  # Красная обводка
-            print(1)
-        else:
+        if turn.probability == 0:  # 100% нет мин
+            brush = win32gui.CreateSolidBrush(green)
+            pen = win32gui.CreatePen(win32con.PS_SOLID, 0, green)
+        elif turn.probability == 1:  # 100% есть мина
             brush = win32gui.CreateSolidBrush(red)  # Зеленая заливка
-            pen = win32gui.CreatePen(win32con.PS_SOLID, 0, red)  # Красная обводка
-            print(2)
+            pen = win32gui.CreatePen(win32con.PS_SOLID, 0, red)
+        else:
+            # в будующем у нас будут еще промежуточные вероятности
+            pass
 
         # Select the brush and pen into the device context (hdc)
         old_brush = win32gui.SelectObject(dc, brush)

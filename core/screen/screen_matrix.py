@@ -102,7 +102,6 @@ class ScreenMatrix(Matrix):
     def update(self):
         """
         Запускает обновление всех ячеек, считывая их с экрана (поле Minesweeper'а)
-        :return:
         """
         # This is very important string! After click, website (and browser, or even Vienna program) has a lag
         # beetween click and refreshing screen.  If we do not waiting at this point, our code do not see any changes
@@ -110,7 +109,10 @@ class ScreenMatrix(Matrix):
         time.sleep(config.screen_refresh_lag)
 
         self.image = self.get_image()
-        for cell in self.get_closed_cells():
+
+        # Робот не может снять флаг, а вот когда человек играет - может. Поэтому нужно обновлять и ячейки с флагами тоже.
+        cells_for_updating = self.get_closed_cells() + self.get_flagged_cells()
+        for cell in cells_for_updating:
             crop = self.image_cell(cell)
             cell.read_cell_from_screen(crop)
 

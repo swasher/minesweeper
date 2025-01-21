@@ -23,14 +23,15 @@ def find_matching_pattern(image: npt.NDArray[np.uint8], patterns: set[Asset]) ->
     Returns:
         tuple: (найденный паттерн или None, значение схожести)
     """
-    DEFAULT_PRECISION = 0.8
+    best_similarity = 0.0
+    best_pattern = None
 
     for pattern in patterns:
         similarity = compare_images(image, pattern.raster)
         pattern.similarity = similarity
 
-        if similarity > DEFAULT_PRECISION:
-            return pattern, similarity
+        # if similarity > DEFAULT_PRECISION:
+        #     return pattern, similarity
 
         # deprecated
         # был вариант находить для каждого паттерна индекс "похожести" и выбирать наибольший
@@ -40,7 +41,11 @@ def find_matching_pattern(image: npt.NDArray[np.uint8], patterns: set[Asset]) ->
         # if best_match.similarity > precision:
         #     self.status = best_match.name
 
-    return None, 0.0
+        if similarity > best_similarity:
+            best_pattern = pattern
+            best_similarity = similarity
+
+    return best_pattern, best_similarity
 
 
 def search_pattern_in_image(pattern: npt.NDArray[np.uint8], image: npt.NDArray[np.uint8], precision: float) -> list[tuple[int, int, float]]:

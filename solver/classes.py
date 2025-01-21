@@ -6,10 +6,9 @@ from core import Action
 @dataclass
 class Turn:
     cell: Cell
-    action: Action
+    probability: float  # рассчитанная вероятность мины
     solver: str  # Какой тип должен определять солвер? Строка? Или может быть ссылка на функцию?
     difficulty: float = None  # пока не ясно, как реализовать, но смысл в том, что этот параметр показывает сколько бы времени думал человек перед этим решением
-    probability: float = None  # рассчитанная вероятность мины
     effectiveness: float = None  # эффективность нажатия (напр., сколько ячеек откроется при нажатии)
 
 class Root(object):

@@ -106,6 +106,12 @@ class Cell:
     def around_closed(self):
         return self.matrix.around_closed_cells(self)
 
+    def around_flagged(self):
+        return self.matrix.around_flagged_cells(self)
+
+    def around_digit(self):
+        return self.matrix.around_digit_cells(self)
+
     def set_flag(self):
         self.content = flag
 

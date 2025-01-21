@@ -80,7 +80,7 @@ class Matrix:
 
     def matrix_to_text(self) -> list[str]:
         """
-        Используется в методе сохранении матрицы в файл.
+        Используется в методе сохранении матрицы в файл. В display() не используем, потому что немного другая логика.
         """
         matrix = []
         for row in range(self.height):
@@ -230,7 +230,7 @@ class Matrix:
         cells = list([x for x in self.table.flat if x.is_open])
         return cells
 
-    def get_flag_cells(self) -> list[Cell]:
+    def get_flagged_cells(self) -> list[Cell]:
         """
         Возвращает список закрытых ячеек, уже помеченных флагами
         :return: array of Cell objects
@@ -288,7 +288,7 @@ class Matrix:
         """
         Кол-во установленных флагов
         """
-        return len(self.get_flag_cells())
+        return len(self.get_flagged_cells())
 
     def get_num_mined(self) -> int:
         """

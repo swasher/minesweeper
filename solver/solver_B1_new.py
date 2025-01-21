@@ -4,7 +4,7 @@ from core import Cell
 from .classes import Turn
 
 
-def solver_B1_new(matrix, return_all: bool = False) -> ([Turn], Action):
+def solver_B1_new(matrix) -> [Turn]:
     """
     B1 - значит ищем (B)ombs алгоритомом "один"
 
@@ -21,32 +21,25 @@ def solver_B1_new(matrix, return_all: bool = False) -> ([Turn], Action):
         solution: list, пустой, содержащий 1 или более объектов Cell
         action: Действие, которое нужно выполнить с найденными ячейками
     """
-    action = Action.set_flag
+    probability = 1
     turns = []
 
     for cell in matrix.get_digit_cells():
-        around_closed = matrix.around_closed_cells(cell)
-        around_flags = matrix.around_flagged_cells(cell)
+        around_closed = cell.around_closed()
+        num_around_closed = len(around_closed)
+        num_around_flags = len(cell.around_flagged())
 
-        if (cell.digit == len(around_closed) + len(around_flags)) and len(around_closed) > 0:
+        if (cell.digit == num_around_closed + num_around_flags) and num_around_closed > 0:
             # значит во всех around_closed клетках есть бомбы
 
             # вариант алгоритма с возвратом первой найденной ячейки
             # можно вернуть одну ячейку
             # return around_closed, 'right'
-            if not return_all:
-                turn = Turn(cell=around_closed[0], action=action, solver=solver_B1_new.__name__)
-                return [turn]
 
             for c in around_closed:
-                turn = Turn(cell=c, action=action, solver=solver_B1_new.__name__)
+                turn = Turn(cell=c, probability=probability, solver=solver_B1_new.__name__)
                 turns.append(turn)
-
-    if not turns:
-        return []
 
     # В список cells одна и та же ячейка может попасть несколько раз (при анализе разных "цифр"). Убираем дубликаты.
     dedup_turns = utils.remove_duplicated_turns(turns)
     return dedup_turns
-
-
