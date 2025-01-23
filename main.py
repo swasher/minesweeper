@@ -159,7 +159,7 @@ def do_strategy(strategy):
         else:
             clicking_cells(cells, action)
 
-        matrix.update()
+        matrix.update_from_screen()
         # matrix.display()
 
         # --------------------------------
@@ -220,7 +220,7 @@ def recursive_wrapper():
 
         if config.no_guess:  # режим 'первый ход без отгадывания'
             do_strategy(solver_noguess)
-            matrix.update()
+            matrix.update_from_screen()
 
         win_or_fail = recusive_strategy(i)
         after = time.perf_counter()
@@ -248,7 +248,7 @@ def recursive_wrapper():
             col_values, row_values, region = find_board()
             matrix = ScreenMatrix(row_values, col_values, region)
 
-        matrix.update()
+        matrix.update_from_screen()
 
     print('\n=============')
     print(f'TOTALS: {total}')
@@ -337,7 +337,7 @@ if __name__ == '__main__':
     if config.human:  # режим 'human'
         strategies.remove(solver_R1)
         strategies.append(solver_human)
-        matrix.update()
+        matrix.update_from_screen()
 
     # recursive_wrapper - это основная точка входа в запуск стратегий, теперь выполняется в отдельном потоке, для того
     # чтобы его можно было остановить по нажатию клавиши

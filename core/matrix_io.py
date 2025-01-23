@@ -1,15 +1,25 @@
 """
 Абстрагирует логику записи/чтения в файл от логики преобразования матрицы в текст и обратно
 
+Комментарии:
+; строка
 
 Режимы:
 - PREDEFINED - матрица знает о расположении мин (для Tk)
 - UNDEFINED - матрица не знает о расположении мин (для Tk и экранной версии)
 
+Символы ячеек:
 × - закрытая клетка
 ⚑ - флаг
 · - открытая клетка (0)
 1-8 - открытая клетка с цифрой
+
+Мины:
+Каждая мина начинается со слова MINE, и далее строка и столбец.
+
+Решения:
+Строки вида: CELL 2 2 MINE 0.5
+Первые два числа - это ячейка, а после слова PROB - вероятность мины, float (0-мины точно нет, 1-мина точно есть)
 
 Формат:
 
@@ -40,6 +50,7 @@ MINE 3 2
 [solutions]
 MINE 4 5
 EMPTY 0 0
+CELL 4 5 PROB 1
 """
 
 import os
@@ -50,75 +61,6 @@ from .utility import MineMode
 from .cell import Cell
 from config import config
 from assets import *
-
-
-
-
-
-# def save_coordinates(filename, coordinates):
-#     """
-#     Сохраняет координаты в текстовый файл.
-#     :param filename: Имя файла для сохранения.
-#     :param coordinates: Словарь координат, где ключ — кортеж (x, y), значение — тип ('EMPTY' или 'MINE').
-#     """
-#     with open(filename, 'w') as file:
-#         # Записываем заголовки разделов
-#         file.write("[properties]\n")
-#         file.write("<some data>\n\n")  # Пример данных для раздела properties
-#
-#         file.write("[matrix]\n")
-#         file.write("<some data>\n\n")  # Пример данных для раздела matrix
-#
-#         # Записываем координаты в раздел solution
-#         file.write("[solution]\n")
-#         for (x, y), type in coordinates.items():
-#             file.write(f"{type} {x} {y}\n")  # Тип на первом месте, затем координаты
-
-# def load_coordinates(filename):
-#     """
-#     Загружает координаты из текстового файла.
-#     :param filename: Имя файла для загрузки.
-#     :return: Два списка координат: empty_coords и mine_coords.
-#     """
-#     empty_coords = []
-#     mine_coords = []
-#     with open(filename, 'r') as file:
-#         lines = file.readlines()
-#
-#         # Ищем начало раздела [solution]
-#         solution_started = False
-#         for line in lines:
-#             line = line.strip()  # Убираем лишние пробелы и переносы строк
-#             if line == "[solution]":
-#                 solution_started = True
-#                 continue  # Пропускаем строку с заголовком раздела
-#
-#             if solution_started and line:  # Если раздел начался и строка не пустая
-#                 type, x, y = line.split()  # Разделяем строку по пробелам
-#                 if type == "EMPTY":
-#                     empty_coords.append((int(x), int(y)))
-#                 elif type == "MINE":
-#                     mine_coords.append((int(x), int(y)))
-#
-#     return empty_coords, mine_coords
-
-# Пример использования
-# coordinates = {
-#     (3, 5): 'EMPTY',
-#     (0, 0): 'MINE',
-#     (4, 0): 'MINE'
-# }
-
-# Сохраняем координаты в файл
-# save_coordinates('game_coords.txt', coordinates)
-
-# Загружаем координаты из файла
-# empty_coords, mine_coords = load_coordinates('game_coords.txt')
-# print("EMPTY:", empty_coords)
-# print("MINE:", mine_coords)
-
-
-
 
 
 class MatrixIO:
@@ -191,8 +133,7 @@ class MatrixIO:
 
         current_section = None
         matrix_data = []
-        solution_empty_coords = []
-        solution_mine_coords = []
+        solutions = []
         mines = set()
 
         with open(file_path, 'r', encoding='utf-8') as inp:
@@ -201,6 +142,11 @@ class MatrixIO:
 
                 # Пропускаем пустые строки
                 if not line:
+                    continue
+
+                # Обработка комментариев
+                if line.startswith(';'):
+                    print(f'- {line[1:].strip()} -')
                     continue
 
                 # Обработка заголовков секций
@@ -231,24 +177,17 @@ class MatrixIO:
                     mines.add((int(x), int(y)))
 
                 elif current_section == 'solution':
-                    # reserved for future use
-                    ...
-
-                    # empty_coords = []
-                    # mine_coords = []
-                    # with open(filename, 'r') as file:
-                    #     lines = file.readlines()
-                    #
-                    #     # Ищем начало раздела [solution]
-                    #     solution_started = False
-                    #     for line in lines:
                     line = line.strip()  # Убираем лишние пробелы и переносы строк
 
-                    type, x, y = line.split()  # Разделяем строку по пробелам
-                    if type == "EMPTY":
-                        solution_empty_coords.append((int(x), int(y)))
-                    elif type == "MINE":
-                        solution_mine_coords.append((int(x), int(y)))
+                    line_values = line.split()  # Разделяем строку по пробелам
+                    # проверяем корректность синтаксиса
+                    if len(line_values) != 5 or line_values[0] != "CELL" or line_values[3] != "PROB":
+                        raise Exception(f"Неверный формат файла {file_path}")
+                    _, x, y, _, probability = line_values
+                    try:
+                        solutions.append((int(x), int(y), float(probability)))
+                    except ValueError:
+                        print(f"Ощибка чтения решения: {file_path}")
 
 
         # Инициализируем матрицу
@@ -272,6 +211,8 @@ class MatrixIO:
 
         print(f'Matrix loaded from {file_path}')
         self.matrix.display()
+
+        return solutions
 
     def write_save(self, text_matrix: list[str]) -> bool:
         ok = True

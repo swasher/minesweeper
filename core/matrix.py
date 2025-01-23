@@ -45,7 +45,11 @@ class Matrix:
         self.io.save(text)
 
     def load(self, file_path: str):
-        self.io.load(file_path)
+        """
+        Возвращаем solution, это используется в тестах солверов на паттернах.
+        """
+        solutions = self.io.load(file_path)
+        return solutions
 
     @property
     def game_state(self) -> GameState:

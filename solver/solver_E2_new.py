@@ -1,6 +1,6 @@
 import itertools
 from solver.classes import create_roots
-from utils import Color
+from utils import Color, remove_duplicated_turns
 from .classes import Turn
 
 
@@ -17,7 +17,7 @@ def solver_E2_new(matrix) -> [Turn]:
     """
     probability = 0
     roots = create_roots(matrix)
-    solution = []
+    turns = []
 
     for r1, r2 in itertools.combinations(roots, 2):
 
@@ -43,6 +43,8 @@ def solver_E2_new(matrix) -> [Turn]:
                 # VAR1 - return all found solution
                 for c in empties_cells:
                     t = Turn(cell=c, probability=probability, solver=solver_E2_new.__name__)
-                    solution.append(t)
+                    turns.append(t)
 
-    return solution
+    turns = remove_duplicated_turns(turns)
+
+    return turns

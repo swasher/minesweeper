@@ -99,7 +99,7 @@ class ScreenMatrix(Matrix):
         """
         return self.image[cell.coordy:cell.coordy+cell.h, cell.coordx:cell.coordx+cell.w]
 
-    def update(self):
+    def update_from_screen(self):
         """
         Запускает обновление всех ячеек, считывая их с экрана (поле Minesweeper'а)
         """

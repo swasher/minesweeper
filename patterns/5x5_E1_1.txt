@@ -10,5 +10,7 @@ mode = UNDEFINED
 · · · · ·
 · · · · ·
 
+; это комментарий
+
 [solution]
-EMPTY 2 2
+CELL 1 2 PROB 0

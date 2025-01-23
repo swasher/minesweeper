@@ -19,9 +19,13 @@ green = win32api.RGB(0, 255, 0)
 blue = win32api.RGB(0, 0, 255)
 
 def do_something():
+    memdc = win32gui.CreateCompatibleDC(dc)
+    bitmap = win32gui.CreateCompatibleBitmap(dc, matrix.region_x2 - matrix.region_x1,
+                                           matrix.region_y2 - matrix.region_y1)
+    old_bitmap = win32gui.SelectObject(memdc, bitmap)
 
 
-    matrix.update()
+    matrix.update_from_screen()
 
     turns = multi_solver(matrix)
 
@@ -53,16 +57,21 @@ def do_something():
         rad = 3
         win32gui.Ellipse(dc, x - rad, y - rad, x + rad, y + rad)
 
-    # Restore the previous brush and pen (important for cleanup)
-    # win32gui.SelectObject(dc, old_brush)
-    # win32gui.SelectObject(dc, old_pen)
-    # Clean up: Delete the brush and pen objects to free resources
-    try:
+        win32gui.SelectObject(memdc, old_brush)
+        win32gui.SelectObject(memdc, old_pen)
         win32gui.DeleteObject(brush)
         win32gui.DeleteObject(pen)
-    except:
-        pass
-    # Release the device context
+
+    # Копируем результат на экран
+    win32gui.BitBlt(dc, matrix.region_x1, matrix.region_y1,
+                    matrix.region_x2 - matrix.region_x1,
+                    matrix.region_y2 - matrix.region_y1,
+                    memdc, 0, 0, win32con.SRCCOPY)
+
+    # Очищаем ресурсы
+    win32gui.SelectObject(memdc, old_bitmap)
+    win32gui.DeleteObject(bitmap)
+    win32gui.DeleteDC(memdc)
 
 
 def clear_drawing(self):
@@ -85,10 +94,10 @@ class MouseListener:
         if pressed:  # Реагируем только на нажатие, не на отпускание
             # Запускаем обработку в отдельном потоке
             if self.worker_thread is None or not self.worker_thread.is_alive():
-                if button == "Button.LEFT":
-                    self.worker_thread = threading.Thread(target=do_something)
-                elif button == "Button.RIGHT":
-                    self.worker_thread = threading.Thread(target=clear_drawing)
+                # if button == "Button.LEFT":
+                self.worker_thread = threading.Thread(target=do_something)
+                # elif button == "Button.RIGHT":
+                #     self.worker_thread = threading.Thread(target=clear_drawing)
                 self.worker_thread.start()
 
     def start_listening(self):
@@ -104,6 +113,8 @@ class MouseListener:
             self.listener.stop()
             self.listener.join()
 
+        # Очищаем последнее рисование перед выходом
+        win32gui.InvalidateRect(hwnd, None, True)
         win32gui.ReleaseDC(hwnd, dc)
 
         print("Отслеживание остановлено.")
