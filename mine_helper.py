@@ -7,8 +7,6 @@ import win32con
 
 from core.screen import ScreenMatrix
 from core.screen import find_board
-from core import Action
-
 from solver import multi_solver
 
 hwnd = win32gui.GetDesktopWindow()
@@ -18,22 +16,18 @@ red = win32api.RGB(255, 0, 0)
 green = win32api.RGB(0, 255, 0)
 blue = win32api.RGB(0, 0, 255)
 
-def do_something():
-    memdc = win32gui.CreateCompatibleDC(dc)
-    bitmap = win32gui.CreateCompatibleBitmap(dc, matrix.region_x2 - matrix.region_x1,
-                                           matrix.region_y2 - matrix.region_y1)
-    old_bitmap = win32gui.SelectObject(memdc, bitmap)
+global x1, y1, x2, y2, width, height
 
+
+def do_something1():
+
+    # CLEAR PREVIOUS DRAWING
 
     matrix.update_from_screen()
 
     turns = multi_solver(matrix)
 
     # matrix.display()
-
-    # Get the desktop window handle (hwnd)
-
-
 
     for turn in turns:
 
@@ -57,21 +51,57 @@ def do_something():
         rad = 3
         win32gui.Ellipse(dc, x - rad, y - rad, x + rad, y + rad)
 
-        win32gui.SelectObject(memdc, old_brush)
-        win32gui.SelectObject(memdc, old_pen)
+        win32gui.SelectObject(dc, old_brush)
+        win32gui.SelectObject(dc, old_pen)
         win32gui.DeleteObject(brush)
         win32gui.DeleteObject(pen)
 
-    # Копируем результат на экран
-    win32gui.BitBlt(dc, matrix.region_x1, matrix.region_y1,
-                    matrix.region_x2 - matrix.region_x1,
-                    matrix.region_y2 - matrix.region_y1,
-                    memdc, 0, 0, win32con.SRCCOPY)
 
-    # Очищаем ресурсы
-    win32gui.SelectObject(memdc, old_bitmap)
-    win32gui.DeleteObject(bitmap)
-    win32gui.DeleteDC(memdc)
+def do_something():
+    # CLEAR PREVIOUS DRAWING
+    # Восстанавливаем исходное изображение поверх нарисованного
+
+    win32gui.BitBlt(hdc_screen, x1, y1, width, height,
+                    hdc_memory, 0, 0, win32con.SRCCOPY)
+
+    matrix.update_from_screen()
+
+    # Копируем все содержимое экрана в память
+    win32gui.BitBlt(hdc_memory, x1, y1, width, height,
+                    hdc_screen, 0, 0, win32con.SRCCOPY)
+
+    turns = multi_solver(matrix)
+
+    for turn in turns:
+        if turn.probability == 0:  # 100% нет мин
+            brush = win32gui.CreateSolidBrush(green)
+            pen = win32gui.CreatePen(win32con.PS_SOLID, 0, green)
+        elif turn.probability == 1:  # 100% есть мина
+            brush = win32gui.CreateSolidBrush(red)
+            pen = win32gui.CreatePen(win32con.PS_SOLID, 0, red)
+        else:
+            # в будующем у нас будут еще промежуточные вероятности
+            pass
+
+        # Select the brush and pen into the device context (hdc)
+        old_brush = win32gui.SelectObject(dc, brush)
+        old_pen = win32gui.SelectObject(dc, pen)
+
+        x, y = turn.cell.abscoordx + 12, turn.cell.abscoordy + 12
+        rad = 3
+        win32gui.Ellipse(dc, x - rad, y - rad, x + rad, y + rad)
+
+        win32gui.SelectObject(dc, old_brush)
+        win32gui.SelectObject(dc, old_pen)
+        win32gui.DeleteObject(brush)
+        win32gui.DeleteObject(pen)
+
+    # Освобождаем ресурсы
+    win32gui.SelectObject(hdc_memory, hbitmap)
+    win32gui.DeleteObject(hbitmap)
+    win32gui.DeleteDC(hdc_memory)
+    win32gui.ReleaseDC(0, hdc_screen)
+
 
 
 def clear_drawing(self):
@@ -120,7 +150,21 @@ class MouseListener:
         print("Отслеживание остановлено.")
 
 if __name__ == "__main__":
+
+
     col_values, row_values, region = find_board()
+    x1, y1, x2, y2 = region
+    width = x2 - x1
+    height = y2 - y1
+
+
+    hdc_screen = win32gui.GetDC(0)
+    # width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
+    # height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+    hdc_memory = win32gui.CreateCompatibleDC(hdc_screen)
+    hbitmap = win32gui.CreateCompatibleBitmap(hdc_screen, width, height)
+    win32gui.SelectObject(hdc_memory, hbitmap)
+
 
     matrix = ScreenMatrix(row_values, col_values, region)
     print('Matrix creted:')
