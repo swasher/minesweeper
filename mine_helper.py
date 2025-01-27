@@ -17,60 +17,36 @@ green = win32api.RGB(0, 255, 0)
 blue = win32api.RGB(0, 0, 255)
 
 global x1, y1, x2, y2, width, height
-
-
-def do_something1():
-
-    # CLEAR PREVIOUS DRAWING
-
-    matrix.update_from_screen()
-
-    turns = multi_solver(matrix)
-
-    # matrix.display()
-
-    for turn in turns:
-
-        if turn.probability == 0:  # 100% нет мин
-            brush = win32gui.CreateSolidBrush(green)
-            pen = win32gui.CreatePen(win32con.PS_SOLID, 0, green)
-        elif turn.probability == 1:  # 100% есть мина
-            brush = win32gui.CreateSolidBrush(red)
-            pen = win32gui.CreatePen(win32con.PS_SOLID, 0, red)
-        else:
-            # в будующем у нас будут еще промежуточные вероятности
-            pass
-
-        # Select the brush and pen into the device context (hdc)
-        old_brush = win32gui.SelectObject(dc, brush)
-        old_pen = win32gui.SelectObject(dc, pen)
-
-        x, y = turn.cell.abscoordx+12, turn.cell.abscoordy+12
-        # win32gui.SetPixel(dc, x, y, color)  # draw red at 0,0
-        # win32gui.Rectangle(dc, region_x1, region_y1, region_x2, region_y2)
-        rad = 3
-        win32gui.Ellipse(dc, x - rad, y - rad, x + rad, y + rad)
-
-        win32gui.SelectObject(dc, old_brush)
-        win32gui.SelectObject(dc, old_pen)
-        win32gui.DeleteObject(brush)
-        win32gui.DeleteObject(pen)
+old_turns = []
 
 
 def do_something():
-    # CLEAR PREVIOUS DRAWING
-    # Восстанавливаем исходное изображение поверх нарисованного
+    global old_turns
 
-    win32gui.BitBlt(hdc_screen, x1, y1, width, height,
-                    hdc_memory, 0, 0, win32con.SRCCOPY)
+    # CLEAR PREVIOUS DRAWING
+    background_color = win32api.RGB(198, 198, 198)
+    background_brush = win32gui.CreateSolidBrush(background_color)
+    background_pen = win32gui.CreatePen(win32con.PS_SOLID, 0, background_color)
+
+    old_brush = win32gui.SelectObject(dc, background_brush)
+    old_pen = win32gui.SelectObject(dc, background_pen)
+
+    # Перерисовываем те же области фоновым цветом
+    for turn in old_turns:
+        x, y = turn.cell.abscoordx + 12, turn.cell.abscoordy + 12
+        rad = 3
+        win32gui.Ellipse(dc, x - rad, y - rad, x + rad, y + rad)
+
+    win32gui.SelectObject(dc, old_brush)
+    win32gui.SelectObject(dc, old_pen)
+    win32gui.DeleteObject(background_brush)
+    win32gui.DeleteObject(background_pen)
 
     matrix.update_from_screen()
-
-    # Копируем все содержимое экрана в память
-    win32gui.BitBlt(hdc_memory, x1, y1, width, height,
-                    hdc_screen, 0, 0, win32con.SRCCOPY)
-
     turns = multi_solver(matrix)
+
+    # matrix.display()
+    old_turns = turns
 
     for turn in turns:
         if turn.probability == 0:  # 100% нет мин
@@ -95,21 +71,6 @@ def do_something():
         win32gui.SelectObject(dc, old_pen)
         win32gui.DeleteObject(brush)
         win32gui.DeleteObject(pen)
-
-    # Освобождаем ресурсы
-    win32gui.SelectObject(hdc_memory, hbitmap)
-    win32gui.DeleteObject(hbitmap)
-    win32gui.DeleteDC(hdc_memory)
-    win32gui.ReleaseDC(0, hdc_screen)
-
-
-
-def clear_drawing(self):
-    # Очищаем нарисованное, вызывая перерисовку окна
-    win32gui.InvalidateRect(self.hwnd, None, True)
-    pass
-
-
 
 
 class MouseListener:
@@ -150,7 +111,6 @@ class MouseListener:
         print("Отслеживание остановлено.")
 
 if __name__ == "__main__":
-
 
     col_values, row_values, region = find_board()
     x1, y1, x2, y2 = region
