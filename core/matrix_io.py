@@ -173,7 +173,8 @@ class MatrixIO:
 
                 elif current_section == 'mines':
                     line = line.strip()  # Убираем лишние пробелы и переносы строк
-                    type, x, y = line.split()  # Разделяем строку по пробелам
+                    keyword, x, y = line.split()  # Разделяем строку по пробелам
+                    assert keyword == 'MINE', 'Wrong MINE keyword in txt'
                     mines.add((int(x), int(y)))
 
                 elif current_section == 'solution':
@@ -188,7 +189,6 @@ class MatrixIO:
                         solutions.append((int(x), int(y), float(probability)))
                     except ValueError:
                         print(f"Ощибка чтения решения: {file_path}")
-
 
         # Инициализируем матрицу
         self.matrix.width = self.width
@@ -210,7 +210,7 @@ class MatrixIO:
                 self.matrix.table[row, col] = cell
 
         print(f'Matrix loaded from {file_path}')
-        self.matrix.display()
+        # self.matrix.display()
 
         return solutions
 

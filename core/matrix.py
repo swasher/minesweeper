@@ -4,14 +4,15 @@ import numpy as np
 
 from assets import *
 
-import mouse_controller
 from .cell import Cell
-from mouse_controller import MouseButton
 from .board import board
-from config import config
 from .utility import GameState, MineMode
-from utils import random_point_in_circle
 from .matrix_io import MatrixIO
+import mouse_controller
+from mouse_controller import MouseButton
+from config import config
+from utils import random_point_in_circle
+from minesweepr import solver
 
 """
 Соглашения:
@@ -41,7 +42,7 @@ class Matrix:
         self.mines = set()  # set of bombs for Tk playing
 
     def save(self):
-        text = self.matrix_to_text()
+        text = self.to_text()
         self.io.save(text)
 
     def load(self, file_path: str):
@@ -82,7 +83,7 @@ class Matrix:
         d = math.hypot(cell1.row - cell2.row, cell1.col - cell2.col)
         return d
 
-    def matrix_to_text(self) -> list[str]:
+    def to_text(self) -> list[str]:
         """
         Используется в методе сохранении матрицы в файл. В display() не используем, потому что немного другая логика.
         """
@@ -329,190 +330,6 @@ class Matrix:
         """
         pass
 
-    # def save(self, mine_mode: MineMode):
-    #     pass
-    #
-    # def load(self, file):
-    #     pass
-
-
-    # def save(self, mine_mode: MineMode):
-    #     """
-    #     Сохраняет Матрицу в текстовый файл.
-    #
-    #     РЕЖИМЫ ПОД ВОПРОСОМ!!!!!!
-    #     Режимы:
-    #     - PREDEFINED - матрица знает о расположении мин (для Tk)
-    #     - UNDEFINED - матрица не знает о расположении мин (для Tk и экранной версии)
-    #
-    #     × - закрытая клетка
-    #     ơ - закрытая клетка с миной (только для PREDEFINED)
-    #     ⚑ - флаг
-    #     ⚐ - неверно поставленный флаг (мины нет) (только для PREDEFINED)
-    #     · - открытая клетка (0)
-    #     1-8 - открытая клетка с цифрой
-    #
-    #     Формат:
-    #
-    #     [properties]
-    #     width = 8
-    #     height = 8
-    #     mine_mode = PREDEFINED | UNDEFINED
-    #
-    #     [matrix]
-    #     × × × ơ × × × × ×
-    #     × × × 2 × × ơ × ×
-    #     ơ × 1 ơ 1 1 1 1 ×
-    #     × × 2 1 1 · · 1 ⚐
-    #     × ơ 2 × 1 · · 1 ⚑
-    #     × × × ơ 2 1 · 2 2
-    #     × × × × ⚑ 2 1 1 ⚑
-    #     × × × × × ⚑ 1 1 1
-    #     × × × × × × × × ⚐
-    #
-    #     [solutions]
-    #     # reserved for future use
-    #     """
-    #     dir = 'saves'
-    #     file_name = 'save_' + datetime.now().strftime("%d-%b-%Y--%H.%M.%S.%f") + '.txt'
-    #     file_path = os.path.join(dir, file_name)
-    #
-    #     if not os.path.exists(dir):
-    #         os.makedirs(dir)
-    #
-    #     with open(file_path, 'w', encoding='utf-8') as outp:
-    #         # Записываем секцию матрицы
-    #         outp.write("[properties]\n")
-    #         outp.write(f"width = {self.width}\n")
-    #         outp.write(f"height = {self.height}\n")
-    #         mode = mine_mode.name
-    #         outp.write(f"mode = {mode}\n")
-    #
-    #         outp.write("\n[matrix]\n")
-    #         for row in range(self.height):
-    #             line = ''
-    #             for col in range(self.width):
-    #                 cell = self.table[row, col]
-    #
-    #                 if mine_mode == MineMode.PREDEFINED and cell.is_mined and cell.content == asset.closed:
-    #                     line += there_is_bomb.symbol  # 'ơ'
-    #                 elif mine_mode == MineMode.PREDEFINED and not cell.is_mined and cell.content == asset.flag:
-    #                     line += bomb_wrong.symbol  # '⚐'
-    #                 else:
-    #                     line += cell.content.symbol
-    #
-    #             line = ' '.join(line)
-    #             outp.write(line + '\n')
-    #
-    #         outp.write("\n[solution]")
-    #     print('Matrix saved to', file_path)
-
-    # def load(self, file_path: str):
-    #     """
-    #     Загружает Матрицу из текстового файла.
-    #     См. метод save() для описания формата файлат и символов.
-    #
-    #     Args:
-    #         file_path (str): Путь к файлу сохранения
-    #
-    #     Returns:
-    #         None
-    #
-    #     Raises:
-    #         FileNotFoundError: Если файл не найден
-    #         ValueError: Если формат файла некорректен
-    #     """
-    #     import os
-    #     from asset import asset
-    #
-    #     if not os.path.exists(file_path):
-    #         raise FileNotFoundError(f"Save file not found: {file_path}")
-    #
-    #     # Словарь для обратного преобразования: буква -> asset
-    #     symbol_to_asset = {
-    #         asset.closed.symbol: asset.closed,
-    #         asset.flag.symbol: asset.flag,
-    #         asset.there_is_bomb.symbol: asset.there_is_bomb,
-    #         asset.bomb_wrong.symbol: asset.bomb_wrong,
-    #     }
-    #
-    #     # Добавляем цифры от 0 до 8
-    #     for i, digit_asset in enumerate(asset.open_cells):
-    #         symbol_to_asset[digit_asset.symbol] = digit_asset
-    #
-    #     current_section = None
-    #     matrix_data = []
-    #
-    #     with open(file_path, 'r', encoding='utf-8') as inp:
-    #         for line in inp:
-    #             line = line.strip()
-    #
-    #             # Пропускаем пустые строки
-    #             if not line:
-    #                 continue
-    #
-    #             # Обработка заголовков секций
-    #             if line.startswith('[') and line.endswith(']'):
-    #                 current_section = line[1:-1]
-    #                 continue
-    #
-    #             if current_section == 'properties':
-    #                 key, value = line.split(' = ')
-    #                 if key == 'width':
-    #                     self.width = int(value)
-    #                 elif key == 'height':
-    #                     self.height = int(value)
-    #                 elif key == 'mode':
-    #                     if value in ['PREDEFINED', 'UNDEFINED']:
-    #                         loaded_mine_mode = MineMode[value]
-    #                     else:
-    #                         raise ValueError(f"Invalid mode: {value}")
-    #
-    #             elif current_section == 'matrix':
-    #                 # Убираем пробелы между символами, если они есть
-    #                 line = ''.join(line.split())
-    #                 matrix_data.append(line)
-    #
-    #             elif current_section == 'solution':
-    #                 # reserved for future use
-    #                 ...
-    #
-    #     # Инициализируем матрицу
-    #     self.table = np.full((self.height, self.width), Cell)
-    #     self.mines = set()
-    #
-    #     # Заполняем матрицу данными
-    #     for row in range(self.height):
-    #         for col in range(self.width):
-    #             symbol = matrix_data[row][col]
-    #             cell = Cell(self, row=row, col=col)
-    #
-    #             # Конвертируем символ в asset
-    #             if symbol not in symbol_to_asset:
-    #                 raise ValueError(f"Unknown symbol in save file: {symbol}")
-    #             cell.content = symbol_to_asset[symbol]
-    #
-    #             # Если это мина, то добавляем в список мин, а ячейку закрываем
-    #             if cell.content == asset.there_is_bomb:
-    #                 self.mines.add((row, col))
-    #                 cell.content = asset.closed
-    #
-    #             # # Если это "правильный" флаг, то значит в ячейке есть мина
-    #             if cell.content == asset.flag:
-    #                 self.mines.add((row, col))
-    #                 cell.content = asset.flag
-    #
-    #
-    #             # Если это "неправильный" флаг, то значит в ячейке мины нет, а флаг нужно заменить на обычный, чтобы
-    #             # получилось как перед сохранением
-    #             if cell.content == asset.bomb_wrong:
-    #                 cell.content = asset.flag
-    #
-    #             self.table[row, col] = cell
-    #
-    #     print(f'Matrix loaded from {file_path}')
-    #     self.display()
-
     def click_smile(self):
         """
         Нажимает на рожицу, чтобы перезапустить поле
@@ -542,3 +359,13 @@ class Matrix:
     def fill_with_closed(self):
         for c in self.table.flat:
             c.content = closed
+
+    def solve(self):
+        """
+        Рассчитывает матрицу с помощью алгоритмов minesweepr.
+        У каждой ячейки заполняется свойство probability соответствующей вероятностью появления
+        мины (float 0..1, 1 = мина, 0 = нет мины)
+
+        Returns: None
+        """
+        solver(self)

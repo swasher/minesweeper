@@ -1,6 +1,8 @@
-from .minesweeper_util import read_board
-from .minesweeper_util import Board
-from .minesweeper_util import generate_rules
-from .minesweeper import solve
+# these exports can be deleted
+from .minesweeper_util import read_board      # only for demo_run_minesweepr.py
+from .minesweeper_util import Board           # only for demo_run_minesweepr.py
+from .minesweeper_util import generate_rules  # only for demo_run_minesweepr.py
 
-__all__ = ['read_board', 'generate_rules', 'solve', 'Board']
+from .transformer import solver
+
+__all__ = ['solver']
