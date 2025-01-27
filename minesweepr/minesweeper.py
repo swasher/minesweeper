@@ -1144,15 +1144,15 @@ def combine_fronts(tallies, num_uncharted_cells, at_large_mines):
             else:
                 # null case
                 return 1
-        
+
         @staticmethod
         def null():
             return AllFrontsPerMineTotals([])
-        
+
         @staticmethod
         def singleton(num_mines, total):
             return AllFrontsPerMineTotals([FrontPerMineTotals.singleton(num_mines, total)])
-        
+
         def join_with(self, new):
             """merge two AllFrontsPerMineTotals objects, joining into a single list and performing
             necessary cross-multiplication"""
@@ -1162,11 +1162,14 @@ def combine_fronts(tallies, num_uncharted_cells, at_large_mines):
         @staticmethod
         def sum(frontsets):
             """sum a list of AllFrontsPerMineTotals objects on a per-constituent front basis"""
-            return AllFrontsPerMineTotals(map(FrontPerMineTotals.sum, zip(*frontsets)))
+            # todo swasher
+            #   та же самая проблема с map, которая тянется с питон2
+            # return AllFrontsPerMineTotals(map(FrontPerMineTotals.sum, zip(*frontsets)))
+            return AllFrontsPerMineTotals(list(map(FrontPerMineTotals.sum, zip(*frontsets))))
 
         def __iter__(self):
             return iter(self.front_totals)
-        
+
         def __repr__(self):
             return str((self.total_count, self.front_totals))
                     

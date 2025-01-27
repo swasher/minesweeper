@@ -37,6 +37,7 @@ class Cell:
         :param abscoordy: коор. на экране Y от левого верхнего угла ЭКРАНА в пикселях
         :param w: ширина ячейки в пикселях
         :param h: высота ячейки в пикселях
+        :param probability: вероятность того, что в ячейке есть мина (вычисляется солвером)
         :param asset: instance of Asset - что содержится в ячейке
         :param image: ndarray - текущее изображение ячейки
         :param hash: int - хэш изображения ячейки
@@ -53,6 +54,7 @@ class Cell:
         self.abscoordy = abscoordy
         self.w = w
         self.h = h
+        self.probability: float | None = None
         # self.status = 'closed'
         self.content: Asset | None = None  # Asset instance
         self.image: ndarray | None = None  # Current image of cell; ndarray

@@ -219,6 +219,12 @@ class Matrix:
         """
         return len(self.around_mined_cells(cell))
 
+    def get_all_cells(self) -> list[Cell]:
+        """
+        Все ячейки в матрице
+        """
+        return self.table.flat
+
     def get_closed_cells(self) -> list[Cell]:
         """
         Возвращает все закрытые ячейки (которые закрыты и НЕ отмечены флагом)
@@ -272,7 +278,7 @@ class Matrix:
         Возвращает список установленных мин в закрытых ячейках (только для Tk сапера).
         :return:
         """
-        return [self.table[row][col] for row, col in self.mines]
+        assert False, 'must override'
 
     def get_noguess_cell(self) -> list[Cell]:
         """
@@ -289,6 +295,7 @@ class Matrix:
         """
         return len(self.get_closed_cells())
 
+    @property
     def get_num_flags(self) -> int:
         """
         Кол-во установленных флагов
@@ -297,9 +304,9 @@ class Matrix:
 
     def get_num_mined(self) -> int:
         """
-        Кол-во мин (только для Tk)
+        Кол-во не помеченных флагами мин (это число на LED-индикаторе)
         """
-        return len(self.get_mined_cells())
+        assert False, 'must override'
 
     def is_mine(self, cell) -> bool:
         return (cell.row, cell.col) in self.mines

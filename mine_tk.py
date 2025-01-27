@@ -20,6 +20,7 @@ cell.is_mine - это спрятанная в ячейке бомба (в сет
 
 import os
 import argparse
+import random
 import threading
 import time
 from pathlib import Path
@@ -46,6 +47,7 @@ from core import GameState
 from core import beginner, beginner_new, intermediate, expert
 from mouse_controller import MouseButton
 from assets import *
+
 
 class Mode(IntEnum):
     play = 0
@@ -149,6 +151,7 @@ class MinesweeperApp:
         self.fill_canvas()
         self.create_sidebar()
         self.create_fresh_board(game=beginner)
+        self.update_mine_counter()
 
         # Bind canvas events
         # self.canvas.bind("<Button-1>", self.on_canvas_click_left)
@@ -172,7 +175,6 @@ class MinesweeperApp:
             'on_cell_click': None,
             'on_game_state_change': None
         }
-
 
 
     @property
@@ -336,6 +338,7 @@ class MinesweeperApp:
         print('State:', self.matrix.game_state.name)
         self.set_smile(self.matrix.game_state)
 
+        self.update_mine_counter()
         self.update_grid()
         self.matrix.display()
 
@@ -361,8 +364,6 @@ class MinesweeperApp:
             self.root.update_idletasks()  # Ensure the grid is created before resizing
             geom_x = self.cell_size * width + self.sidebar.winfo_width()
             geom_y = self.cell_size * height + self.status_bar_frame.winfo_height() + self.top_frame.winfo_height()
-            # geom_x = max(geom_x, 250)
-            # geom_y = max(geom_y, 80)
             self.root.geometry(f"{geom_x}x{geom_y}")
             self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
             print(f'Successfully set grid size to {width}x{height} and window to {geom_x}x{geom_y}')
@@ -439,6 +440,44 @@ class MinesweeperApp:
 
                     # Update cell image
                     self.canvas.itemconfig(cell_id, image=img)
+
+                    # Удаляем старый текст вероятности (если есть)
+                    self.canvas.delete(f"prob_{row}_{col}")
+
+                    # Добавляем текст с вероятностью
+                    if hasattr(cell, 'probability'):
+                        x1, y1, x2, y2 = self.cells.get((row, col))['coords']
+                        # Вычисляем центр ячейки
+                        center_x = (x1 + x2) / 2
+                        center_y = (y1 + y2) / 2
+
+                        if cell.probability == 1.0:
+                            # Красная точка для вероятности 1.0
+                            self.canvas.create_oval(
+                                center_x - 2, center_y - 2,
+                                center_x + 2, center_y + 2,
+                                fill="red",
+                                tags=f"dot_{row}_{col}"
+                            )
+                        elif cell.probability == 0.0:
+                            # Зеленая точка для вероятности 0.0
+                            self.canvas.create_oval(
+                                center_x - 2, center_y - 2,
+                                center_x + 2, center_y + 2,
+                                fill="green",
+                                tags=f"dot_{row}_{col}"
+                            )
+                        elif cell.probability is not None:
+                            # Текст с вероятностью для остальных значений
+                            self.canvas.create_text(
+                                center_x,
+                                center_y,
+                                text=f"{cell.probability:.2f}",
+                                font=("Arial", 6),
+                                fill="black",
+                                tags=f"prob_{row}_{col}"
+                            )
+
                 else:
                     raise Exception(f"Image not found: {image_name}")
 
@@ -463,7 +502,7 @@ class MinesweeperApp:
                 print("Switched to Mines is known - ON")
 
     def update_mine_counter(self):
-        count = len(self.matrix.get_mined_cells()) - len(self.matrix.get_flagged_cells())
+        count = self.matrix.get_num_mined()
         count_str = f"{count:03d}"
         for i, digit in enumerate(count_str):
             self.mine_counter[i].config(image=self.images[f"led{digit}"])
@@ -645,7 +684,9 @@ class MinesweeperApp:
                 else:
                     self.matrix.click_edit_mines_undefined(cell, button)
 
+            self.matrix.solve()
             self.update_grid()
+            self.update_mine_counter()
             self.update_status_bar()
 
     def save_matrix(self):
