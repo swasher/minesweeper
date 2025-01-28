@@ -79,7 +79,7 @@ class MatrixIO:
         mine_mode = self.matrix.mine_mode
         width = self.matrix.width
         height = self.matrix.height
-        remaining_mines = self.remaining_mines
+        remaining_mines = self.matrix.get_remaining_mines_count
 
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)

@@ -143,7 +143,7 @@ class MinesweeperApp:
 
         self.edit_mode = Mode.edit
         self._edit_mode = tk.BooleanVar(value=False)
-        self._mine_mode_var = tk.IntVar(value=MineMode.PREDEFINED)  # доступ к свойсву Matrix.mine_mode осуществляется через прокси сеттер-геттер MinesweeperApp.mine_mode
+        # self._mine_mode_var = tk.IntVar(value=MineMode.PREDEFINED)  # доступ к свойсву Matrix.mine_mode осуществляется через прокси сеттер-геттер MinesweeperApp.mine_mode
         self._consistency = FieldConsistency.UNKNOWN
         self._show_probability = tk.BooleanVar(value=False)
 
@@ -200,7 +200,7 @@ class MinesweeperApp:
         Фактически proxy к свойству основного объекта Matrix.
         """
         self.matrix.mine_mode = mode
-        self._mine_mode_var.set(mode.value)
+        # deprecated self._mine_mode_var.set(mode.value)
 
     @property
     def consistency(self) -> FieldConsistency:
@@ -313,7 +313,7 @@ class MinesweeperApp:
 
         self.checkbutton_mine_mode = tk.Checkbutton(master=self.sidebar, text="",
                                                     command=self.switch_mine_mode,
-                                                    variable=self._mine_mode_var,
+                                                    # variable=self._mine_mode_var,
                                                     bg='lightgrey',
                                                     onvalue=MineMode.UNDEFINED.value,
                                                     offvalue=MineMode.PREDEFINED.value
@@ -336,7 +336,6 @@ class MinesweeperApp:
         self.checkbutton_showprob = tk.Checkbutton(master=self.sidebar, text="Prob.", variable=self._show_probability, command=self.switch_probality, bg='lightgrey')
         self.checkbutton_showprob.grid(row=5, column=0, pady=0)
         ToolTip(self.checkbutton_showprob, msg="Показывать вероятность мины в каждой клетке")
-        self._show_probability = True
 
         # Consistency Label
         self.consistency_label_head = tk.Label(self.sidebar, text="Consistency:", bg='lightgrey')
@@ -372,7 +371,7 @@ class MinesweeperApp:
 
         self.timer.reset()
         self.set_custom_size(game)
-        self.matrix = TkMatrix(self.grid_width, self.grid_height)
+        self.matrix = TkMatrix(self.grid_width, self.grid_height, game.bombs)
         self.matrix.create_new_game(n_bombs=game.bombs)
         print('State:', self.matrix.game_state.name)
         self.set_smile(self.matrix.game_state)
@@ -454,10 +453,10 @@ class MinesweeperApp:
         elif self.matrix.game_state == GameState.fail:
             self.status_bar.config(text="You lose!")
         else:
-            closed_count = len(self.matrix.get_closed_cells())
-            mine_count = len(self.matrix.get_mined_cells())
-            opened_count = len(self.matrix.get_open_cells())
-            flag_count = len(self.matrix.get_flagged_cells())
+            closed_count = self.matrix.get_closed_cells_count
+            mine_count = self.matrix.get_total_mines
+            opened_count = self.matrix.get_opened_cells_count
+            flag_count = self.matrix.get_flagged_cells_count
             self.status_bar.config(text=f"Closed:{closed_count}, Mines:{mine_count}, Open:{opened_count}, Flags:{flag_count}")
 
     def update_grid(self):
@@ -465,6 +464,7 @@ class MinesweeperApp:
         Обновляет визуальное отображение в соответствии с объектом Matrix
         """
         print('Updating grid...')
+        print('Probab is', self._show_probability.get())
         for row in range(self.grid_height):
             for col in range(self.grid_width):
                 cell = self.matrix.table[row][col]
@@ -487,7 +487,7 @@ class MinesweeperApp:
                 self.canvas.delete(f"prob_{row}_{col}")
                 self.canvas.delete(f"dot_{row}_{col}")
 
-                if self._show_probability:
+                if self._show_probability.get() and cell.is_closed:
                     # Добавляем текст с вероятностью
                     if cell.probability is not None:
                         x1, y1, x2, y2 = self.cells.get((row, col))['coords']
@@ -501,6 +501,7 @@ class MinesweeperApp:
                                 center_x - 2, center_y - 2,
                                 center_x + 2, center_y + 2,
                                 fill="red",
+                                outline="",
                                 tags=f"dot_{row}_{col}"
                             )
                         elif cell.probability == 0.0:
@@ -509,6 +510,7 @@ class MinesweeperApp:
                                 center_x - 2, center_y - 2,
                                 center_x + 2, center_y + 2,
                                 fill="green",
+                                outline="",
                                 tags=f"dot_{row}_{col}"
                             )
                         elif cell.probability is not None:
@@ -546,7 +548,7 @@ class MinesweeperApp:
         """
         self.update_grid()
 
-    def switch_mine_mode1(self):
+    def switch_mine_mode(self):
         if self.matrix.mine_mode == MineMode.PREDEFINED:
             response = messagebox.askyesno("Warning",
                                            "Это удалит все установленные мины с поля.")
@@ -558,7 +560,7 @@ class MinesweeperApp:
                 self.label_mine_mode.config(text="(Set Digits)")
                 self.update_grid()
 
-                print("Switched to Mines is known - OFF")
+                print("Switched to mine mode: OFF")
         else:
             response = messagebox.askyesno("Warning",
                                            "Все цифры станут просто открытыми ячейками (0). Можно будет расставить бомбы")
@@ -572,14 +574,7 @@ class MinesweeperApp:
                 self.label_mine_mode.config(text="(Set Bombs)")
                 self.update_grid()
 
-                print("Switched to Mines is known - ON")
-
-    def switch_mine_mode(self):
-        # Получаем текущее значение из переменной Checkbutton
-        new_mode = MineMode(self._mine_mode_var.get())
-        # Устанавливаем новое значение через сеттер
-        self.mine_mode = new_mode
-        print(f"Mine mode switched to: {self.mine_mode.name}")
+                print("Switched to mine mode: ON")
 
     def switch_edit_mode(self, mode: Mode):
         """

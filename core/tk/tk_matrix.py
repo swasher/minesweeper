@@ -13,23 +13,25 @@ from assets import *
 
 class TkMatrix(Matrix):
 
-    def __init__(self, width, height):
+    def __init__(self, width: int = 0, height: int = 0, total_mines: int = 0):
         """
         Создаем матрицу со всеми закрытыми ячейками.
         Такая матрица не свящана с экраном.
 
         :return:
         """
-        super().__init__()
-        self.height = height
-        self.width = width
-        self.table = np.full((height, width), Cell)
+        super().__init__(width, height, total_mines)
+        # self.height = height
+        # self.width = width
+        # self.table = np.full((height, width), Cell)
 
         for row in range(height):  # cell[строка][столбец]
             for col in range(width):
                 self.table[row, col] = Cell(self, row, col)
 
+        self.mines = set()  # set of known mines
         self.lastclicked = self.table[0, 0]
+
 
     def create_new_game(self, n_bombs: int = 0):
         """
@@ -102,7 +104,7 @@ class TkMatrix(Matrix):
                 self.game_state = GameState.fail
                 return
             else:
-                mines = self.around_mined_num(cell)
+                mines = self.around_mined_count(cell)
                 cell.content = find_asset_by_value(open_cells, target_value=mines)
 
                 # make check for win
@@ -166,12 +168,12 @@ class TkMatrix(Matrix):
         # обновляем цифры вокруг
         cells_to_update = self.around_opened_cells(cell)
         for c in cells_to_update:
-            mines = self.around_mined_num(c)
+            mines = self.around_mined_count(c)
             c.content = find_asset_by_value(open_cells, target_value=mines)
 
         # и в самой ячейке (если она открылась)
         if cell.is_empty:
-            mines = self.around_mined_num(cell)
+            mines = self.around_mined_count(cell)
             cell.content = find_asset_by_value(open_cells, target_value=mines)
 
     def click_cell_when_mines_undefined(self, cell, button):

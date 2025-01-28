@@ -59,7 +59,7 @@ class ScreenMatrix(Matrix):
 
 
                 # TODO BUG
-                #  вот в этом месте ячейка с вместо closed получает content there_is_bomb
+                #  вот в этом месте ячейка 'с' вместо closed получает content there_is_bomb
 
 
 

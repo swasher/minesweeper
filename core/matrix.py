@@ -28,14 +28,14 @@ class Matrix:
         self.height = height  # width of matrix (number of cols)
         self.total_mines: int = total_mines  # общее кол-во мин. Берется либо из LED-индикатора при старте игры (screen), либо из данных об игре (Tk), либо из файла загрузки.
 
-        self.table = np.full((self.height, self.width), Cell)  # matrix itself; numpy 2D array of Cell object
+        self.table = np.full((height, width), Cell)  # matrix itself; numpy 2D array of Cell object
         self._game_state: GameState = GameState.waiting
         self._mine_mode = MineMode.UNDEFINED
 
         # TODO Переместить эти две строчки в PlayMatrix? с одной стороны, известные мины
         #  только в Playmatrix могут быть, с другой, у нас есть методы, которые используют мины и находятся в Matrix
         #  для унификации расположения однотипных методов.
-        self.mines = set()  # set of bombs for Tk playing
+
 
     def save(self):
         text = self.to_text()
@@ -206,7 +206,7 @@ class Matrix:
         mines = list([x for x in self.around_cells(cell) if x.is_mined])
         return mines
 
-    def around_mined_num(self, cell) -> int:
+    def around_mined_count(self, cell) -> int:
         """
         Возвращает количество ячеек-мин вокруг ячейки cell.
         Используется для tk-версии с известно расположенными минами.
@@ -229,6 +229,10 @@ class Matrix:
         cells = list([x for x in self.table.flat if x.is_closed])
         return cells
 
+    @property
+    def get_closed_cells_count(self) -> int:
+        return len(self.get_closed_cells())
+
     def get_opened_cells(self) -> list[Cell]:
         """
         Возвращает все открытые ячейки (это цифры плюс пустая ячейка)
@@ -237,6 +241,10 @@ class Matrix:
         cells = list([x for x in self.table.flat if x.is_open])
         return cells
 
+    @property
+    def get_opened_cells_count(self) -> int:
+        return len(self.get_opened_cells())
+
     def get_flagged_cells(self) -> list[Cell]:
         """
         Возвращает список закрытых ячеек, уже помеченных флагами
@@ -244,6 +252,10 @@ class Matrix:
         """
         cells = list([x for x in self.table.flat if x.is_flag])
         return cells
+
+    @property
+    def get_flagged_cells_count(self) -> int:
+        return len(self.get_flagged_cells())
 
     def get_digit_cells(self) -> list[Cell]:
         """

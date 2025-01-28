@@ -20,7 +20,7 @@ def solver_R1_smart(matrix: Matrix):
     """
     action = Action.open_cell
 
-    remain_mines = matrix.get_led_number
+    remain_mines = matrix.get_remaining_mines_count
     print(f'Led digit: {remain_mines}')
 
     common_risk = remain_mines / matrix.get_num_closed

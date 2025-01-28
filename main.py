@@ -4,7 +4,6 @@ import threading
 import random
 import queue
 from pynput.keyboard import Key, Listener
-from icecream import ic
 import ctypes
 
 from config import config
@@ -27,8 +26,6 @@ from solver import solver_B2
 from solver import solver_B1E1
 from solver import solver_gauss
 from solver import solver_noguess
-
-ic.configureOutput(outputFunction=lambda *a: print(*a, file=sys.stderr))
 
 """
 RULES FOR COORDINATES

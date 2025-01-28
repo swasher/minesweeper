@@ -29,8 +29,8 @@ class Cell:
         """
         Определить, является ли ячейка миной, можно обратившиться к матрице и вызвать метод is_mine(self).
 
+        :param row: номер строки, начиная с 0. Т.е. это СТРОКА. Верхняя строка - номер 0
         :param col: номер ячейки в строке, начиная с 0. Т.е. это СТОЛБЕЦ. Левая ячейка - номер 0 - cell[строка][столбец]
-        :param row: номер ячейки в столбце, начиная с 0. Т.е. это СТРОКА. Верхняя ячейка - номер 0
         :param coordx: коор. на экране X от левого верхнего угла ДОСКИ в пикселях
         :param coordy: коор. на экране Y от левого верхнего угла ДОСКИ в пикселях
         :param abscoordx: коор. на экране X от левого верхнего угла ЭКРАНА в пикселях
@@ -55,7 +55,6 @@ class Cell:
         self.w = w
         self.h = h
         self.probability: float | None = None
-        # self.status = 'closed'
         self.content: Asset | None = None  # Asset instance
         self.image: ndarray | None = None  # Current image of cell; ndarray
         self.hash = 0  # hash of image
