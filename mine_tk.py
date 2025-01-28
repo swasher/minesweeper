@@ -143,7 +143,7 @@ class MinesweeperApp:
 
         self.edit_mode = Mode.edit
         self._edit_mode = tk.BooleanVar(value=False)
-        self.mine_mode = MineMode.PREDEFINED  # доступ к свойсву Matrix.mine_mode осуществляется через прокси сеттер-геттер MinesweeperApp.mine_mode
+        self._mine_mode_var = tk.IntVar(value=MineMode.PREDEFINED)  # доступ к свойсву Matrix.mine_mode осуществляется через прокси сеттер-геттер MinesweeperApp.mine_mode
         self._consistency = FieldConsistency.UNKNOWN
         self._show_probability = tk.BooleanVar(value=False)
 
@@ -200,6 +200,7 @@ class MinesweeperApp:
         Фактически proxy к свойству основного объекта Matrix.
         """
         self.matrix.mine_mode = mode
+        self._mine_mode_var.set(mode.value)
 
     @property
     def consistency(self) -> FieldConsistency:
@@ -310,11 +311,17 @@ class MinesweeperApp:
         self.label_mine_mode = tk.Label(self.sidebar, text="Mine Mode", bg='lightgrey')
         self.label_mine_mode.grid(row=2, column=0, pady=(0, 0))
 
-        self.checkbutton_mine_mode = tk.Checkbutton(master=self.sidebar, text="", variable=self._edit_mode, command=self.switch_mine_mode, bg='lightgrey')
+        self.checkbutton_mine_mode = tk.Checkbutton(master=self.sidebar, text="",
+                                                    command=self.switch_mine_mode,
+                                                    variable=self._mine_mode_var,
+                                                    bg='lightgrey',
+                                                    onvalue=MineMode.UNDEFINED.value,
+                                                    offvalue=MineMode.PREDEFINED.value
+                                                    )
         self.checkbutton_mine_mode.grid(row=3, column=0, pady=0)
         ToolTip(self.checkbutton_mine_mode, msg="ON - Мы устанавливаем мины, цифры ставятся автоматически."
                                           " OFF - Мы устанавливаем цифры, положение мин в матрице неопределено")
-        # self.checkbutton_mik.select() if self.mine_mode == MineMode.PREDEFINED else self.checkbutton_mik.deselect()
+        self.checkbutton_mine_mode.select() if self.mine_mode == MineMode.PREDEFINED else self.checkbutton_mine_mode.deselect()
 
         # Play mode button
         self.play_button = tk.Button(master=self.sidebar,
@@ -534,9 +541,12 @@ class MinesweeperApp:
             self.led_timer[i].config(image=self.images[f"led{digit}"])
 
     def switch_probality(self):
+        """
+        Значение хранится в self._show_probability, а переключение осуществляется автоматом, потому что эта переменная указана в свойствах чекбокса.
+        """
         self.update_grid()
 
-    def switch_mine_mode(self):
+    def switch_mine_mode1(self):
         if self.matrix.mine_mode == MineMode.PREDEFINED:
             response = messagebox.askyesno("Warning",
                                            "Это удалит все установленные мины с поля.")
@@ -554,15 +564,22 @@ class MinesweeperApp:
                                            "Все цифры станут просто открытыми ячейками (0). Можно будет расставить бомбы")
             if response:
                 self.mine_mode = MineMode.PREDEFINED
-                self.checkbutton_mik.select()
+                self.checkbutton_mine_mode.select()
 
                 digits = self.matrix.get_digit_cells()
                 for d in digits:
                     d.content = n0
-                self.label_mik_mode.config(text="(Set Bombs)")
+                self.label_mine_mode.config(text="(Set Bombs)")
                 self.update_grid()
 
                 print("Switched to Mines is known - ON")
+
+    def switch_mine_mode(self):
+        # Получаем текущее значение из переменной Checkbutton
+        new_mode = MineMode(self._mine_mode_var.get())
+        # Устанавливаем новое значение через сеттер
+        self.mine_mode = new_mode
+        print(f"Mine mode switched to: {self.mine_mode.name}")
 
     def switch_edit_mode(self, mode: Mode):
         """
@@ -590,7 +607,7 @@ class MinesweeperApp:
         self.play_button.config(font=play_font)
 
         # Управление доступностью чекбокса
-        self.checkbutton_mik.config(state='normal' if mode == Mode.edit else 'disabled')
+        self.checkbutton_mine_mode.config(state='normal' if mode == Mode.edit else 'disabled')
 
         # Обновление изображения
         # deprecated image_name = "there_is_bomb.png" if mode == Mode.edit else "closed.png"
