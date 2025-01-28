@@ -1,17 +1,13 @@
 import math
-import time
 import numpy as np
+from abc import abstractmethod
 
 from assets import *
 
 from .cell import Cell
-from .board import board
 from .utility import GameState, MineMode
 from .matrix_io import MatrixIO
-import mouse_controller
-from mouse_controller import MouseButton
-from config import config
-from utils import random_point_in_circle
+
 from minesweepr import solver
 
 """
@@ -19,19 +15,18 @@ from minesweepr import solver
 get_closed - возвращает только закрытые и НЕ отмеченные флагами
 """
 
-
 class Matrix:
     """
     Описывает набор ячеек игрового поля и реализует логику.
-    В этой части собраны методы, общие как для Tk-версии (наследник PlayMatrix), так
-    и для экранной версии (наследник ScreenMatrix)
-
-    Так же используется для тестирования алгоритмов.
+    Экземпляр этого класса можно использовать для тестирования алгоритмов.
+    От Matrix наследуются: Tk-версия (TkMatrix) и экранная версия (ScreenMatrix)
     """
-    def __init__(self, width: int = 0, height: int = 0):
+    def __init__(self, width: int = 0, height: int = 0, total_mines: int = 0):
         self.io = MatrixIO(self)
         self.width = width   # height of matrix (number of rows)
         self.height = height  # width of matrix (number of cols)
+        self.total_mines: int = total_mines  # общее кол-во мин. Берется либо из LED-индикатора при старте игры (screen), либо из данных об игре (Tk), либо из файла загрузки.
+
         self.table = np.full((self.height, self.width), Cell)  # matrix itself; numpy 2D array of Cell object
         self._game_state: GameState = GameState.waiting
         self._mine_mode = MineMode.UNDEFINED
@@ -55,7 +50,7 @@ class Matrix:
     @property
     def game_state(self) -> GameState:
         """
-        Возвращает текущее состояние игры.
+        GETTER. Возвращает текущее состояние игры.
         :return: GameState enum
         """
         return self._game_state
@@ -63,19 +58,19 @@ class Matrix:
     @game_state.setter
     def game_state(self, state: GameState):
         """
-        Устанавливает состояние игры.
+        SETTER. Устанавливает состояние игры.
         :param state: GameState enum
         """
         self._game_state = state
 
     @property
     def mine_mode(self) -> MineMode:
-        """Возвращает режим расположения мин"""
+        """ GETTER. Возвращает режим расположения мин """
         return self._mine_mode
 
     @mine_mode.setter
     def mine_mode(self, mode: MineMode):
-        """Устанавливает режим расположения мин"""
+        """SETTER. Устанавливает режим расположения мин"""
         self._mine_mode = mode
 
     @staticmethod
@@ -265,6 +260,13 @@ class Matrix:
         cells = list([x for x in self.table.flat if x.is_open])
         return cells
 
+    ####################
+    #   START BLOCK    #
+    ####################
+
+    # Все методы, связанные с минами, потому что с ними есть путаница.
+    # Есть еще два метода (только для tk используются) - around_mined_cells и around_mined_num, сюда не переносил.
+
     def get_bombs_cells(self) -> list[Cell]:
         """
         Возвращает список бомб (которые видны, если игра окончена). Используется в game_over
@@ -273,16 +275,46 @@ class Matrix:
         cells = list([x for x in self.table.flat if x.is_bomb])
         return cells
 
+    @abstractmethod
     def get_mined_cells(self) -> list[Cell]:
         """
         Возвращает список установленных мин в закрытых ячейках (только для Tk сапера).
         :return:
         """
-        assert False, 'must override'
+        raise NotImplementedError("Метод get_mined_cells должен быть переопределен.")
+
+    def get_mined_without_flags(self):
+        ...
+
+    @property
+    def get_num_mines(self) -> int:
+        """
+        Общее кол-во мин. Оно не меняется в процессе игры.
+        А на LED индикаторе отображается "общее кол-во мин минус кол-во флагов" - это свойство get_led_number.
+        """
+        return self.total_mines
+
+    @property
+    @abstractmethod
+    def get_remaining_mines(self) -> int:
+        """
+        Число мин минус число флагов. Это число отображается на LED индикаторе.
+        Реализация и смысл этого метода в screen и tk версиях совершенно различна. В tk мы используем сами данные матрицы,
+        чтобы получить значение led_mines и отобразить его на индикаторе, в то время как в screen версии мы
+        считываем индикатор, чтобы получить информацию о кол-ве мин.
+
+        Но итог один - метод возвращает число мин на индикаторе.
+        """
+        raise NotImplementedError("Метод get_led_number должен быть переопределен.")
+
+    ####################
+    #    END BLOCK     #
+    ####################
 
     def get_noguess_cell(self) -> list[Cell]:
         """
         Первый ход для no-guess игр. Возвращает отмеченную крестиком клетку.
+        Для совместимости в виде списка.
         :return: list of Cell objects
         """
         cell = list([x for x in self.table.flat if x.is_noguess])
@@ -302,14 +334,7 @@ class Matrix:
         """
         return len(self.get_flagged_cells())
 
-    def get_num_mined(self) -> int:
-        """
-        Кол-во не помеченных флагами мин (это число на LED-индикаторе)
-        """
-        assert False, 'must override'
 
-    def is_mine(self, cell) -> bool:
-        return (cell.row, cell.col) in self.mines
 
     @property
     def you_fail(self) -> bool:
@@ -323,45 +348,12 @@ class Matrix:
             return True
 
     @property
+    @abstractmethod
     def you_win(self) -> bool:
         """
         Имплементируется по разному в Tk и в экранной версии.
         """
-        pass
-
-    def bomb_qty(self) -> int:
-        """
-        Имеет совершенно разную имплементацию в Tk и в экранной версии.
-        Tk знает количество мин из матрицы.
-        Экранная версия считает количество мин по LED счетчику.
-        """
-        pass
-
-    def click_smile(self):
-        """
-        Нажимает на рожицу, чтобы перезапустить поле
-        TODO BUG Рожицы нет в играх на маленьких полях - на кастомных полях MinSweeper.Online шириной 7 и меньше
-        :return:
-
-        Сделать, чтобы эти настройки брались из asset.
-        Пока что мне кажется можно координату X брать как половину поля,
-        а Y из ассета
-        """
-
-        # face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
-        # face_coord_y = self.region_y1 + board.smile_y_coord
-
-        x1, x2, y1, y2 = self.region_x1, self.region_x2, self.region_y1, self.region_y2
-        smile_x = int(x1 + (x2 - x1) / 2)
-        smile_y = int(y1 + config.top / 2)
-        click_point = random_point_in_circle(smile_x, smile_y, r=10)
-
-        mouse_controller.click(click_point, MouseButton.left)
-
-        # todo но более феншуйно обновить с экрана и проверить - все ячейки должны стать закрытыми
-        self.fill_with_closed()
-
-        time.sleep(config.screen_refresh_lag * 10)
+        raise NotImplementedError("Метод you_win должен быть переопределен в дочернем классе.")
 
     def fill_with_closed(self):
         for c in self.table.flat:

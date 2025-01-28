@@ -16,6 +16,10 @@ from ..utility import MineMode
 from assets import *  # Ассеты уже инициализированы в __init__.py
 from screen_controller import recognize_led_digits
 from ..board import board
+from utils import random_point_in_circle
+import mouse_controller
+from mouse_controller import MouseButton
+
 
 class ScreenMatrix(Matrix):
 
@@ -53,11 +57,10 @@ class ScreenMatrix(Matrix):
                 # POSSIBLE DEPRECATED
                 # c.read_cell_from_screen(image_cell)  # нужно делать апдейт, потому что при простом старте у нас все ячейки закрыты, а если мы загружаем матрицу из Pickle, нужно ячейки распознавать.
 
-                """
-                TODO BUG 
-                
-                вот в этом месте ячейка с вместо closed получает content there_is_bomb
-                """
+
+                # TODO BUG
+                #  вот в этом месте ячейка с вместо closed получает content there_is_bomb
+
 
 
                 c.hash = c.hashing()
@@ -116,6 +119,32 @@ class ScreenMatrix(Matrix):
             crop = self.image_cell(cell)
             cell.read_cell_from_screen(crop)
 
+    def click_smile(self):
+        """
+        Нажимает на рожицу, чтобы перезапустить поле
+        TODO BUG Рожицы нет в играх на маленьких полях - на кастомных полях MinSweeper.Online шириной 7 и меньше
+        :return:
+
+        Сделать, чтобы эти настройки брались из asset.
+        Пока что мне кажется можно координату X брать как половину поля,
+        а Y из ассета
+        """
+
+        # face_coord_x = (self.region_x2 - self.region_x1)//2 + self.region_x1
+        # face_coord_y = self.region_y1 + board.smile_y_coord
+
+        x1, x2, y1, y2 = self.region_x1, self.region_x2, self.region_y1, self.region_y2
+        smile_x = int(x1 + (x2 - x1) / 2)
+        smile_y = int(y1 + config.top / 2)
+        click_point = random_point_in_circle(smile_x, smile_y, r=10)
+
+        mouse_controller.click(click_point, MouseButton.left)
+
+        # todo но более феншуйно обновить с экрана и проверить - все ячейки должны стать закрытыми
+        self.fill_with_closed()
+
+        time.sleep(config.screen_refresh_lag * 10)
+
     @property
     def you_win(self):
         """
@@ -130,65 +159,11 @@ class ScreenMatrix(Matrix):
         res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
 
-        # TODO Remove it from here!
         if max_val > precision:
             # print('You WIN!\n')
             return True
 
         return False
-
-    # DEPRECATED
-    #
-    # def bomb_qty(self, precision=0) -> int:
-    #     """
-    #     Возвращает число, которое на игровом поле на счетчике бомб (сколько еще спрятанных бомб на поле)
-    #     :return:
-    #     """
-    #     image = self.get_image()
-    #     # TODO нарушена логика - это должно быть в абстракции конкретной реализаии сапера.
-    #     #      перенести это в board
-    #     crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
-    #
-    #     # precision = 0.94
-    #     # precision = 0.837
-    #
-    #     # для Minesweeper online я подбирал значения;
-    #     # дома, на 1920х1080 (zoom 24) работает 0,837 (до сотых).
-    #     # Если больше (0,84) - он не "узнает" паттерны. Если меньше (0,8) - возникают ложные срабатывания,
-    #     # например, 7 может распознать как 1.
-    #     # НА САМОМ ДЕЛЕ, PRECISION ПОДОБРАН В search_pattern_in_image_for_red_bombs
-    #
-    #     found_digits = []
-    #     for pattern in red_digits:  # list_patterns imported from cell_pattern
-    #         template = pattern.raster
-    #
-    #         # result = util.find_templates(template, crop_img, precision)
-    #         # result = util.search_pattern_in_image_for_red_bombs(template, crop_img, precision)
-    #         result = search_pattern_in_image_for_red_bombs_on_work(template, crop_img, precision)
-    #
-    #         # `result` - это list of tuple
-    #         # каждый кортеж содержит список из трех числ:
-    #         # координаты найденной цифры - x и y, и с какой точностью определилась цифра. Напр.
-    #         # [(19, 66, 1.0), (32, 66, 0.998)]
-    #         for r in result:
-    #             found_digits.append((r[0], pattern.value))
-    #
-    #     # сортируем найденные цифры по координате X
-    #     digits = sorted(found_digits, key=lambda a: a[0])
-    #
-    #     if not digits:
-    #         # raise Exception('Не удалось прочитать кол-во бомб на поле.')
-    #         return None
-    #
-    #     _, numbers = zip(*digits)
-    #     bomb_qty: int = int(''.join(map(str, numbers)))
-    #     return bomb_qty
-
-    def bomb_qty(self) -> str:
-        image = self.get_image()
-        crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
-        qty = recognize_led_digits(crop_img)
-        return qty
 
     def cell_by_abs_coords(self, point):
         """
@@ -284,6 +259,29 @@ class ScreenMatrix(Matrix):
             save_dc.DeleteDC()
             mem_dc.DeleteDC()
             win32gui.ReleaseDC(hdesktop, desktop_dc)
+
+    @property
+    def get_remaining_mines(self) -> int:
+        """
+        Число мин минус число флагов. Это число отображается на LED индикаторе.
+        Реализация и смысл этого метода в screen и tk версиях совершенно различна. В tk мы используем сами данные матрицы,
+        чтобы получить значение led_mines и отобразить его на индикаторе, в то время как в screen версии мы
+        считываем индикатор, чтобы получить информацию о кол-ве мин.
+
+        Но итог один - метод возвращает число мин на индикаторе.
+        """
+        image = self.get_image()
+        crop_img = image[0:board.border['top'], 0:(self.region_x2 - self.region_x1) // 2]
+        qty = int(recognize_led_digits(crop_img))
+        return qty
+
+    def get_mined_cells(self) -> list[Cell]:
+        """
+        Возвращает список установленных мин в закрытых ячейках (только для Tk сапера).
+        :return:
+        """
+        raise NotImplementedError("Метод get_mined_cells не применим для MatrixScreen")
+        # def bomb_qty(self) -> str:
 
 
 __all__ = ['ScreenMatrix']

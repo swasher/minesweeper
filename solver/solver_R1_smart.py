@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import random
 from random import randrange
 import mouse_controller
@@ -5,8 +7,11 @@ import config
 import icecream as ic
 from core import Action
 
+if TYPE_CHECKING:
+    from core import Matrix
 
-def solver_R1_smart(matrix):
+
+def solver_R1_smart(matrix: Matrix):
     """
     Нажимает рандомную клетку из закрытых.
     Учитывает, с какой вероятностью в клетке будет бомба
@@ -15,10 +20,10 @@ def solver_R1_smart(matrix):
     """
     action = Action.open_cell
 
-    bomb_qty = int(matrix.bomb_qty())
-    print(f'Bomb qty: {bomb_qty}')
+    remain_mines = matrix.get_led_number
+    print(f'Led digit: {remain_mines}')
 
-    common_risk = bomb_qty / matrix.get_num_closed
+    common_risk = remain_mines / matrix.get_num_closed
     closed_cells = matrix.get_closed_cells()
 
     for cell in closed_cells:

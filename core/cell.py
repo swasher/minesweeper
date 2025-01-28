@@ -87,7 +87,7 @@ class Cell:
     @property
     def is_mined(self):
         # Является ли миной. Мина определенны в матрце. Используется в сапере Tk.
-        return self.matrix.is_mine(self)
+        return (self.row, self.col) in self.matrix.mines
 
     @property
     def is_digit(self):

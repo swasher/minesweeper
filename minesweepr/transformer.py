@@ -9,6 +9,8 @@ from .minesweeper_util import Board
 from .minesweeper_util import generate_rules
 from .minesweeper import solve
 
+from exceptions import InvalidCharacterError
+
 if TYPE_CHECKING:
     from core import Matrix
 
@@ -25,6 +27,12 @@ def transformer_ascii(matrix_ascii: list[str]) -> str:
         '×': 'x',  # unknown
         ' ': '',  # пробел заменяется на пустую строку
     }
+    print(matrix_ascii)
+
+    for i, string in enumerate(matrix_ascii):
+        for char in string:
+            if char not in replace_dict and char not in '0123456789':
+                raise InvalidCharacterError(f"Недопустимый символ: '{char}' в строке {i + 1}: '{string}'.")
 
     # Лямбда-функция для замены символов в строке
     transform_line = lambda line: ''.join(
@@ -39,8 +47,8 @@ def solver(matrix: Matrix):
     matrix_ascii = matrix.to_text()
     converted_ascii = transformer_ascii(matrix_ascii)
 
-    total_mines = matrix.get_num_mined() + matrix.get_num_flags
-    print("Total mines: ", total_mines)
+    total_mines = matrix.get_num_mines + matrix.get_num_flags
+    print("Total mines (для солвера; требуется уточнить, с учетом флагов или нет): ", total_mines)
 
     b = Board(converted_ascii)
     r = generate_rules(b, total_mines=total_mines)

@@ -31,19 +31,6 @@ class TkMatrix(Matrix):
 
         self.lastclicked = self.table[0, 0]
 
-    def get_mined_cells(self) -> list[Cell]:
-        """
-        Возвращает список установленных мин в закрытых ячейках (только для Tk сапера).
-        В отличие от get_num_mined - эта включает и мины с флагами!
-        """
-        return [self.table[row][col] for row, col in self.mines]
-
-    def get_num_mined(self) -> int:
-        """
-        Кол-во не помеченных флагами мин (обычно это число на LED-индикаторе)
-        """
-        return len(self.get_mined_cells()) - self.get_num_flags
-
     def create_new_game(self, n_bombs: int = 0):
         """
         Used to create a new game.
@@ -79,7 +66,7 @@ class TkMatrix(Matrix):
         :return: True если WIN, иначе False
         """
         # Первое условие: кол-во закрытых ячеек = кол-ву оставшихся мин
-        if self.get_num_closed != self.get_num_mined():
+        if self.get_num_closed != self.get_num_mines:
             return False
 
         # Второе условие: все закрытые ячейки и флаги содержат мины
@@ -216,12 +203,25 @@ class TkMatrix(Matrix):
             if m.content == closed:
                 m.content = flag
 
-    def bomb_qty(self) -> int:
+    def get_mined_cells(self) -> list[Cell]:
         """
-        Возвращает число, которое на игровом поле на счетчике бомб (сколько еще спрятанных бомб на поле)
+        Возвращает список ячеек с минами (только для Tk сапера).
+        """
+        return [self.table[row][col] for row, col in self.mines]
+
+    def get_remaining_mines(self) -> int:
+        """
+        Возвращает число, которое на игровом поле на LED счетчике бомб (сколько еще спрятанных бомб на поле)
         :return:
         """
-        return len(self.mines)
+        return self.total_mines - self.get_num_flags
+
+    @property
+    def get_num_mines(self) -> int:
+        """
+        Общее кол-во мин. На LED индикаторе отображается "общее кол-во мин минус кол-во флагов" - это свойство get_led_number.
+        """
+        return len(self.get_mined_cells())
 
 
 __all__ = ['TkMatrix']

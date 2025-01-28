@@ -79,6 +79,7 @@ class MatrixIO:
         mine_mode = self.matrix.mine_mode
         width = self.matrix.width
         height = self.matrix.height
+        remaining_mines = self.remaining_mines
 
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
@@ -89,6 +90,7 @@ class MatrixIO:
             outp.write("[properties]\n")
             outp.write(f"width = {width}\n")
             outp.write(f"height = {height}\n")
+            outp.write(f"remaining_mines = {remaining_mines}\n")
             outp.write(f"mode = {mine_mode.name}\n")
 
             outp.write("\n[matrix]\n")
@@ -160,6 +162,10 @@ class MatrixIO:
                         self.width = int(value)
                     elif key == 'height':
                         self.height = int(value)
+                    elif key == 'remaining_mines':
+                        # TODO У объекта Matrix я не делал такого свойства, remaining_mines - нужно подумать, где хранить эту цифру
+                        #  можно добавить к нему кол-во флагов и записать в self.total_mines, как вариант.
+                        self.remaining_mines_variable = int(value)
                     elif key == 'mode':
                         if value in ['PREDEFINED', 'UNDEFINED']:
                             loaded_mine_mode = MineMode[value]
@@ -210,17 +216,4 @@ class MatrixIO:
                 self.matrix.table[row, col] = cell
 
         print(f'Matrix loaded from {file_path}')
-        # self.matrix.display()
-
-        return solutions
-
-    def write_save(self, text_matrix: list[str]) -> bool:
-        ok = True
-        return ok
-
-    def read_save(self) -> str:
-        matrix_text = None
-        matrix_width = None
-        matrix_height = None
-        solutions_mines = None
-        solutions_empty = None
+        return solutions  # todo Это факен шайзе, возвращать тут solution.
