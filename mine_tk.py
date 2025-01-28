@@ -20,7 +20,6 @@ cell.is_mine - это спрятанная в ячейке бомба (в сет
 
 import os
 import argparse
-import random
 import threading
 import time
 from pathlib import Path
@@ -143,9 +142,10 @@ class MinesweeperApp:
         self.matrix.create_new_game(n_bombs=self.current_game.bombs)
 
         self.edit_mode = Mode.edit
-        # self.mine_mode = MineMode.PREDEFINED
-        self._show_probability = tk.BooleanVar(value=False)
+        self._edit_mode = tk.BooleanVar(value=False)
+        self.mine_mode = MineMode.PREDEFINED  # доступ к свойсву Matrix.mine_mode осуществляется через прокси сеттер-геттер MinesweeperApp.mine_mode
         self._consistency = FieldConsistency.UNKNOWN
+        self._show_probability = tk.BooleanVar(value=False)
 
         self.load_images()
 
@@ -302,26 +302,25 @@ class MinesweeperApp:
         self.edit_button = tk.Button(master=self.sidebar,
                                      text="Edit mode",
                                      font=self.segoe_bold,
-                                     command=lambda: self.set_mode(Mode.edit))
+                                     command=lambda: self.switch_edit_mode(Mode.edit))
         self.edit_button.grid(row=0, column=0, pady=5)
         ToolTip(self.edit_button, msg="Для Edit Mode нужно установить соотв. Mines Mode. Левая кнопка - ставить флаги.")
 
-        # Mines is known checkbox
-        self.checkbutton_mik = tk.Checkbutton(master=self.sidebar, text="", command=self.switch_mine_mode, bg='lightgrey')
-        self.checkbutton_mik.grid(row=2, column=0, pady=0)
-        ToolTip(self.checkbutton_mik, msg="ON - Мы устанавливаем мины, цифры ставятся автоматически."
-                                          " OFF - Мы устанавливаем цифры, положение мин в матрице неопределено")
-        self.checkbutton_mik.select() if self.mine_mode == MineMode.PREDEFINED else self.checkbutton_mik.deselect()
+        # "Mines is known" checkbox
+        self.label_mine_mode = tk.Label(self.sidebar, text="Mine Mode", bg='lightgrey')
+        self.label_mine_mode.grid(row=2, column=0, pady=(0, 0))
 
-        # Label for Mines is known mode
-        self.label_mik_mode = tk.Label(self.sidebar, text="(Set Bombs)", bg='lightgrey')
-        self.label_mik_mode.grid(row=3, column=0, pady=(0, 20))
+        self.checkbutton_mine_mode = tk.Checkbutton(master=self.sidebar, text="", variable=self._edit_mode, command=self.switch_mine_mode, bg='lightgrey')
+        self.checkbutton_mine_mode.grid(row=3, column=0, pady=0)
+        ToolTip(self.checkbutton_mine_mode, msg="ON - Мы устанавливаем мины, цифры ставятся автоматически."
+                                          " OFF - Мы устанавливаем цифры, положение мин в матрице неопределено")
+        # self.checkbutton_mik.select() if self.mine_mode == MineMode.PREDEFINED else self.checkbutton_mik.deselect()
 
         # Play mode button
         self.play_button = tk.Button(master=self.sidebar,
                                      text="Play mode",
                                      font=self.segoe_normal,
-                                     command=lambda: self.set_mode(Mode.play)
+                                     command=lambda: self.switch_edit_mode(Mode.play)
                                      )
         self.play_button.grid(row=4, column=0, pady=5)
         ToolTip(self.play_button, msg="Выходим из режима редактирования, и можем 'играть' в текущее поле")
@@ -330,7 +329,7 @@ class MinesweeperApp:
         self.checkbutton_showprob = tk.Checkbutton(master=self.sidebar, text="Prob.", variable=self._show_probability, command=self.switch_probality, bg='lightgrey')
         self.checkbutton_showprob.grid(row=5, column=0, pady=0)
         ToolTip(self.checkbutton_showprob, msg="Показывать вероятность мины в каждой клетке")
-        self.checkbutton_mik.deselect()
+        self._show_probability = True
 
         # Consistency Label
         self.consistency_label_head = tk.Label(self.sidebar, text="Consistency:", bg='lightgrey')
@@ -458,6 +457,7 @@ class MinesweeperApp:
         """
         Обновляет визуальное отображение в соответствии с объектом Matrix
         """
+        print('Updating grid...')
         for row in range(self.grid_height):
             for col in range(self.grid_width):
                 cell = self.matrix.table[row][col]
@@ -480,9 +480,9 @@ class MinesweeperApp:
                 self.canvas.delete(f"prob_{row}_{col}")
                 self.canvas.delete(f"dot_{row}_{col}")
 
-                if self._show_probability.get():
+                if self._show_probability:
                     # Добавляем текст с вероятностью
-                    if hasattr(cell, 'probability'):
+                    if cell.probability is not None:
                         x1, y1, x2, y2 = self.cells.get((row, col))['coords']
                         # Вычисляем центр ячейки
                         center_x = (x1 + x2) / 2
@@ -515,12 +515,10 @@ class MinesweeperApp:
                                 tags=f"prob_{row}_{col}"
                             )
 
-
-
         self.update_status_bar()
 
     def update_mine_counter(self):
-        count = self.matrix.get_num_mines
+        count = self.matrix.get_remaining_mines_count
         count_str = f"{count:03d}"
         print(f'Mines for LED: {count_str}')
         for i, digit in enumerate(count_str):
@@ -539,15 +537,15 @@ class MinesweeperApp:
         self.update_grid()
 
     def switch_mine_mode(self):
-        if self.mine_mode == MineMode.PREDEFINED:
+        if self.matrix.mine_mode == MineMode.PREDEFINED:
             response = messagebox.askyesno("Warning",
                                            "Это удалит все установленные мины с поля.")
             if response:
                 self.mine_mode = MineMode.UNDEFINED
-                self.checkbutton_mik.deselect()
+                self.checkbutton_mine_mode.deselect()
 
                 self.matrix.mines = set()
-                self.label_mik_mode.config(text="(Set Digits)")
+                self.label_mine_mode.config(text="(Set Digits)")
                 self.update_grid()
 
                 print("Switched to Mines is known - OFF")
@@ -566,7 +564,7 @@ class MinesweeperApp:
 
                 print("Switched to Mines is known - ON")
 
-    def set_mode(self, mode: Mode):
+    def switch_edit_mode(self, mode: Mode):
         """
         Switch from Edit to Play mode and back.
         :param mode: New mode to set
@@ -710,9 +708,9 @@ class MinesweeperApp:
                 # В режиме Mines is known - ON мы просто переключаем содержимое ячейки, включая скрытую бомбу. При этом обновляем цифры вокруг.
                 # В режиме Mines is known - OFF мы переключаем цифры в пустых ячейках
                 if self.mine_mode == MineMode.PREDEFINED:
-                    self.matrix.click_edit_mines_predefined(cell, button)
+                    self.matrix.click_cell_when_mines_predefined(cell, button)
                 else:
-                    self.matrix.click_edit_mines_undefined(cell, button)
+                    self.matrix.click_cell_when_mines_undefined(cell, button)
 
             try:
                 self.matrix.solve()

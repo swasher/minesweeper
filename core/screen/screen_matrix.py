@@ -261,7 +261,7 @@ class ScreenMatrix(Matrix):
             win32gui.ReleaseDC(hdesktop, desktop_dc)
 
     @property
-    def get_remaining_mines(self) -> int:
+    def get_remaining_mines_count(self) -> int:
         """
         Число мин минус число флагов. Это число отображается на LED индикаторе.
         Реализация и смысл этого метода в screen и tk версиях совершенно различна. В tk мы используем сами данные матрицы,
@@ -281,7 +281,6 @@ class ScreenMatrix(Matrix):
         :return:
         """
         raise NotImplementedError("Метод get_mined_cells не применим для MatrixScreen")
-        # def bomb_qty(self) -> str:
 
 
 __all__ = ['ScreenMatrix']

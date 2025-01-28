@@ -15,6 +15,7 @@ from minesweepr import solver
 get_closed - возвращает только закрытые и НЕ отмеченные флагами
 """
 
+
 class Matrix:
     """
     Описывает набор ячеек игрового поля и реализует логику.
@@ -278,27 +279,34 @@ class Matrix:
     @abstractmethod
     def get_mined_cells(self) -> list[Cell]:
         """
-        Возвращает список установленных мин в закрытых ячейках (только для Tk сапера).
+        (TK only)
+        Список всех мин.
         :return:
         """
         raise NotImplementedError("Метод get_mined_cells должен быть переопределен.")
 
-    def get_mined_without_flags(self):
-        ...
-
     @property
-    def get_num_mines(self) -> int:
+    def get_total_mines(self) -> int:
         """
-        Общее кол-во мин. Оно не меняется в процессе игры.
-        А на LED индикаторе отображается "общее кол-во мин минус кол-во флагов" - это свойство get_led_number.
+        Общее кол-во мин всех мин. Оно не меняется в процессе игры.
+        А на LED индикаторе отображается "общее кол-во мин минус кол-во флагов" - это get_remaining_mines_count.
         """
         return self.total_mines
 
+    @abstractmethod
+    def get_remaining_mines(self) -> list[Cell]:
+        """
+        (TK only)
+        Не уверен в необходимсти этого метода. Возвращает список нераскрытых мин (на которых нет флага).
+        Returns:
+        """
+        raise NotImplementedError("Метод get_remaining_mines должен быть переопределен.")
+
     @property
     @abstractmethod
-    def get_remaining_mines(self) -> int:
+    def get_remaining_mines_count(self) -> int:
         """
-        Число мин минус число флагов. Это число отображается на LED индикаторе.
+        Кол-во мин минус кол-во флагов. Это число отображается на LED индикаторе.
         Реализация и смысл этого метода в screen и tk версиях совершенно различна. В tk мы используем сами данные матрицы,
         чтобы получить значение led_mines и отобразить его на индикаторе, в то время как в screen версии мы
         считываем индикатор, чтобы получить информацию о кол-ве мин.
@@ -334,8 +342,6 @@ class Matrix:
         """
         return len(self.get_flagged_cells())
 
-
-
     @property
     def you_fail(self) -> bool:
         """
@@ -351,7 +357,7 @@ class Matrix:
     @abstractmethod
     def you_win(self) -> bool:
         """
-        Имплементируется по разному в Tk и в экранной версии.
+        Имплементируется по-разному в Tk и в экранной версии.
         """
         raise NotImplementedError("Метод you_win должен быть переопределен в дочернем классе.")
 

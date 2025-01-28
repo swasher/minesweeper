@@ -58,18 +58,19 @@ class TkMatrix(Matrix):
                 placed_mines += 1
         self.mine_mode = MineMode.PREDEFINED
 
-    def check_for_win(self):
+    def you_win(self) -> bool:
         """
+        Проверяет, находится ли поле в состоянии "выигрыш".
         Выигрыш, если:
         - количество закрытых ячеек + кол-во флагов = количеству мин
         - все (закрытые ячейки + флаги) содержат мины
         :return: True если WIN, иначе False
         """
         # Первое условие: кол-во закрытых ячеек = кол-ву оставшихся мин
-        if self.get_num_closed != self.get_num_mines:
+        if self.get_num_closed != self.get_remaining_mines_count:
             return False
 
-        # Второе условие: все закрытые ячейки и флаги содержат мины
+        # Второе условие: все закрытые ячейки и флаги содержат мины.
         # Получаем списки ячеек
         closed_cells = self.get_closed_cells()
         flag_cells = self.get_flagged_cells()
@@ -105,7 +106,7 @@ class TkMatrix(Matrix):
                 cell.content = find_asset_by_value(open_cells, target_value=mines)
 
                 # make check for win
-                if self.check_for_win():
+                if self.you_win():
                     # print("You Win!")
                     self.reveal_mines_win()
                     self.game_state = GameState.win
@@ -133,7 +134,7 @@ class TkMatrix(Matrix):
         else:
             pass  # do none if right click on other cells
 
-    def click_edit_mines_predefined(self, cell, button):
+    def click_cell_when_mines_predefined(self, cell, button):
         """
         Нажатие на ячейку в режиме редактирования мин.
 
@@ -173,7 +174,7 @@ class TkMatrix(Matrix):
             mines = self.around_mined_num(cell)
             cell.content = find_asset_by_value(open_cells, target_value=mines)
 
-    def click_edit_mines_undefined(self, cell, button):
+    def click_cell_when_mines_undefined(self, cell, button):
         """
         Нажатие на ячейку в режиме редактирования цифр
         """
@@ -205,23 +206,25 @@ class TkMatrix(Matrix):
 
     def get_mined_cells(self) -> list[Cell]:
         """
-        Возвращает список ячеек с минами (только для Tk сапера).
+        Возвращает список всех мин.
         """
         return [self.table[row][col] for row, col in self.mines]
 
-    def get_remaining_mines(self) -> int:
+    def get_remaining_mines(self) -> list[Cell]:
+        """
+        Возвращает список нераскрытых мин (на которых нет флага).
+        Returns:
+        """
+        cells = list([x for x in self.get_mined_cells() if not x.is_flag])
+        return cells
+
+    @property
+    def get_remaining_mines_count(self) -> int:
         """
         Возвращает число, которое на игровом поле на LED счетчике бомб (сколько еще спрятанных бомб на поле)
         :return:
         """
         return self.total_mines - self.get_num_flags
-
-    @property
-    def get_num_mines(self) -> int:
-        """
-        Общее кол-во мин. На LED индикаторе отображается "общее кол-во мин минус кол-во флагов" - это свойство get_led_number.
-        """
-        return len(self.get_mined_cells())
 
 
 __all__ = ['TkMatrix']

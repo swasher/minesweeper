@@ -44,10 +44,19 @@ def transformer_ascii(matrix_ascii: list[str]) -> str:
 
 
 def solver(matrix: Matrix):
-    matrix_ascii = matrix.to_text()
-    converted_ascii = transformer_ascii(matrix_ascii)
+    # Очищаем вероятности
+    for i in matrix.get_all_cells():
+        i.probability = None
 
-    total_mines = matrix.get_num_mines + matrix.get_num_flags
+    matrix_ascii = matrix.to_text()
+    try:
+        converted_ascii = transformer_ascii(matrix_ascii)
+    except InvalidCharacterError:
+        # В некоторых случаях, например по окончанию игры, матрица может содержать символы, которых нет
+        # в словаре, например, изображение бомбы, тогда просто завершаем.
+        return
+
+    total_mines = matrix.get_total_mines + matrix.get_num_flags
     print("Total mines (для солвера; требуется уточнить, с учетом флагов или нет): ", total_mines)
 
     b = Board(converted_ascii)
@@ -56,9 +65,6 @@ def solver(matrix: Matrix):
     mine_prevalence = r[1]
     solution = solve(rules=rules, mine_prevalence=mine_prevalence)
     # print(solution)
-
-    for i in matrix.get_all_cells():
-        i.probability = None
 
     # {'2-2': 0.5, '2-4': 0.5, '2-1': 0.5, '2-5': 0.5, '2-3': 0.0, None: 0.0}
     for k, v in solution.items():
