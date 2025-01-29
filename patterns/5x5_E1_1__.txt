@@ -1,13 +1,13 @@
 [properties]
 width = 5
 height = 5
-remaining_mines = 5
+remaining_mines = 1
 mode = UNDEFINED
 
 [matrix]
 × × × × ×
 × × × × ×
-1 1 1 1 1
+⚑ 1 1 1 1
 · · · · ·
 · · · · ·
 

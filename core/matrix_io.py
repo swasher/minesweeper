@@ -163,9 +163,9 @@ class MatrixIO:
                     elif key == 'height':
                         self.height = int(value)
                     elif key == 'remaining_mines':
-                        # TODO У объекта Matrix я не делал такого свойства, remaining_mines - нужно подумать, где хранить эту цифру
-                        #  можно добавить к нему кол-во флагов и записать в self.total_mines, как вариант.
-                        self.remaining_mines_variable = int(value)
+                        # У объекта Matrix я не делал такого свойства, remaining_mines. Но мы можем вычислить total_mines,
+                        # зная, сколько мин осталось и сколько флагов установлено (предполагая, что флаги стоят правильно)
+                        remaining_mines_from_file = int(value)
                     elif key == 'mode':
                         if value in ['PREDEFINED', 'UNDEFINED']:
                             loaded_mine_mode = MineMode[value]
@@ -203,6 +203,7 @@ class MatrixIO:
         self.matrix.mines = mines.copy()
         self.matrix.mine_mode = loaded_mine_mode
 
+
         # Заполняем матрицу данными
         for row in range(self.height):
             for col in range(self.width):
@@ -215,5 +216,6 @@ class MatrixIO:
                 cell.content = symbol_to_asset[symbol]
                 self.matrix.table[row, col] = cell
 
+        self.matrix.total_mines = remaining_mines_from_file + self.matrix.get_flagged_cells_count
         print(f'Matrix loaded from {file_path}')
         return solutions  # todo Это факен шайзе, возвращать тут solution.

@@ -20,23 +20,18 @@ cell.is_mine - это спрятанная в ячейке бомба (в сет
 
 import os
 import argparse
-import threading
 import time
 from pathlib import Path
 from win32gui import GetWindowRect, GetForegroundWindow
 from enum import IntEnum
+
 from typing import Callable
+from typing import Literal
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog
 from tkinter import font
 from tktooltip import ToolTip
-
-# import assets
-# asset_dir = 'asset_tk'
-# assets.init(asset_dir)
-
-# asset'ы должны инициализироваться до импорта остальных модулей Core, ВРОДЕ КАК
 
 from core.tk import TkMatrix
 from core import MineMode
@@ -61,62 +56,56 @@ class FieldConsistency(IntEnum):
     UNKNOWN = 2
 
 
+class Constants:
+    MIN_GRID_SIZE = 1
+    MAX_GRID_SIZE = 50
+    TIMER_UPDATE_MS = 1000
+    DEFAULT_CELL_SIZE = 24
+    MIN_WINDOW_WIDTH = 280
+    MIN_WINDOW_HEIGHT = 250
+
 class GameTimer:
-    def __init__(self, update_callback: Callable[[int], None]):
+    def __init__(self, update_callback: Callable[[int], None], root):
         """
         Инициализация таймера
 
         Args:
             update_callback: функция, которая будет вызываться при каждом обновлении времени
                            принимает один аргумент - количество прошедших секунд
+            root: главное окно Tkinter (для использования метода after)
         """
         self.seconds = 0
         self.is_running = False
         self.update_callback = update_callback
-        self.timer_thread = None
-        self._lock = threading.Lock()
+        self.root = root
 
     def _timer_loop(self):
-        """Основной цикл таймера, выполняющийся в отдельном потоке"""
-        while True:
-            with self._lock:
-                if not self.is_running:
-                    break
-                self.seconds += 1
-                # Вызываем callback для обновления отображения
-                self.update_callback(self.seconds)
-            time.sleep(1)
+        """Основной цикл таймера"""
+        if self.is_running:
+            self.seconds += 1
+            self.update_callback(self.seconds)
+            # Планируем следующий вызов через 1 секунду
+            self.root.after(Constants.TIMER_UPDATE_MS, self._timer_loop)
 
     def start(self):
         """Запуск таймера"""
-        with self._lock:
-            if not self.is_running:
-                self.is_running = True
-                self.timer_thread = threading.Thread(target=self._timer_loop, daemon=True)
-                self.timer_thread.start()
+        if not self.is_running:
+            self.is_running = True
+            self._timer_loop()
 
     def stop(self):
         """Остановка таймера"""
-        # with self._lock:
-        #     self.is_running = False
-        # if self.timer_thread:
-        #     self.timer_thread.join()
-        with self._lock:
-            self.is_running = False
+        self.is_running = False
 
     def reset(self):
         """Сброс таймера"""
-        with self._lock:
-            self.seconds = 0
-            self.is_running = False
-        if self.timer_thread:
-            self.timer_thread.join()
+        self.seconds = 0
+        self.is_running = False
         self.update_callback(0)
 
     def get_time(self) -> int:
         """Получить текущее время в секундах"""
-        with self._lock:
-            return self.seconds
+        return self.seconds
 
 
 class MinesweeperApp:
@@ -132,11 +121,10 @@ class MinesweeperApp:
         self.current_game = beginner
         self.grid_width = self.current_game.width
         self.grid_height = self.current_game.height
-        self.cell_size = 24  # размер ячейки в px
+        self.cell_size = Constants.DEFAULT_CELL_SIZE  # размер ячейки в px
         self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
 
-        self.use_timer = True
-        self.timer = GameTimer(self.update_timer_display)
+        self.timer = GameTimer(self.update_timer_display, root)
 
         self.matrix = TkMatrix(height=self.grid_height, width=self.grid_width)
         self.matrix.create_new_game(n_bombs=self.current_game.bombs)
@@ -269,10 +257,9 @@ class MinesweeperApp:
                                command=lambda: self.create_fresh_board(game=self.current_game))
         self.smile.pack(expand=True)
 
-        # Right frame for timer
+        # Right frame for LED timer
         self.right_frame = tk.Frame(self.top_frame, bg='lightgrey')
         self.right_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
-
         self.led_timer = [tk.Label(self.right_frame, image=self.images["led0"]) for _ in range(3)]
         for label in reversed(self.led_timer):
             label.pack(side=tk.RIGHT)
@@ -307,7 +294,7 @@ class MinesweeperApp:
         self.edit_button.grid(row=0, column=0, pady=5)
         ToolTip(self.edit_button, msg="Для Edit Mode нужно установить соотв. Mines Mode. Левая кнопка - ставить флаги.")
 
-        # "Mines is known" checkbox
+        # Mine mode checkbox
         self.label_mine_mode = tk.Label(self.sidebar, text="Mine Mode", bg='lightgrey')
         self.label_mine_mode.grid(row=2, column=0, pady=(0, 0))
 
@@ -332,7 +319,7 @@ class MinesweeperApp:
         self.play_button.grid(row=4, column=0, pady=5)
         ToolTip(self.play_button, msg="Выходим из режима редактирования, и можем 'играть' в текущее поле")
 
-        # Show probability checkbox
+        # Probability checkbox
         self.checkbutton_showprob = tk.Checkbutton(master=self.sidebar, text="Prob.", variable=self._show_probability, command=self.switch_probality, bg='lightgrey')
         self.checkbutton_showprob.grid(row=5, column=0, pady=0)
         ToolTip(self.checkbutton_showprob, msg="Показывать вероятность мины в каждой клетке")
@@ -345,11 +332,12 @@ class MinesweeperApp:
 
     def create_status_bar(self):
         self.status_bar_frame = tk.Frame(self.root)
-        self.status_bar_frame.grid(row=2, column=1, sticky='ns')
+        self.status_bar_frame.grid(row=3, column=0, sticky='ns')
         self.status_bar = tk.Label(self.status_bar_frame, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.grid(row=1, column=0, columnspan=2, sticky='we')
 
     def create_canvas(self):
+        # В canvas располагаются собственно ячейки
         self.canvas = tk.Canvas(
             self.grid_frame,
             width=self.grid_width * self.cell_size,
@@ -386,7 +374,8 @@ class MinesweeperApp:
         """
         width, height, bombs = game.width, game.height, game.bombs
 
-        if 1 <= width <= 50 and 1 <= height <= 50:
+        if (Constants.MIN_GRID_SIZE <= width <= Constants.MAX_GRID_SIZE
+                and Constants.MIN_GRID_SIZE <= height <= Constants.MAX_GRID_SIZE):
 
             self.current_game = game
             self.grid_width = width
@@ -402,12 +391,13 @@ class MinesweeperApp:
             self.root.update_idletasks()  # Ensure the grid is created before resizing
             geom_x = self.cell_size * width + self.sidebar.winfo_width()
             geom_y = self.cell_size * height + self.status_bar_frame.winfo_height() + self.top_frame.winfo_height()
+            geom_x = max(geom_x, Constants.MIN_WINDOW_WIDTH)
+            geom_y = max(geom_y, Constants.MIN_WINDOW_HEIGHT)
             self.root.geometry(f"{geom_x}x{geom_y}")
             self.root.title(f"Minesweeper {self.grid_width}x{self.grid_height}")
             print(f'Successfully set grid size to {width}x{height} and window to {geom_x}x{geom_y}')
         else:
             messagebox.showerror("Invalid Size", "Width and height must be between 1 and 50.")
-
 
     def fill_canvas(self):
         """Create grid using canvas instead of buttons"""
@@ -544,9 +534,15 @@ class MinesweeperApp:
 
     def switch_probality(self):
         """
-        Значение хранится в self._show_probability, а переключение осуществляется автоматом, потому что эта переменная указана в свойствах чекбокса.
+        Значение чекбокса хранится в self._show_probability, а переключение осуществляется автоматом, потому что эта переменная указана в свойствах чекбокса.
         """
+        if self._show_probability.get():
+            # При включении чекбокса обновляем вероятности
+            self.matrix.solve()
         self.update_grid()
+
+    def update_total_mines(self):
+        self.matrix.total_mines = len(self.matrix.mines)
 
     def switch_mine_mode(self):
         if self.matrix.mine_mode == MineMode.PREDEFINED:
@@ -568,9 +564,9 @@ class MinesweeperApp:
                 self.mine_mode = MineMode.PREDEFINED
                 self.checkbutton_mine_mode.select()
 
-                digits = self.matrix.get_digit_cells()
-                for d in digits:
-                    d.content = n0
+                digit_cells = self.matrix.get_digit_cells()
+                for cell in digit_cells:
+                    cell.content = n0
                 self.label_mine_mode.config(text="(Set Bombs)")
                 self.update_grid()
 
@@ -588,6 +584,11 @@ class MinesweeperApp:
         if mode == Mode.play and self.mine_mode == MineMode.UNDEFINED:
             print("Cannot switch to play mode: mines are not defined")
             return
+
+        if mode == Mode.edit:
+            self.timer.stop()
+        if mode == Mode.play and self.matrix.game_state is GameState.playing:
+            self.timer.start()
 
         # Обновление режима
         print(f"Switch mode to: {mode.name}")
@@ -628,13 +629,11 @@ class MinesweeperApp:
     def set_fail(self):
         self.set_smile(GameState.fail)
         self.update_grid()
-        if self.use_timer:
-            self.timer.stop()
+        self.timer.stop()
 
     def set_win(self):
         self.set_smile(GameState.win)
-        if self.use_timer:
-            self.timer.stop()
+        self.timer.stop()
 
     # def on_canvas_click_left(self, event):
     #     """Handle left click on canvas"""
@@ -682,20 +681,10 @@ class MinesweeperApp:
         if cell is not None:
             self.click_cell(event, cell, MouseButton.left)
 
-    def get_cell_from_coords(self, canvas_x, canvas_y) -> Cell | None:
-        """Convert canvas coordinates to grid coordinates"""
-        grid_x = int(canvas_y // self.cell_size)
-        grid_y = int(canvas_x // self.cell_size)
-
-        if 0 <= grid_x < self.grid_height and 0 <= grid_y < self.grid_width:
-            cell = self.matrix.table[grid_x][grid_y]
-            return cell
-        return None
-
     def click_cell(self, event, cell: Cell, button: MouseButton):
         if self.matrix.game_state == GameState.waiting:
             self.matrix.game_state = GameState.playing
-            if self.use_timer:
+            if self.edit_mode == Mode.play:
                 self.timer.start()
 
         if self.matrix.game_state == GameState.playing:
@@ -709,7 +698,7 @@ class MinesweeperApp:
                 else:
                     raise Exception('Unknown button')
 
-                # after logic had run, we check new game state
+                # after the logic had run, we checked a new game state
                 if self.matrix.game_state == GameState.fail:
                     print('Gave over')
                     self.set_fail()
@@ -724,10 +713,13 @@ class MinesweeperApp:
                 else:
                     self.matrix.click_cell_when_mines_undefined(cell, button)
 
-            try:
-                self.matrix.solve()
-            except InconsistencyError:
-                self.consistency = FieldConsistency.INVALID
+            if self._show_probability.get():
+                try:
+                    self.matrix.solve()
+                except InconsistencyError:
+                    self.consistency = FieldConsistency.INVALID
+
+            self.update_total_mines()
             self.update_grid()
             self.update_mine_counter()
             self.update_status_bar()
@@ -818,6 +810,20 @@ class MinesweeperApp:
             'window_rect': GetWindowRect(GetForegroundWindow()),
             'cell_size': self.cell_size
         }
+
+    ##########################
+    # END BLOCK
+    ##########################
+
+    def get_cell_from_coords(self, canvas_x, canvas_y) -> Cell | None:
+        """Convert canvas coordinates to grid coordinates"""
+        grid_x = int(canvas_y // self.cell_size)
+        grid_y = int(canvas_x // self.cell_size)
+
+        if 0 <= grid_x < self.grid_height and 0 <= grid_y < self.grid_width:
+            cell = self.matrix.table[grid_x][grid_y]
+            return cell
+        return None
 
 
 def main(load_matrix=None):
