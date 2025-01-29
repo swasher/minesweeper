@@ -1,0 +1,33 @@
+[properties]
+width = 4
+height = 11
+remaining_mines = 7
+mode = PREDEFINED
+
+[matrix]
+1 2 × ×
+⚑ 3 × ×
+2 × × ×
+1 × 2 ×
+1 1 2 ×
+1 × 2 ×
+1 × 2 ×
+1 1 2 ×
+2 × 2 ×
+⚑ × × ×
+⚑ ⚑ 2 1
+
+[mines]
+MINE 9 0
+MINE 1 2
+MINE 2 1
+MINE 8 1
+MINE 10 1
+MINE 9 2
+MINE 5 1
+MINE 3 3
+MINE 10 0
+MINE 1 0
+MINE 6 3
+
+[solution]

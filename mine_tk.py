@@ -136,19 +136,15 @@ class MinesweeperApp:
         self._show_probability = tk.BooleanVar(value=False)
 
         self.load_images()
+        self.cells = {}
 
         self.create_top_frame()
+        self.create_sidebar()
         self.create_status_bar()
         self.create_menu()
-        
-        # Add this line to properly place the grid_frame
-        self.grid_frame = tk.Frame(self.root)
-        self.grid_frame.grid(row=1, column=1, sticky='nw')  # Add grid configuration
-        
-        self.cells = {}
         self.create_canvas()
-        self.fill_canvas()
-        self.create_sidebar()
+        # deprecated self.fill_canvas()
+
         self.create_fresh_board(game=beginner)
         self.update_mine_counter()
 
@@ -332,11 +328,16 @@ class MinesweeperApp:
 
     def create_status_bar(self):
         self.status_bar_frame = tk.Frame(self.root)
-        self.status_bar_frame.grid(row=3, column=0, sticky='ns')
+        self.status_bar_frame.grid(row=2, column=0, columnspan=2, sticky='nsew')
+
         self.status_bar = tk.Label(self.status_bar_frame, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.grid(row=1, column=0, columnspan=2, sticky='we')
 
     def create_canvas(self):
+        # Add this line to properly place the grid_frame
+        self.grid_frame = tk.Frame(self.root)
+        self.grid_frame.grid(row=1, column=1, sticky='nw')  # Add grid configuration
+
         # В canvas располагаются собственно ячейки
         self.canvas = tk.Canvas(
             self.grid_frame,
@@ -400,7 +401,7 @@ class MinesweeperApp:
             messagebox.showerror("Invalid Size", "Width and height must be between 1 and 50.")
 
     def fill_canvas(self):
-        """Create grid using canvas instead of buttons"""
+        """Create grid using canvas"""
         # Clear existing canvas items
         self.canvas.delete("all")
 
@@ -524,7 +525,7 @@ class MinesweeperApp:
             try:
                 self.mine_counter[i].config(image=self.images[f"led{digit}"])
             except:
-                print('Почему-то возникала такая ситуация, что когда мы снимаем флаг при кол-ве мин 0, оно становится -1, соотв. при конвертации в LED цифры будет эксепшн')
+                print('ERROR! Невозможно преобразовать get_remaining_mines_count в LED. Value:', count)
 
     def update_timer_display(self, seconds: int):
         # Обновление отображения времени в интерфейсе
@@ -605,9 +606,6 @@ class MinesweeperApp:
         # Управление доступностью чекбокса
         self.checkbutton_mine_mode.config(state='normal' if mode == Mode.edit else 'disabled')
 
-        # Обновление изображения
-        # deprecated image_name = "there_is_bomb.png" if mode == Mode.edit else "closed.png"
-        # deprecated  image_path = Path(__file__).resolve().parent / 'assets' / Path(asset_dir).joinpath(image_name)
         if mode == Mode.edit:
             self.images["there_is_bomb"] = self.images["there_is_bomb_"]
         else:
@@ -724,10 +722,21 @@ class MinesweeperApp:
             self.update_mine_counter()
             self.update_status_bar()
 
+        if self._show_probability.get():
+            try:
+                self.matrix.solve()
+            except InconsistencyError:
+                self.consistency = FieldConsistency.INVALID
+
+
+
     def save_matrix(self):
         self.matrix.save()
 
     def load_matrix(self, matrix_file=None):
+
+        # TODO Тут много общего с create_fresh_board(), надо как-то оптимизировать
+
         save_storage_dir = Path(__file__).resolve().parent / 'saves'
 
         if not matrix_file:
@@ -741,10 +750,30 @@ class MinesweeperApp:
         if matrix_file:
             self.matrix.load(file_path)
             w, h = self.matrix.width, self.matrix.height
-            g = Game(w, h, bombs=0)
-            self.set_custom_size(g)
+            game = Game(w, h, bombs=0)
+
+            self.timer.reset()
+            self.set_custom_size(game)
+            self.update_mine_counter()
+            self.matrix.game_state = GameState.waiting
+            self.set_smile(self.matrix.game_state)
             self.update_grid()
-            print("Field loaded successfully!")
+
+            # self.mine_mode = ...
+            print('Matrix mine mode', self.matrix.mine_mode.name)
+            print('Self mine mode', self.mine_mode.name)
+
+            """
+            ПОСЛЕ ЗАГРУЗКИ МАТРИЦЫ НУЖНО ПЕРЕКЛЮЧАТЬСЯ
+            - ЕСЛИ UNDEFINED
+              -> ИЗ ЛЮБОГО РЕЖИМА В -> EDIT UNDEFINED
+            - ЕСЛИ PREDEFINED
+              - PLAY -> ОСТАЕТСЯ PLAY
+              - EDIT -> ПЕРЕКЛЮЧАЕТСЯ НА EDIT PREDEFINED
+            """
+
+        print("Field loaded successfully!")
+        self.switch_edit_mode(mode=Mode.play)
 
     def on_closing(self):
         self.timer.stop()  # Stop the timer thread

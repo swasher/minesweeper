@@ -53,23 +53,27 @@ def solver(matrix: Matrix):
         converted_ascii = transformer_ascii(matrix_ascii)
     except InvalidCharacterError:
         # В некоторых случаях, например по окончанию игры, матрица может содержать символы, которых нет
-        # в словаре, например, изображение бомбы, тогда просто завершаем.
+        # в словаре, например, изображение бомбы, тогда просто выходим и оставляем значения вероятностей в Cell пустыми.
         return
 
     # В солвер нужно передевать общее кол-во мин на поле - то есть remaining + flags
     total_mines = matrix.get_remaining_mines_count + matrix.get_num_flags
+    print("Total mines -> solver:", total_mines)
 
     b = Board(converted_ascii)
     r = generate_rules(b, total_mines=total_mines)
     rules = r[0]
     mine_prevalence = r[1]
+
+    mine_prevalence = 0.1
+
     solution = solve(rules=rules, mine_prevalence=mine_prevalence)
 
     if True:
         sorted_solution = dict(sorted((k, v) for k, v in solution.items() if k is not None))
         print(sorted_solution)
+        # like {'2-2': 0.5, '2-4': 0.5, '2-1': 0.5, '2-5': 0.5, '2-3': 0.0, None: 0.0}
 
-    # {'2-2': 0.5, '2-4': 0.5, '2-1': 0.5, '2-5': 0.5, '2-3': 0.0, None: 0.0}
     for k, v in solution.items():
         if k is None:
             pass  # Значит v это вероятность для всех клеток, возле которых нет цифр

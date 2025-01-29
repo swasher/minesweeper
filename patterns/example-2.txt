@@ -1,0 +1,126 @@
+[properties]
+width = 30
+height = 16
+remaining_mines = 32
+mode = PREDEFINED
+
+[matrix]
+× × × × × 1 · 1 1 2 ⚑ 1 · · · · · 1 ⚑ 1 2 ⚑ 3 1 1 × × × × ×
+× × × × × 2 1 1 ⚑ 2 1 1 · · · 1 1 2 1 1 2 ⚑ ⚑ 2 2 × × × × ×
+× × ⚑ ⚑ 4 ⚑ 1 1 1 1 · · · · · 2 ⚑ 2 · 1 2 3 3 3 ⚑ 2 × × × ×
+× × 4 4 ⚑ 4 3 1 · · · · · · · 2 ⚑ 2 · 2 ⚑ 2 1 ⚑ 2 2 × × × ×
+× × ⚑ 3 3 ⚑ ⚑ 1 · · · · · · · 1 2 2 1 3 ⚑ 3 1 2 2 2 × × × ×
+× × 3 4 ⚑ 4 2 1 · · 1 2 2 1 · · 1 ⚑ 1 2 ⚑ 2 · 2 ⚑ 4 × × × ×
+× × 3 ⚑ ⚑ 3 2 2 1 · 1 ⚑ ⚑ 1 · · 1 2 2 2 2 2 2 3 ⚑ × × × × ×
+× × 3 2 2 2 ⚑ ⚑ 1 · 1 2 2 1 · 1 1 3 ⚑ 3 2 ⚑ 2 ⚑ 3 × × × × ×
+× × 3 2 1 3 3 3 1 · 1 2 3 3 3 3 ⚑ 3 ⚑ ⚑ 2 2 3 2 2 × × × × ×
+× × ⚑ 2 ⚑ 2 ⚑ 1 · · 1 ⚑ ⚑ ⚑ ⚑ ⚑ 3 4 3 3 1 1 ⚑ 1 2 × × × × ×
+× × 2 2 2 3 2 1 1 1 2 2 4 ⚑ 4 4 ⚑ 3 ⚑ 1 · 1 1 1 2 × × × × ×
+× × 2 1 1 ⚑ 1 · 1 ⚑ 2 1 1 1 1 3 ⚑ 5 2 1 · · 1 1 3 × × × × ×
+× × ⚑ 3 2 2 1 · 1 2 ⚑ 1 · 1 1 3 ⚑ ⚑ 1 · · · 1 ⚑ 3 × × × × ×
+× 3 ⚑ 3 ⚑ 2 1 · · 1 2 2 1 1 ⚑ 3 3 4 2 1 · · 1 2 × × × × × ×
+× × 2 2 2 ⚑ 1 · · · 2 ⚑ 2 1 1 3 ⚑ 3 ⚑ 1 · · 1 3 × × × × × ×
+× × 1 · 1 1 1 · · · 2 ⚑ 2 · · 2 ⚑ 3 1 1 · · 1 ⚑ ⚑ × × × × ×
+
+[mines]
+MINE 5 1
+MINE 12 25
+MINE 11 5
+MINE 2 2
+MINE 8 18
+MINE 5 28
+MINE 7 1
+MINE 6 11
+MINE 13 26
+MINE 13 24
+MINE 15 23
+MINE 4 2
+MINE 11 16
+MINE 1 8
+MINE 6 4
+MINE 15 16
+MINE 7 21
+MINE 9 12
+MINE 11 9
+MINE 7 23
+MINE 9 14
+MINE 13 14
+MINE 15 11
+MINE 7 7
+MINE 1 21
+MINE 4 20
+MINE 4 29
+MINE 0 25
+MINE 14 5
+MINE 12 17
+MINE 3 23
+MINE 0 18
+MINE 10 28
+MINE 11 27
+MINE 2 24
+MINE 12 10
+MINE 6 24
+MINE 5 4
+MINE 4 6
+MINE 9 2
+MINE 14 16
+MINE 3 16
+MINE 14 25
+MINE 13 2
+MINE 11 29
+MINE 2 26
+MINE 0 29
+MINE 14 0
+MINE 14 18
+MINE 13 4
+MINE 2 1
+MINE 9 25
+MINE 2 28
+MINE 7 18
+MINE 14 11
+MINE 12 23
+MINE 8 1
+MINE 1 4
+MINE 2 3
+MINE 8 19
+MINE 5 20
+MINE 10 16
+MINE 10 25
+MINE 6 3
+MINE 6 12
+MINE 13 27
+MINE 15 24
+MINE 3 4
+MINE 12 16
+MINE 9 11
+MINE 2 5
+MINE 10 18
+MINE 11 26
+MINE 13 29
+MINE 4 5
+MINE 9 4
+MINE 11 1
+MINE 9 13
+MINE 0 10
+MINE 5 24
+MINE 9 22
+MINE 2 16
+MINE 15 1
+MINE 11 28
+MINE 7 6
+MINE 12 2
+MINE 1 29
+MINE 6 25
+MINE 9 6
+MINE 0 3
+MINE 3 20
+MINE 5 17
+MINE 8 16
+MINE 10 13
+MINE 9 15
+MINE 2 0
+MINE 5 26
+MINE 0 21
+MINE 1 22
+
+[solution]
