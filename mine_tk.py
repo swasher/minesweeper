@@ -61,8 +61,8 @@ class Constants:
     MAX_GRID_SIZE = 50
     TIMER_UPDATE_MS = 1000
     DEFAULT_CELL_SIZE = 24
-    MIN_WINDOW_WIDTH = 280
-    MIN_WINDOW_HEIGHT = 250
+    MIN_WINDOW_WIDTH = 195
+    MIN_WINDOW_HEIGHT = 265
 
 class GameTimer:
     def __init__(self, update_callback: Callable[[int], None], root):
@@ -111,6 +111,7 @@ class GameTimer:
 class MinesweeperApp:
     def __init__(self, root, matrix_file=None):
         self.root = root
+        root.resizable(False, False)
         self.root.geometry("300x300")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)  # Bind the close event
 
@@ -143,7 +144,6 @@ class MinesweeperApp:
         self.create_status_bar()
         self.create_menu()
         self.create_canvas()
-        # deprecated self.fill_canvas()
 
         self.create_fresh_board(game=beginner)
         self.update_mine_counter()
@@ -278,8 +278,12 @@ class MinesweeperApp:
         size_menu.add_command(label="Custom", command=self.create_fresh_board)
 
     def create_sidebar(self):
-        self.sidebar = tk.Frame(self.root, width=83, padx=3, bg='lightgrey')
-        self.sidebar.grid(row=1, column=0, rowspan=self.grid_height, sticky='ns')
+        self.sidebar = tk.Frame(self.root, width=83, height=200, padx=3, bg='lightgrey')
+
+        # self.sidebar.grid(row=1, column=0, rowspan=self.grid_height, sticky='ns')
+        # Добавляем rowspan и sticky
+        self.sidebar.grid(row=1, column=0, rowspan=1, sticky='nsw')  # rowspan=1 вместо self.grid_height
+
         self.sidebar.grid_propagate(False)  # Prevent the sidebar from resizing based on its children
 
         # Edit mode button
@@ -328,15 +332,18 @@ class MinesweeperApp:
 
     def create_status_bar(self):
         self.status_bar_frame = tk.Frame(self.root)
-        self.status_bar_frame.grid(row=2, column=0, columnspan=2, sticky='nsew')
+        self.status_bar_frame.grid(row=2, column=0, columnspan=2, sticky='ew')
 
         self.status_bar = tk.Label(self.status_bar_frame, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.status_bar.grid(row=1, column=0, columnspan=2, sticky='we')
+        # self.status_bar.grid(row=0, column=0, sticky='nsew')
+        self.status_bar.pack(fill=tk.X)  # Используем pack вместо grid для label
 
     def create_canvas(self):
         # Add this line to properly place the grid_frame
         self.grid_frame = tk.Frame(self.root)
-        self.grid_frame.grid(row=1, column=1, sticky='nw')  # Add grid configuration
+        # self.grid_frame.grid(row=1, column=1, sticky='nw')
+        # Добавляем rowspan
+        self.grid_frame.grid(row=1, column=1, rowspan=1, sticky='nw')  # rowspan=1
 
         # В canvas располагаются собственно ячейки
         self.canvas = tk.Canvas(
@@ -381,6 +388,9 @@ class MinesweeperApp:
             self.current_game = game
             self.grid_width = width
             self.grid_height = height
+
+            # canvas_width = max(, 200)
+            # canvas_height = max(, 200)
 
             # Update canvas size
             self.canvas.config(
@@ -533,6 +543,9 @@ class MinesweeperApp:
         for i, digit in enumerate(time_str):
             self.led_timer[i].config(image=self.images[f"led{digit}"])
 
+    def update_total_mines(self):
+        self.matrix.total_mines = len(self.matrix.mines)
+
     def switch_probality(self):
         """
         Значение чекбокса хранится в self._show_probability, а переключение осуществляется автоматом, потому что эта переменная указана в свойствах чекбокса.
@@ -541,9 +554,6 @@ class MinesweeperApp:
             # При включении чекбокса обновляем вероятности
             self.matrix.solve()
         self.update_grid()
-
-    def update_total_mines(self):
-        self.matrix.total_mines = len(self.matrix.mines)
 
     def switch_mine_mode(self):
         if self.matrix.mine_mode == MineMode.PREDEFINED:
