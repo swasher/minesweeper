@@ -7,7 +7,7 @@ from config import config
 from screen_controller import capture_full_screen
 from screen_controller import cell_coordinates
 from screen_controller import search_pattern_in_image
-
+from exceptions import BoardNotFound
 
 def find_board():
     """
@@ -21,21 +21,19 @@ def find_board():
     :return cells_coord_y: [array of int] Координаты столбцов (верхних левых углов клеток, относительно доски)
     :return region: [x1, y1, x2, y2] координаты доски сапера на экране, первая пара - верхний левый угол, вторая пара - нижний правый угол. Включает всю доску с полями вокруг.
     """
-    closedcell = closed
 
     print('Try finding board...')
     image = capture_full_screen()
 
     precision = 0.8
-    cells = search_pattern_in_image(closedcell.raster, image, precision)
+    cells = search_pattern_in_image(closed.raster, image, precision)
     cells_coord_x, cells_coord_y = cell_coordinates(cells)
 
-    if not len(cells_coord_x + cells_coord_y):
-        print(' - not found, exit')
-        exit()
+    if not len(cells_coord_x) or not len(cells_coord_y):
+        raise BoardNotFound
     print(f' - found, {len(cells_coord_x)}x{len(cells_coord_y)}')
 
-    template = closedcell.raster
+    template = closed.raster
     h, w = template.shape[:2]
 
     # Это поля "игрового поля" в дополнение к самим клеткам в пикселях

@@ -35,7 +35,6 @@ class Matrix:
         # TODO Переместить эти две строчки в PlayMatrix? с одной стороны, известные мины
         #  только в Playmatrix могут быть, с другой, у нас есть методы, которые используют мины и находятся в Matrix
 
-
     def save(self):
         text = self.to_text()
         self.io.save(text)
