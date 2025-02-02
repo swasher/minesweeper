@@ -9,6 +9,7 @@ from screen_controller import cell_coordinates
 from screen_controller import search_pattern_in_image
 from exceptions import BoardNotFound
 
+
 def find_board():
     """
     Находит поле сапера на экране и возвращает координаты клеток и область, в которой находится доска.

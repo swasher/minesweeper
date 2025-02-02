@@ -50,9 +50,4 @@ cv.TM_SQDIFF_NORMED
 
 Гауссово размытие (https://docs.opencv.org/4.x/d4/d13/tutorial_py_filtering.html)
 
-    smooth = cv2.GaussianBlur(image, (95,95), 0)
-
-
-
-
-
+    smoothed_image = cv2.GaussianBlur(image, (95,95), 0)

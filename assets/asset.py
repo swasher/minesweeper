@@ -134,7 +134,7 @@ def initialize_assets(custom_path=None):
         'n8': Asset('8', dir_path.joinpath('8.png'), 8, '8'),
 
         # other cells
-        'closed': Asset('closed', dir_path.joinpath('closed.png'), None, '×'),
+        'closed': Asset('closed', dir_path.joinpath('closed.png'), None, '░'),  #×
         'bomb': Asset('bomb', dir_path.joinpath('bomb.png'), None, '⚹'),
         'bomb_red': Asset('bomb_red', dir_path.joinpath('bomb_red.png'), None, '💥'),
         'bomb_wrong': Asset('bomb_wrong', dir_path.joinpath('bomb_wrong.png'), None, '⚐'),

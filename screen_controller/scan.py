@@ -14,7 +14,7 @@ from utils import find_file
 
 def find_matching_pattern(image: npt.NDArray[np.uint8], patterns: set[Asset]) -> tuple[any, float]:
     """
-    Ищет подходящий паттерн для изображения
+    Ищет подходящий паттерн для изображения image среди набора изображений patterns.
 
     Args:
         image: исходное BGR изображение, представленное как ndarray
@@ -121,96 +121,96 @@ def search_pattern_in_image(pattern: npt.NDArray[np.uint8], image: npt.NDArray[n
     return cells
 
 
-def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArray, precision: float = 0):
-    """
-    Это немного тюнингованная версия search_pattern_in_image.
-    Отличается настройками распознавания, заточенными под большие красные цифры (бомбы).
-
-    Сканирует изображение image в поисках шаблона pattern (множественные вхождения).
-    Возвращает два списка row_values и col_values. Начало координат - верх лево.
-
-    Чем меньше значение precision, тем больше "похожих" клеток находит скрипт. При поиске клеток доски:
-    При значении 0.6 он вообще зацикливается
-    При значении 0.7 он находит closed cell в самых неожиданных местах
-    Значение 0.9 выглядит ок, но на экране 2560х1440 находит несколько ячеек
-    смещенных на 1 пиксель - это из-за того, что сами ячейки экрана имеют плавающий размер, при этом
-    сами ячейки находятся нормально. Увеличение threshold при этом качество результата не увеличивает - смещены сами ячейки на экране.
-    В результирующем списке ячейки расположены хаотично,
-    поэтому нам нужно разобрать список координат отдельно по X и отдельно по Y, и создать 2D матрицу ячеек.
-
-    :param pattern: образец, который надо найти в image
-    :param image: изображение, например снимок экрана или взятое из файла
-    :param precision - точность поиска, см. описание
-
-    :return: cells_coord_x - список координаты по оси X для каждого столбца (в пикселях относительно верха лева экрана)
-    :return: cells_coord_y - анал. по оси Y
-    :rtype:
-    """
-
-    h, w = pattern.shape[:2]
-
-    # method = cv.TM_CCOEFF
-    method = cv.TM_CCOEFF_NORMED  # ++
-    # method = cv.TM_CCORR
-    # method = cv.TM_CCORR_NORMED  # ++
-    # method = cv.TM_SQDIFF
-    # method = cv.TM_SQDIFF_NORMED
-
-    ### precision для TM_CCORR_NORMED, при котором удачно распознаются цифры (mine.online, 1920х1080, size 24)
-    # bombs - min pecision - max precision
-    # 099 - 0.937 - 0.944
-    # 098 - 0.935 - 0.935
-    # 098 - 0.931 - 0.944
-    # 097 - 0.931 - 0.944
-    # 096 - 0.929 - 0.944
-    # 095 - 0.929 - 0.944
-    # 094 - 0.929 - 0.944
-    # 093 - 0.929 - 0.944
-    # 092 - 0.929 - 0.944
-    # 091 - 0.929 - 0.944
-    # 090 - 0.929 - 0.944
-    # 089 - 0.937 - 0.947
-    # 088 - 0.935 - 0.947
-    # 087 - 0.933 - 0.947
-
-    # precision = 0.940
-    res = cv.matchTemplate(image, pattern, method)
-
-    # fake out max_val for first run through loop
-    max_val = 1
-
-    cells = []
-    # debug - view found cells
-    dc = win32gui.GetDC(0)
-
-    while max_val > precision:
-        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-
-        if max_val > precision:
-            res[max_loc[1] - h // 2:max_loc[1] + h // 2 + 1, max_loc[0] - w // 2:max_loc[0] + w // 2 + 1] = 0
-            image = cv.rectangle(image, (max_loc[0], max_loc[1]), (max_loc[0] + w + 1, max_loc[1] + h + 1), (0, 255, 0))
-            cellule = (max_loc[0], max_loc[1], max_val)
-            cells.append(cellule)
-
-            # debug - put digit on found cells
-            # cv.putText(image, '1', (max_loc[0]+3, max_loc[1]+10), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-
-            # debug - view found cells
-            # x, y = max_loc[0], max_loc[1]
-            # win32gui.Rectangle(dc, x + 3, y + 3, x + 8, y + 8)
-
-    # # DEBUG; YOU CAN SEE WHAT GRABBING
-    # # draw at each cell it's row and column number
-    # for c in cells:
-    #     x = c[1]
-    #     y = c[0]
-    #     cv.putText(image, str(x), (y + 11, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-    #     cv.putText(image, str(y), (y + 19, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
-    # # cv.imwrite('output.png', image)
-    # cv.imshow("Display window", image)
-    # k = cv.waitKey(0)
-
-    return cells
+# def search_pattern_in_image_for_red_bombs(pattern: npt.NDArray, image: npt.NDArray, precision: float = 0):
+#     """
+#     Это немного тюнингованная версия search_pattern_in_image.
+#     Отличается настройками распознавания, заточенными под большие красные цифры (бомбы).
+#
+#     Сканирует изображение image в поисках шаблона pattern (множественные вхождения).
+#     Возвращает два списка row_values и col_values. Начало координат - верх лево.
+#
+#     Чем меньше значение precision, тем больше "похожих" клеток находит скрипт. При поиске клеток доски:
+#     При значении 0.6 он вообще зацикливается
+#     При значении 0.7 он находит closed cell в самых неожиданных местах
+#     Значение 0.9 выглядит ок, но на экране 2560х1440 находит несколько ячеек
+#     смещенных на 1 пиксель - это из-за того, что сами ячейки экрана имеют плавающий размер, при этом
+#     сами ячейки находятся нормально. Увеличение threshold при этом качество результата не увеличивает - смещены сами ячейки на экране.
+#     В результирующем списке ячейки расположены хаотично,
+#     поэтому нам нужно разобрать список координат отдельно по X и отдельно по Y, и создать 2D матрицу ячеек.
+#
+#     :param pattern: образец, который надо найти в image
+#     :param image: изображение, например снимок экрана или взятое из файла
+#     :param precision - точность поиска, см. описание
+#
+#     :return: cells_coord_x - список координаты по оси X для каждого столбца (в пикселях относительно верха лева экрана)
+#     :return: cells_coord_y - анал. по оси Y
+#     :rtype:
+#     """
+#
+#     h, w = pattern.shape[:2]
+#
+#     # method = cv.TM_CCOEFF
+#     method = cv.TM_CCOEFF_NORMED  # ++
+#     # method = cv.TM_CCORR
+#     # method = cv.TM_CCORR_NORMED  # ++
+#     # method = cv.TM_SQDIFF
+#     # method = cv.TM_SQDIFF_NORMED
+#
+#     ### precision для TM_CCORR_NORMED, при котором удачно распознаются цифры (mine.online, 1920х1080, size 24)
+#     # bombs - min pecision - max precision
+#     # 099 - 0.937 - 0.944
+#     # 098 - 0.935 - 0.935
+#     # 098 - 0.931 - 0.944
+#     # 097 - 0.931 - 0.944
+#     # 096 - 0.929 - 0.944
+#     # 095 - 0.929 - 0.944
+#     # 094 - 0.929 - 0.944
+#     # 093 - 0.929 - 0.944
+#     # 092 - 0.929 - 0.944
+#     # 091 - 0.929 - 0.944
+#     # 090 - 0.929 - 0.944
+#     # 089 - 0.937 - 0.947
+#     # 088 - 0.935 - 0.947
+#     # 087 - 0.933 - 0.947
+#
+#     # precision = 0.940
+#     res = cv.matchTemplate(image, pattern, method)
+#
+#     # fake out max_val for first run through loop
+#     max_val = 1
+#
+#     cells = []
+#     # debug - view found cells
+#     dc = win32gui.GetDC(0)
+#
+#     while max_val > precision:
+#         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+#
+#         if max_val > precision:
+#             res[max_loc[1] - h // 2:max_loc[1] + h // 2 + 1, max_loc[0] - w // 2:max_loc[0] + w // 2 + 1] = 0
+#             image = cv.rectangle(image, (max_loc[0], max_loc[1]), (max_loc[0] + w + 1, max_loc[1] + h + 1), (0, 255, 0))
+#             cellule = (max_loc[0], max_loc[1], max_val)
+#             cells.append(cellule)
+#
+#             # debug - put digit on found cells
+#             # cv.putText(image, '1', (max_loc[0]+3, max_loc[1]+10), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+#
+#             # debug - view found cells
+#             # x, y = max_loc[0], max_loc[1]
+#             # win32gui.Rectangle(dc, x + 3, y + 3, x + 8, y + 8)
+#
+#     # # DEBUG; YOU CAN SEE WHAT GRABBING
+#     # # draw at each cell it's row and column number
+#     # for c in cells:
+#     #     x = c[1]
+#     #     y = c[0]
+#     #     cv.putText(image, str(x), (y + 11, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+#     #     cv.putText(image, str(y), (y + 19, x + 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, 255)
+#     # # cv.imwrite('output.png', image)
+#     # cv.imshow("Display window", image)
+#     # k = cv.waitKey(0)
+#
+#     return cells
 
 
 

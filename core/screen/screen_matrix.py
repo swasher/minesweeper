@@ -20,6 +20,7 @@ from utils import random_point_in_circle
 import mouse_controller
 from mouse_controller import MouseButton
 
+from line_profiler_pycharm import profile
 
 class ScreenMatrix(Matrix):
 
@@ -50,8 +51,10 @@ class ScreenMatrix(Matrix):
                 abscoordx = coordx + self.region_x1
                 abscoordy = coordy + self.region_y1
                 c = Cell(self, row, col, coordx, coordy, abscoordx, abscoordy, w, h)
-                image_cell = self.image_cell(c)
-                c.image = image_cell
+                c.update_cell_image_from_screenshot()
+                # инициализируем начальный хеш
+                c.hash = c.hashing()
+                # предполагается, что в старт происходит со всеми закрытыми ячейками. Если это не так, будет ошибка и это никак не проверяется, оставляя это на совесть юзера.
                 c.content = closed
 
                 # POSSIBLE DEPRECATED
@@ -95,13 +98,7 @@ class ScreenMatrix(Matrix):
         """
         return self.region_x1, self.region_y1, self.region_x2, self.region_y2
 
-    def image_cell(self, cell):
-        """
-        вырезает из image сооветствующую ячейку.
-        :return: ndarray (image)
-        """
-        return self.image[cell.coordy:cell.coordy+cell.h, cell.coordx:cell.coordx+cell.w]
-
+    @profile
     def update_from_screen(self):
         """
         Запускает обновление всех ячеек, считывая их с экрана (поле Minesweeper'а)
@@ -109,15 +106,14 @@ class ScreenMatrix(Matrix):
         # This is very important string! After click, website (and browser, or even Vienna program) has a lag
         # beetween click and refreshing screen.  If we do not waiting at this point, our code do not see any changes
         # after mouse click.
-        time.sleep(config.screen_refresh_lag)
+        # time.sleep(config.screen_refresh_lag)
 
         self.image = self.get_image()
 
         # Робот не может снять флаг, а вот когда человек играет - может. Поэтому нужно обновлять и ячейки с флагами тоже.
-        cells_for_updating = self.get_closed_cells() + self.get_flagged_cells()
+        cells_for_updating = self.get_closed_cells() + self.get_flagged_cells() + self.get_digit_cells()
         for cell in cells_for_updating:
-            crop = self.image_cell(cell)
-            cell.read_cell_from_screen(crop)
+            cell.update_cell_content_according_screen()
 
     def click_smile(self):
         """

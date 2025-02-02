@@ -207,7 +207,7 @@ def recognize_led_digits(image_source, digit_count: int = None) -> str:
             print(f'Score: {best_score:.2f} (seems to confirm with {best_match} digit)')
 
         if best_score < 0.6:  # Если корреляция ниже порога, игнорируем результат
-            raise ValueError("Слишком низкая корреляция для одной из цифр")
+            raise ValueError("Слишком низкая корреляция для одной из цифр:", best_score)
 
         if best_match is None:
             raise ValueError("Не удалось распознать одну из цифр")

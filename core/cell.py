@@ -160,40 +160,32 @@ class Cell:
         Используется при сканировании поля, чтобы понять, изменилась ли ячейка.
         :return:
         """
-        c = self.image.copy(order='C')
+        content = self.image.copy(order='C')
         h = xxhash.xxh64()
-        h.update(c)
+        h.update(content)
         intdigits = h.intdigest()
         return intdigits
 
-    def read_cell_from_screen(self, crop):
+    def update_cell_image_from_screenshot(self):
+        crop = self.matrix.image[self.coordy:self.coordy+self.h, self.coordx:self.coordx+self.w]
+        self.image = crop
+
+    def update_cell_content_according_screen(self):
         """
         Обновляет содержимое ячейки в соответствии с ячейком на экране.
-        :param crop: актуальное изображение ячейки
         :return: None
         """
-        self.image = crop
+        self.update_cell_image_from_screenshot()
+
         new_hash = self.hashing()
         if self.hash != new_hash:
             self.hash = new_hash
 
-            # precision = 0.8
-            #
-            # for pattern in assets.all_cell_types:  # list_patterns imported from cell_pattern
-            #     template = pattern.raster
-            #     res = cv.matchTemplate(crop, template, cv.TM_CCOEFF_NORMED)
-            #     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-            #     # print(f'Cell {self.row}:{self.col} compared with <{pattern.name}> with result {max_val}')
-            #     pattern.similarity = max_val
-            #     if max_val > precision:
-            #         self.content = pattern
-            #         break
-
-            pattern, _ = find_matching_pattern(crop, all_cell_types)
+            pattern, _ = find_matching_pattern(self.image, all_cell_types)
             if pattern:
                 self.content = pattern
             else:  # если перебор for не дал результатов
-                print(f'Update board: Cell {self.row}x{self.col} do not match anything. Exit')
+                print(f'Update board error: Cell {self.row}x{self.col} do not match anything. Exit')
                 exit()
 
     def point_in_cell(self, point):

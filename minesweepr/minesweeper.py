@@ -108,7 +108,12 @@ class Rule_(ImmutableMixin):
         self.num_cells = num_cells if num_cells is not None else sum(len(cell_) for cell_ in cells_)
 
         if self.num_mines < 0 or self.num_mines > self.num_cells:
-            raise InconsistencyError('rule with negative mines / more mines than cells')
+            print('self.num_mines:', self.num_mines, ' self.num_cells:', self.num_cells)
+            # todo Swasher
+            #  Эта ошибка возникает, если поставить неправильный флаг (то есть оно считает, что там мина, но поле при этом становится неконсистентным)
+            #  НО! По моему, ошибка возникает и в каких-то других случаях, возможно связанных с плохим распознаванием матрицы.
+            print('Error FLAG in cells_:', cells_)
+            raise InconsistencyError('rule with negative mines / more mines than cells in', cells_)
 
     def decompose(self):
         """if rule is completely full or empty of mines, split into sub-rules
